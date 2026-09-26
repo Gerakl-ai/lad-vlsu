@@ -1,5 +1,7 @@
 import type { ScheduleState } from "../../types";
 import {
+  canonicalGroupProfile,
+  canonicalInstituteId,
   isGroupProfile,
   LEGACY_PI124_GROUP,
   type GroupOption,
@@ -43,7 +45,11 @@ function scheduleCacheKey(nrec: string) {
 
 export function readSelectedGroup(): GroupProfile | null {
   const selected = readJson<unknown>(SELECTED_GROUP_KEY);
-  if (isGroupProfile(selected)) return selected;
+  if (isGroupProfile(selected)) {
+    const group = canonicalGroupProfile(selected);
+    if (group !== selected) writeJson(SELECTED_GROUP_KEY, group);
+    return group;
+  }
 
   const legacySchedule = readJson<ScheduleState>(LEGACY_SCHEDULE_CACHE_KEY);
   if (!legacySchedule) return null;
@@ -53,13 +59,14 @@ export function readSelectedGroup(): GroupProfile | null {
 }
 
 export function writeSelectedGroup(group: GroupProfile) {
-  writeJson(SELECTED_GROUP_KEY, group);
-  rememberRecentGroup(group);
+  const canonical = canonicalGroupProfile(group);
+  writeJson(SELECTED_GROUP_KEY, canonical);
+  rememberRecentGroup(canonical);
 }
 
 function validGroupList(key: string) {
   const groups = readJson<unknown[]>(key);
-  return Array.isArray(groups) ? groups.filter(isGroupProfile) : [];
+  return Array.isArray(groups) ? groups.filter(isGroupProfile).map(canonicalGroupProfile) : [];
 }
 
 export function readFavoriteGroups(): GroupProfile[] {
@@ -85,16 +92,17 @@ export function rememberRecentGroup(group: GroupProfile) {
 }
 
 export function readKnownGroup(nrec: string, instituteId?: string): GroupProfile | null {
+  const canonicalId = canonicalInstituteId(nrec, instituteId);
   const selected = readJson<unknown>(SELECTED_GROUP_KEY);
   const known = [selected, ...readFavoriteGroups(), ...readRecentGroups()]
     .find((item): item is GroupProfile => isGroupProfile(item)
       && item.nrec === nrec
-      && (!instituteId || item.instituteId === instituteId));
-  if (known) return known;
+      && (!canonicalId || canonicalGroupProfile(item).instituteId === canonicalId));
+  if (known) return canonicalGroupProfile(known);
 
-  if (!instituteId) return null;
-  const institute = readInstituteCatalog()?.items.find((item) => item.id === instituteId);
-  const group = readGroupCatalog(instituteId)?.items.find((item) => item.nrec === nrec);
+  if (!canonicalId) return null;
+  const institute = readInstituteCatalog()?.items.find((item) => item.id === canonicalId);
+  const group = readGroupCatalog(canonicalId)?.items.find((item) => item.nrec === nrec);
   return institute && group ? {
     ...group,
     id: group.nrec,

@@ -45,10 +45,10 @@ const group = {
   id: "7936a2a43b11b20b01d30f5b00c73166",
   nrec: "7936a2a43b11b20b01d30f5b00c73166",
   name: "ПИ-124",
-  instituteId: "iite",
+  instituteId: "5b42fa53ec1dd1892e5ec44a3a60a896",
   instituteName: "Институт информационных технологий и электроники",
   instituteShortName: "ИИТЭ",
-  visualKey: "iite"
+  visualKey: "institute-1"
 };
 
 (async () => {

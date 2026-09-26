@@ -6,7 +6,7 @@ import {
   writeGroupCatalog,
   writeInstituteCatalog
 } from "./groupStorage";
-import { toGroupProfile, type GroupProfile } from "./groupTypes";
+import { canonicalGroupProfile, canonicalInstituteId, toGroupProfile, type GroupProfile } from "./groupTypes";
 
 export interface GroupLinkReference {
   nrec: string;
@@ -18,13 +18,14 @@ export function parseGroupLink(search: string): GroupLinkReference | null {
   const nrec = params.get("group")?.trim();
   const instituteId = params.get("institute")?.trim();
   if (!nrec) return null;
-  return { nrec, ...(instituteId ? { instituteId } : {}) };
+  return { nrec, ...(instituteId ? { instituteId: canonicalInstituteId(nrec, instituteId) } : {}) };
 }
 
 export function groupLinkUrl(group: GroupProfile, href: string) {
+  const canonical = canonicalGroupProfile(group);
   const url = new URL(href);
-  url.searchParams.set("group", group.nrec);
-  url.searchParams.set("institute", group.instituteId);
+  url.searchParams.set("group", canonical.nrec);
+  url.searchParams.set("institute", canonical.instituteId);
   url.searchParams.delete("compose");
   return url.toString();
 }
@@ -35,16 +36,17 @@ export function syncGroupLink(group: GroupProfile) {
 }
 
 export async function resolveGroupLink(reference: GroupLinkReference): Promise<GroupProfile | null> {
-  const known = readKnownGroup(reference.nrec, reference.instituteId);
+  const instituteId = canonicalInstituteId(reference.nrec, reference.instituteId);
+  const known = readKnownGroup(reference.nrec, instituteId);
   if (known) return known;
-  if (!reference.instituteId) return null;
+  if (!instituteId) return null;
 
   let institutes = readInstituteCatalog()?.items ?? [];
-  if (!institutes.some((item) => item.id === reference.instituteId)) {
+  if (!institutes.some((item) => item.id === instituteId)) {
     institutes = await loadInstitutes();
     if (institutes.length) writeInstituteCatalog(institutes);
   }
-  const institute = institutes.find((item) => item.id === reference.instituteId);
+  const institute = institutes.find((item) => item.id === instituteId);
   if (!institute) return null;
 
   let groups = readGroupCatalog(institute.id)?.items ?? [];

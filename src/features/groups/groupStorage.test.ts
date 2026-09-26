@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ScheduleState } from "../../types";
-import { LEGACY_PI124_GROUP } from "./groupTypes";
+import { LEGACY_PI124_GROUP, PI124_INSTITUTE_ID } from "./groupTypes";
 import {
   readFavoriteGroups,
   readGroupScheduleCache,
@@ -43,6 +43,17 @@ describe("group storage", () => {
     expect(readSelectedGroup()).toEqual(LEGACY_PI124_GROUP);
     expect(readGroupScheduleCache(LEGACY_PI124_GROUP)).toEqual(schedule);
     expect(localStorage.getItem("pi124.schedule.cache")).toBeTruthy();
+  });
+
+  it("repairs an old selected PI-124 institute id without touching its schedule", () => {
+    const oldProfile = { ...LEGACY_PI124_GROUP, instituteId: "iite", visualKey: "iite" };
+    const schedule = { groupNrec: LEGACY_PI124_GROUP.nrec, fetchedAt: "2026-09-15T08:00:00.000Z" };
+    localStorage.setItem("lad.selected-group.v2", JSON.stringify(oldProfile));
+    localStorage.setItem(`lad.schedule.v2:${LEGACY_PI124_GROUP.nrec}`, JSON.stringify(schedule));
+
+    expect(readSelectedGroup()).toEqual(LEGACY_PI124_GROUP);
+    expect(readKnownGroup(LEGACY_PI124_GROUP.nrec, PI124_INSTITUTE_ID)).toEqual(LEGACY_PI124_GROUP);
+    expect(localStorage.getItem(`lad.schedule.v2:${LEGACY_PI124_GROUP.nrec}`)).toBe(JSON.stringify(schedule));
   });
 
   it("keeps independent schedule snapshots for different groups", () => {

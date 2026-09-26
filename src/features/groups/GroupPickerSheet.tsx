@@ -54,7 +54,8 @@ function matchesSearch(values: Array<string | undefined>, query: string) {
 
 function snapshotLabel(coverage: StaticCoverage | null, nrec: string) {
   const capturedAt = coverage?.groups[nrec]?.capturedAt;
-  return capturedAt ? `Снимок ${new Date(capturedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}` : null;
+  if (capturedAt) return `Снимок ${new Date(capturedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
+  return coverage ? "Нет снимка" : null;
 }
 
 export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: GroupPickerSheetProps) {

@@ -42,15 +42,27 @@ export interface GroupProfile extends GroupOption {
   visualKey: string;
 }
 
+export const PI124_GROUP_NREC = "7936a2a43b11b20b01d30f5b00c73166";
+export const PI124_INSTITUTE_ID = "5b42fa53ec1dd1892e5ec44a3a60a896";
+
 export const LEGACY_PI124_GROUP: GroupProfile = {
-  id: "7936a2a43b11b20b01d30f5b00c73166",
-  nrec: "7936a2a43b11b20b01d30f5b00c73166",
+  id: PI124_GROUP_NREC,
+  nrec: PI124_GROUP_NREC,
   name: "ПИ-124",
-  instituteId: "iite",
+  instituteId: PI124_INSTITUTE_ID,
   instituteName: "Институт информационных технологий и электроники",
   instituteShortName: "ИИТЭ",
-  visualKey: "iite"
+  visualKey: "institute-1"
 };
+
+export function canonicalInstituteId(nrec: string, instituteId: string | undefined) {
+  return nrec === PI124_GROUP_NREC && instituteId === "iite" ? PI124_INSTITUTE_ID : instituteId;
+}
+
+export function canonicalGroupProfile(group: GroupProfile): GroupProfile {
+  if (group.nrec !== PI124_GROUP_NREC || group.instituteId !== "iite") return group;
+  return { ...group, instituteId: PI124_INSTITUTE_ID, visualKey: "institute-1" };
+}
 
 // Сокращения и палитры институтов живут в instituteVisuals.ts:
 // таблица по стабильному id вместо регулярок по названию.
