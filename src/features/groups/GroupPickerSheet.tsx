@@ -54,8 +54,8 @@ function matchesSearch(values: Array<string | undefined>, query: string) {
 
 function snapshotLabel(coverage: StaticCoverage | null, nrec: string) {
   const capturedAt = coverage?.groups[nrec]?.capturedAt;
-  if (capturedAt) return `Снимок ${new Date(capturedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
-  return coverage ? "Нет снимка" : null;
+  if (capturedAt) return `Есть данные от ${new Date(capturedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
+  return coverage ? "Данных пока нет" : null;
 }
 
 export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: GroupPickerSheetProps) {
@@ -210,7 +210,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
         </div>
         {coverage && showCoverageWarning && (
           <p className="group-picker-coverage">
-            Расписание на сервере есть для {coverage.available} из {coverage.catalogGroups} групп. Остальные пока недоступны.
+            На сервере сохранено расписание для {coverage.available} из {coverage.catalogGroups} групп. Для остальных данных пока нет.
           </p>
         )}
 
