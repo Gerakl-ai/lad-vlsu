@@ -15,6 +15,7 @@ from typing import Any, Callable
 
 
 GROUP_CODE = re.compile(r"-\d{3}(?:\b|$)")
+PAIR_LABEL = re.compile(r"\b(\d{1,2})-я пара\b")
 
 
 def detect_group_headers(
@@ -70,6 +71,13 @@ def source_hash(path: Path) -> str:
         for chunk in iter(lambda: source.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def detect_pair_count(rail_text: str) -> int:
+    pairs = [int(value) for value in PAIR_LABEL.findall(rail_text)]
+    if not pairs or pairs != list(range(1, len(pairs) + 1)) or len(pairs) > 10:
+        raise ValueError(f"Cannot verify pair labels in time rail: {pairs}")
+    return len(pairs)
 
 
 def main() -> None:
@@ -146,8 +154,11 @@ def main() -> None:
                               min(headers[-1][2], x1 + bleed), bottom), output / context_image)
                 if not (output / rail_image).exists():
                     render(page, (30, top, headers[0][0], bottom), output / rail_image)
+                pair_count = detect_pair_count(page.get_textbox(
+                    pymupdf.Rect(30, top, headers[0][0], bottom)))
                 day_images.append({"day": day_number, "groupImage": group_image,
                                    "contextImage": context_image, "timeRailImage": rail_image,
+                                   "pairCount": pair_count,
                                    "bounds": [x0, top, x1, bottom]})
             entries.append({"id": f"p{page_number:02d}-g{column_number:02d}",
                             "page": page_number, "column": column_number,

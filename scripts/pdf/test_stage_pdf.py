@@ -1,6 +1,6 @@
 import unittest
 
-from stage_pdf import detect_day_bounds, detect_group_headers
+from stage_pdf import detect_day_bounds, detect_group_headers, detect_pair_count
 
 
 def rect(x0, y0, x1, y1, kind):
@@ -32,6 +32,12 @@ class GeometryTests(unittest.TestCase):
                          [(100, 243, 900, 285)])
         with self.assertRaisesRegex(ValueError, "incomplete"):
             detect_group_headers(drawings, 1000)
+
+    def test_pair_count_comes_from_time_rail(self):
+        labels = "1-я пара\nПонедельник\n2-я пара\n3-я пара\n4-я пара\n5-я пара\n6-я пара"
+        self.assertEqual(detect_pair_count(labels), 6)
+        with self.assertRaisesRegex(ValueError, "Cannot verify"):
+            detect_pair_count("1-я пара\n3-я пара")
 
     def test_day_bands_require_full_width_lines(self):
         drawings = [rect(30, 328, 970, 328, "s"), rect(30, 924, 970, 924, "s"),
