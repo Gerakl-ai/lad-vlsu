@@ -1106,6 +1106,49 @@ select,
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.52), 0 0 34px rgba(var(--accent-rgb), 0.08), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
+.schedule-period-empty {
+  display: grid;
+  justify-items: start;
+  gap: 11px;
+  padding: 23px;
+  border: 1px solid rgba(var(--accent-rgb), 0.34);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.schedule-period-empty > svg {
+  color: rgb(var(--accent-rgb));
+}
+
+.schedule-period-empty h2,
+.schedule-period-empty p {
+  margin: 0;
+}
+
+.schedule-period-empty h2 {
+  font-size: clamp(18px, 1.3rem, 22px);
+  line-height: 1.18;
+}
+
+.schedule-period-empty p {
+  max-width: 48ch;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.schedule-period-empty button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid rgba(var(--accent-rgb), 0.36);
+  border-radius: 8px;
+  color: var(--text);
+  background: rgba(var(--accent-rgb), 0.08);
+}
+
 /* Без строки прогресса карточке нечем заполнять минимальную высоту, и под
    текстом оставалась заметная пустота. Пусть в таких режимах высоту задаёт
    содержимое. */

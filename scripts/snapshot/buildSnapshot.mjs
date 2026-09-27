@@ -93,6 +93,12 @@ export function sha256(value) {
   return createHash("sha256").update(stableStringify(value)).digest("hex");
 }
 
+function validDateKey(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
 /** Пишет файл только если содержимое изменилось — коммит отражает реальную правку. */
 async function writeIfChanged(filePath, contents, { dryRun }) {
   let previous = null;
@@ -127,11 +133,17 @@ export async function collectCoverage(outDir, catalog) {
         || snapshot.group?.nrec !== match[1]
         || !scheduleQuality(snapshot.schedule)
         || snapshot.scheduleHash !== sha256({ semester: snapshot.semester, schedule: snapshot.schedule })
+        || ((snapshot.validFrom !== undefined || snapshot.validThrough !== undefined)
+          && (!validDateKey(snapshot.validFrom) || !validDateKey(snapshot.validThrough)
+            || snapshot.validFrom > snapshot.validThrough))
         || !Number.isFinite(Date.parse(snapshot.capturedAt))) continue;
       groups[match[1]] = {
         capturedAt: snapshot.capturedAt,
         semester: snapshot.semester,
-        scheduleHash: snapshot.scheduleHash
+        scheduleHash: snapshot.scheduleHash,
+        ...(snapshot.validFrom && snapshot.validThrough
+          ? { validFrom: snapshot.validFrom, validThrough: snapshot.validThrough }
+          : {})
       };
     } catch {
       // A corrupt file must not be advertised as available.

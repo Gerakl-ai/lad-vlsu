@@ -137,6 +137,31 @@ describe("coverage manifest", () => {
       await rm(root, { recursive: true, force: true });
     }
   });
+
+  it("keeps a reviewed document period in coverage and rejects malformed dates", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "lad-coverage-"));
+    const nrec = "d".repeat(32);
+    const schedule = [{ type: "Lessons", name: "Понедельник", n1: "111-3, лб, Базы данных" }];
+    const target = path.join(root, "schedule", `${nrec}.json`);
+    const snapshot = {
+      schemaVersion: 3, group: { nrec }, semester: 5, schedule,
+      scheduleHash: sha256({ semester: 5, schedule }), capturedAt: "2026-09-27T12:00:00Z",
+      validFrom: "2026-09-01", validThrough: "2026-12-30"
+    };
+    try {
+      await mkdir(path.dirname(target));
+      await writeFile(target, JSON.stringify(snapshot));
+      const catalog = [{ groups: [{ nrec }] }];
+      expect((await collectCoverage(root, catalog)).groups[nrec].validThrough).toBe("2026-12-30");
+      await writeFile(target, JSON.stringify({ ...snapshot, validThrough: "2026-02-31" }));
+      expect((await collectCoverage(root, catalog)).available).toBe(0);
+    } finally {
+      if (!path.resolve(root).startsWith(path.join(path.resolve(os.tmpdir()), "lad-coverage-"))) {
+        throw new Error("Refusing to remove an unexpected test directory");
+      }
+      await rm(root, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("instituteShortName", () => {

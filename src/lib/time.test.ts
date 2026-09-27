@@ -116,4 +116,11 @@ describe("autumn teaching week restrictions", () => {
     expect(visible.variants).toHaveLength(1);
     expect(selectDayLessons([mixed], 3, "all", date("2026-11-04"))[0].variants).toHaveLength(2);
   });
+
+  it("does not repeat a PDF semester outside its document period", () => {
+    const dated = { ...lesson("111-3, лб, Базы данных"), validFrom: "2026-09-01", validThrough: "2026-12-30" };
+    expect(selectDayLessons([dated], 3, "all", date("2026-08-26"))).toHaveLength(0);
+    expect(selectDayLessons([dated], 3, "all", date("2026-09-23"))).toHaveLength(1);
+    expect(selectDayLessons([dated], 3, "all", date("2027-02-03"))).toHaveLength(0);
+  });
 });

@@ -25,6 +25,8 @@ export interface LessonSlot {
   dayName: string;
   date?: string;
   dateLabel?: string;
+  validFrom?: string;
+  validThrough?: string;
   scheduleKind?: "classes" | "exam";
   isConsultation?: boolean;
   pairIndex: number;
@@ -64,6 +66,14 @@ export interface ScheduleState {
   currentInfo: CurrentInfo;
   allLessons: LessonSlot[];
   fetchedAt: string;
+  validFrom?: string;
+  validThrough?: string;
+  sourceDocument?: {
+    title: string;
+    url: string;
+    sha256: string;
+    reviewedAt: string;
+  };
   weekTypeAsOf?: string;
   schemaVersion?: number;
   source?: ScheduleDataSource;

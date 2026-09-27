@@ -149,6 +149,8 @@ export function selectDayLessons(lessons: LessonSlot[], dayIndex: number, weekMo
     .filter((lesson) => {
       if (!lessonAppliesToWeek(lesson, weekMode)) return false;
       if (lesson.date) return lesson.date === targetDate;
+      if (lesson.validFrom && targetDate < lesson.validFrom) return false;
+      if (lesson.validThrough && targetDate > lesson.validThrough) return false;
       return lesson.dayIndex === dayIndex;
     })
     .map((lesson) => lessonForTeachingWeek(lesson, date))

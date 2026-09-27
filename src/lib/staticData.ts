@@ -54,14 +54,28 @@ export interface StaticScheduleSnapshot {
   quality: { valid: boolean; scheduleEntries: number; lessonDays: number; examEntries: number; warnings: string[] };
   scheduleHash: string;
   capturedAt: string;
+  validFrom?: string;
+  validThrough?: string;
+  sourceDocument?: {
+    title: string;
+    url: string;
+    sha256: string;
+    reviewedAt: string;
+  };
   provenance?: unknown;
+}
+
+function validDateKey(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
 export interface StaticCoverage {
   checkedAt: string;
   catalogGroups: number;
   available: number;
-  groups: Record<string, { capturedAt: string; semester: number | null; scheduleHash: string }>;
+  groups: Record<string, { capturedAt: string; semester: number | null; scheduleHash: string; validFrom?: string; validThrough?: string }>;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -166,7 +180,10 @@ export function normalizeStaticCoverage(payload: unknown): StaticCoverage {
     groups[nrec] = {
       capturedAt: item.capturedAt,
       semester: typeof item.semester === "number" ? item.semester : null,
-      scheduleHash: item.scheduleHash
+      scheduleHash: item.scheduleHash,
+      ...(validDateKey(item.validFrom) && validDateKey(item.validThrough) && item.validFrom <= item.validThrough
+        ? { validFrom: item.validFrom, validThrough: item.validThrough }
+        : {})
     };
   }
   return {
@@ -231,7 +248,17 @@ export function normalizeStaticSnapshot(payload: unknown, expectedNrec: string):
     || typeof payload.capturedAt !== "string"
     || Number.isNaN(Date.parse(payload.capturedAt))
     || !isRecord(payload.quality)
-    || payload.quality.valid !== true) {
+    || payload.quality.valid !== true
+    || ((payload.validFrom !== undefined || payload.validThrough !== undefined)
+      && (!validDateKey(payload.validFrom) || !validDateKey(payload.validThrough)
+        || payload.validFrom > payload.validThrough))
+    || (payload.sourceDocument !== undefined && (!isRecord(payload.sourceDocument)
+      || !validDateKey(payload.validFrom) || !validDateKey(payload.validThrough)
+      || typeof payload.sourceDocument.title !== "string" || !payload.sourceDocument.title.trim()
+      || typeof payload.sourceDocument.url !== "string" || !payload.sourceDocument.url.startsWith("https://")
+      || typeof payload.sourceDocument.sha256 !== "string" || !/^[a-f\d]{64}$/i.test(payload.sourceDocument.sha256)
+      || typeof payload.sourceDocument.reviewedAt !== "string"
+      || !Number.isFinite(Date.parse(payload.sourceDocument.reviewedAt))))) {
     throw new Error("Снимок расписания имеет неизвестный формат");
   }
   return payload as unknown as StaticScheduleSnapshot;
@@ -259,12 +286,20 @@ export function scheduleStateFromSnapshot(
   now = Date.now()
 ): ScheduleState {
   const capturedAtMs = Date.parse(snapshot.capturedAt);
+  const lessons = normalizeSchedule(snapshot.schedule);
   return {
     schemaVersion: STATIC_SCHEMA_VERSION,
     groupNrec: snapshot.group.nrec,
     currentInfo: currentInfoFromSnapshot(snapshot, weekType),
-    allLessons: normalizeSchedule(snapshot.schedule),
+    allLessons: snapshot.validFrom && snapshot.validThrough
+      ? lessons.map((lesson) => lesson.scheduleKind === "exam" ? lesson : {
+          ...lesson, validFrom: snapshot.validFrom, validThrough: snapshot.validThrough
+        })
+      : lessons,
     fetchedAt: snapshot.capturedAt,
+    validFrom: snapshot.validFrom,
+    validThrough: snapshot.validThrough,
+    sourceDocument: snapshot.sourceDocument,
     weekTypeAsOf: snapshot.capturedAt,
     source: "static-snapshot",
     snapshotAgeSeconds: Math.max(0, Math.floor((now - capturedAtMs) / 1000)),

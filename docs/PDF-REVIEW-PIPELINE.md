@@ -57,6 +57,45 @@ python scripts/pdf/stage_pdf.py --source "<путь-к-PDF>" --sha256 a9cc2c23cf
 этот PDF не обеспечивает. Источник, частоту обновлений и право публикации
 нужно согласовать с ВлГУ до массового запуска.
 
+## Черновик и проверенный снимок
+
+После сверки колонки с каталогом создаётся пустая форма. Нужен сохранённый
+`catalog.json` из ветки `data`; команды ниже не обращаются к API ВлГУ.
+
+```powershell
+node scripts/pdf/createReviewTemplate.mjs --staging "artifacts/pdf-staging/a9cc2c23cfc6/manifest.json" --catalog "<путь-к-data/catalog.json>" --nrec 7936a2a43b11b20b01d30f5b00c73166 --page 3 --column 5 --out "artifacts/pdf-staging/a9cc2c23cfc6/PI-124.review.json"
+```
+
+Форма создаётся со статусом `draft`. Нужно заполнить:
+
+- `source.title`, официальный HTTPS `source.url`, `validFrom` и `validThrough` в виде `YYYY-MM-DD`;
+- `group.pdfHeader` точно по изображению `header.png`, `semester`;
+- шесть дней `schedule`: для каждой пары строки `n1`-`n7` и `z1`-`z7`, пустые ячейки оставить пустыми строками;
+- для каждой непустой строки один элемент `cells` с `dayIndex`, `mode` (`n` или `z`), `pairIndex`, тем же `rawText`, путём `sourceImage` из manifest и `pageBounds` в координатах PDF;
+- после независимой сверки `review.status: "approved"`, разные псевдонимы `transcribedBy` и `verifiedBy`, `verifiedAt` в ISO 8601.
+
+Важная проверка: жёлтая ячейка означает знаменатель, белая - числитель.
+Ограничения вида `(с 9 по 15 нед)` должны остаться в тексте занятия: приложение
+уже применяет их к учебному календарю. Объединённую ячейку и каждую подгруппу
+нужно сверять по исходной странице, не только по узкому crop.
+
+```powershell
+node scripts/pdf/reviewedSnapshot.mjs --review "artifacts/pdf-staging/a9cc2c23cfc6/PI-124.review.json" --staging "artifacts/pdf-staging/a9cc2c23cfc6/manifest.json" --catalog "<путь-к-data/catalog.json>"
+```
+
+Это dry-run. Он сверяет SHA-256 документа, `nrec` и название группы с каталогом,
+период, каждого проверяющего, число ячеек, текст ячейки и её координаты.
+Успешный dry-run **не является доказательством**, что люди правильно прочитали
+PDF, и не даёт права публикации. До согласования с ВлГУ снимок остаётся в
+локальном staging. После разрешения и второй сверки к команде можно добавить
+`--out "<путь-к-data>" --write`: она создаст новый `schedule/<nrec>.json` и
+обновит `coverage.json`, но откажется перезаписать существующую группу.
+Публикация ветки `data` остаётся отдельным ручным действием.
+
+У проверенного снимка есть `sourceDocument` и срок действия. Приложение
+показывает источник в настройках и не выдаёт пары вне этого периода за
+«свободный день». Старые API-снимки без периода продолжают читаться как прежде.
+
 ## Проверка скрипта
 
 ```powershell

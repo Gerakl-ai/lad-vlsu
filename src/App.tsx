@@ -271,6 +271,11 @@ function syncStatusText(status: ApiStatus, refreshedAt?: string) {
   return updatedText;
 }
 
+function formatScheduleDate(dateKey: string) {
+  return new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", year: "numeric" })
+    .format(new Date(`${dateKey}T12:00:00`));
+}
+
 function scheduleContentSignature(state: ScheduleState | null) {
   if (!state) return "";
   return JSON.stringify({
@@ -369,6 +374,8 @@ export function App() {
   }, [openNotes]);
 
   const selectedDateKey = dateKeyFromDate(selectedDate);
+  const outsideSchedulePeriod = Boolean(schedule?.validFrom && schedule.validThrough
+    && (selectedDateKey < schedule.validFrom || selectedDateKey > schedule.validThrough));
   const todayDateKey = dateKeyFromDate(nowDate);
   const isSelectedToday = selectedDateKey === todayDateKey;
   const isSelectedPast = selectedDateKey < todayDateKey;
@@ -870,6 +877,9 @@ export function App() {
               onShiftDate={shiftSelectedDay}
               motionDirection={dayMotionDirection}
               onCreateLessonNote={openLessonComposer}
+              outsideSchedulePeriod={outsideSchedulePeriod}
+              scheduleValidFrom={schedule?.validFrom}
+              scheduleValidThrough={schedule?.validThrough}
             />
           )}
 
@@ -885,6 +895,8 @@ export function App() {
               onOpenCalendar={() => setCalendarOpen(true)}
               onSelectDate={showScheduleDate}
               onCreateLessonNote={openLessonComposer}
+              validFrom={schedule?.validFrom}
+              validThrough={schedule?.validThrough}
             />
           )}
 
@@ -1095,6 +1107,18 @@ function DataProvenancePanel({ schedule, sourceLabel }: { schedule: ScheduleStat
                 <dd>{capturedAt}</dd>
               </div>
             )}
+            {schedule?.sourceDocument && (
+              <div>
+                <dt>Проверенный документ</dt>
+                <dd><a href={schedule.sourceDocument.url} target="_blank" rel="noreferrer noopener">{schedule.sourceDocument.title}</a></dd>
+              </div>
+            )}
+            {schedule?.validFrom && schedule.validThrough && (
+              <div>
+                <dt>Период расписания</dt>
+                <dd>{formatScheduleDate(schedule.validFrom)} - {formatScheduleDate(schedule.validThrough)}</dd>
+              </div>
+            )}
             {schedule?.contentHash && (
               <div>
                 <dt>Отпечаток</dt>
@@ -1186,7 +1210,10 @@ function TodayView({
   onSelectDate,
   onShiftDate,
   motionDirection,
-  onCreateLessonNote
+  onCreateLessonNote,
+  outsideSchedulePeriod,
+  scheduleValidFrom,
+  scheduleValidThrough
 }: {
   subgroup: SubgroupChoice;
   onSubgroup: (choice: SubgroupChoice) => void;
@@ -1222,6 +1249,9 @@ function TodayView({
   onShiftDate: (offset: -1 | 1) => void;
   motionDirection: "forward" | "backward" | null;
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
+  outsideSchedulePeriod: boolean;
+  scheduleValidFrom?: string;
+  scheduleValidThrough?: string;
 }) {
   const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
   const personalEvents = usePersonalEvents();
@@ -1289,7 +1319,14 @@ function TodayView({
             <CalendarDays size={18} /><span><strong>{event.title}</strong><small>{new Date(event.start).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}–{new Date(event.end).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}{event.location ? ` · ${event.location}` : ""}</small></span><ChevronRight size={18} />
           </button>)}
         </section>}
-        <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
+        {outsideSchedulePeriod ? (
+          <section className="schedule-period-empty" role="status">
+            <CalendarDays size={27} aria-hidden="true" />
+            <h2>На эту дату расписание не подтверждено</h2>
+            <p>Проверенный документ действует с {scheduleValidFrom ? formatScheduleDate(scheduleValidFrom) : "начала семестра"} по {scheduleValidThrough ? formatScheduleDate(scheduleValidThrough) : "конец семестра"}. Выбери дату в его пределах или другую группу.</p>
+            <button type="button" onClick={onOpenCalendar}>Выбрать дату <ChevronRight size={17} /></button>
+          </section>
+        ) : <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
           <img className="hero-visual hero-visual-backdrop" src={heroVisual} alt="" aria-hidden="true" />
           <img className="hero-visual hero-visual-fit" src={heroVisual} alt="" aria-hidden="true" />
           <div className="hero-sigil" aria-hidden="true">
@@ -1318,14 +1355,14 @@ function TodayView({
               </div>
             </div>
           )}
-        </section>
+        </section>}
       </div>
 
       <div className="today-detail-scroll">
         <button className="today-add-event" type="button" onClick={onCreateEvent}>
           <CalendarPlus size={18} /> Добавить событие <ChevronRight size={17} />
         </button>
-        {!lessons.length && nextStudyDay && hasLoadedLessons && (
+        {!outsideSchedulePeriod && !lessons.length && nextStudyDay && hasLoadedLessons && (
           <section className="upcoming-study" aria-label="Следующий учебный день">
             <button className="upcoming-day-launch" type="button" onClick={() => onSelectDate(nextStudyDay.date)}>
               <span>
@@ -1617,19 +1654,22 @@ interface WeekDayLoad {
   date: Date;
   dayName: string;
   lessons: LessonSlot[];
+  outsidePeriod: boolean;
   short: string;
 }
 
-function buildWeekLoads(lessons: LessonSlot[], weekMode: WeekMode): WeekDayLoad[] {
+function buildWeekLoads(lessons: LessonSlot[], weekMode: WeekMode, validFrom?: string, validThrough?: string): WeekDayLoad[] {
   const weekStart = weekStartForMode(weekMode);
   return WEEK_DAYS.map((dayName, index) => {
     const date = dateForWeekDay(index + 1, weekStart);
+    const dateKey = dateKeyFromDate(date);
     const dayLessons = selectDayLessons(lessons, index + 1, weekMode, date);
     return {
       count: dayLessons.length,
       date,
       dayName,
       lessons: dayLessons,
+      outsidePeriod: Boolean(validFrom && validThrough && (dateKey < validFrom || dateKey > validThrough)),
       short: WEEK_DAYS_SHORT[index]
     };
   });
@@ -1640,6 +1680,8 @@ function WeekView({
   weekMode,
   weekOverride,
   setWeekOverride,
+  validFrom,
+  validThrough,
   notes,
   groupNrec,
   onToggleNote,
@@ -1651,6 +1693,8 @@ function WeekView({
   weekMode: WeekMode;
   weekOverride: WeekMode | "current";
   setWeekOverride: (mode: WeekMode | "current") => void;
+  validFrom?: string;
+  validThrough?: string;
   notes: SmartNote[];
   groupNrec?: string;
   onToggleNote: (noteId: string) => void;
@@ -1664,8 +1708,10 @@ function WeekView({
     return <SessionScheduleView lessons={lessons} notes={notes} groupNrec={groupNrec} onToggleNote={onToggleNote} onOpenCalendar={onOpenCalendar} onCreateLessonNote={onCreateLessonNote} />;
   }
 
-  const dayLoads = buildWeekLoads(lessons, weekMode);
+  const dayLoads = buildWeekLoads(lessons, weekMode, validFrom, validThrough);
   const totalLessons = dayLoads.reduce((sum, day) => sum + day.count, 0);
+  const noVerifiedDays = dayLoads.every((day) => day.outsidePeriod);
+  const partialWeek = !noVerifiedDays && dayLoads.some((day) => day.outsidePeriod);
   const todayKey = dateKeyFromDate(new Date());
   const weekRange = `${WEEK_DATE_FORMATTER.format(dayLoads[0].date)} – ${WEEK_DATE_FORMATTER.format(dayLoads[dayLoads.length - 1].date)}`;
 
@@ -1676,7 +1722,7 @@ function WeekView({
           <div className="week-toolbar-copy">
             <span><Activity size={13} /> Расписание</span>
             <h2>Неделя</h2>
-            <p>{weekRange} · {formatLessonCount(totalLessons)}</p>
+            <p>{weekRange} · {noVerifiedDays ? "нет данных" : partialWeek ? `${formatLessonCount(totalLessons)} · частично` : formatLessonCount(totalLessons)}</p>
           </div>
           <button className="week-calendar-button" type="button" onClick={onOpenCalendar} aria-label="Открыть календарь расписания" title="Календарь">
             <CalendarDays size={22} />
@@ -1708,6 +1754,7 @@ function WeekView({
       <section className="week-list">
         {dayLoads.map((day) => {
           const isToday = dateKeyFromDate(day.date) === todayKey;
+          const outsidePeriod = day.outsidePeriod;
           const dayEvents = personalEventsOnDate(personalEvents, day.date);
           return (
             <article className={`day-block ${isToday ? "current-day" : ""} ${day.count ? "" : "empty-day"}`} key={day.dayName}>
@@ -1719,7 +1766,7 @@ function WeekView({
                     <small>{isToday ? "Сегодня" : WEEK_DATE_FORMATTER.format(day.date).replace(".", "")}</small>
                   </div>
                 </div>
-                <span>{day.count ? formatLessonCount(day.count) : "без пар"}</span>
+                <span>{day.count ? formatLessonCount(day.count) : outsidePeriod ? "нет данных" : "без пар"}</span>
                 <ChevronRight size={18} aria-hidden="true" />
               </button>
               {day.lessons.length ? (
@@ -1756,7 +1803,7 @@ function WeekView({
                   );
                 })
               ) : !dayEvents.length ? (
-                <p className="quiet-copy">В расписании на этот день занятий нет.</p>
+                <p className="quiet-copy">{outsidePeriod ? "Проверенный документ не действует на эту дату." : "В расписании на этот день занятий нет."}</p>
               ) : null}
               {dayEvents.map((event) => (
                 <button className="week-personal-event" type="button" key={event.id} onClick={() => onSelectDate(day.date)} aria-label={`Открыть день: ${event.title}`}>
@@ -1883,12 +1930,14 @@ function WeekMap({ dayLoads, onSelectDate }: { dayLoads: WeekDayLoad[]; onSelect
   const todayKey = dateKeyFromDate(new Date());
   const maxCount = Math.max(1, ...dayLoads.map((day) => day.count));
   const totalLessons = dayLoads.reduce((sum, day) => sum + day.count, 0);
+  const noVerifiedDays = dayLoads.every((day) => day.outsidePeriod);
+  const partialWeek = !noVerifiedDays && dayLoads.some((day) => day.outsidePeriod);
 
   return (
     <section className="week-map week-rhythm" aria-label="Нагрузка по дням недели">
       <div className="week-map-head">
         <span>По дням</span>
-        <strong>{formatLessonCount(totalLessons)}</strong>
+        <strong>{noVerifiedDays ? "нет данных" : partialWeek ? "частично" : formatLessonCount(totalLessons)}</strong>
       </div>
       <div className="week-rhythm-grid">
         {dayLoads.map((day) => (
@@ -1897,12 +1946,12 @@ function WeekMap({ dayLoads, onSelectDate }: { dayLoads: WeekDayLoad[]; onSelect
             className={`week-rhythm-day ${dateKeyFromDate(day.date) === todayKey ? "active" : ""}`}
             key={day.dayName}
             onClick={() => onSelectDate(day.date)}
-            aria-label={`Открыть ${day.dayName}: ${day.count ? formatLessonCount(day.count) : "без пар"}`}
+            aria-label={`Открыть ${day.dayName}: ${day.count ? formatLessonCount(day.count) : day.outsidePeriod ? "нет данных" : "без пар"}`}
             aria-current={dateKeyFromDate(day.date) === todayKey ? "date" : undefined}
           >
             <span className="week-rhythm-meter" aria-hidden="true"><i style={{ height: day.count ? `${Math.max(16, Math.round((day.count / maxCount) * 100))}%` : "3px" }} /></span>
             <strong>{day.short}</strong>
-            <small>{day.count}</small>
+            <small>{day.outsidePeriod ? "·" : day.count}</small>
           </button>
         ))}
       </div>

@@ -124,6 +124,20 @@ describe("normalizeStaticSnapshot", () => {
       schedule: [{ type: "ExamSession", name: "Экзамен" }]
     }, snapshotPayload.group.nrec).schedule).toHaveLength(1);
   });
+
+  it("rejects an undated or malformed reviewed PDF snapshot", () => {
+    const sourceDocument = {
+      title: "Расписание ИИТЭ",
+      url: "https://www.vlsu.ru/example.zip",
+      sha256: "a".repeat(64),
+      reviewedAt: "2026-09-27T12:00:00Z"
+    };
+    expect(() => normalizeStaticSnapshot({ ...snapshotPayload, sourceDocument }, snapshotPayload.group.nrec)).toThrow();
+    expect(() => normalizeStaticSnapshot({ ...snapshotPayload, sourceDocument,
+      validFrom: "2026-09-01", validThrough: "2026-02-31" }, snapshotPayload.group.nrec)).toThrow();
+    expect(normalizeStaticSnapshot({ ...snapshotPayload, sourceDocument,
+      validFrom: "2026-09-01", validThrough: "2026-12-30" }, snapshotPayload.group.nrec).sourceDocument).toEqual(sourceDocument);
+  });
 });
 
 describe("normalizeStaticCoverage", () => {
@@ -167,6 +181,14 @@ describe("scheduleStateFromSnapshot", () => {
     const asDenominator = scheduleStateFromSnapshot(snapshot, (days) => normalizeSchedule(days as never), 2);
     expect(asNumerator.currentInfo.currentWeekType).toBe(1);
     expect(asDenominator.currentInfo.currentWeekType).toBe(2);
+  });
+
+  it("attaches the reviewed PDF period to weekly lessons", () => {
+    const snapshot = normalizeStaticSnapshot({ ...snapshotPayload,
+      validFrom: "2026-09-01", validThrough: "2026-12-30" }, snapshotPayload.group.nrec);
+    const state = scheduleStateFromSnapshot(snapshot, (days) => normalizeSchedule(days as never), 1);
+    expect(state.allLessons[0].validFrom).toBe("2026-09-01");
+    expect(state.allLessons[0].validThrough).toBe("2026-12-30");
   });
 });
 

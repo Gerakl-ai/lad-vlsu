@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { loadGroups, loadInstitutes, normalizeCachedSchedule } from "../../lib/scheduleApi";
 import { loadStaticCoverage, type StaticCoverage } from "../../lib/staticData";
+import { dateKeyFromDate } from "../../lib/time";
 import {
   readFavoriteGroups,
   readGroupCatalog,
@@ -53,7 +54,11 @@ function matchesSearch(values: Array<string | undefined>, query: string) {
 }
 
 function snapshotLabel(coverage: StaticCoverage | null, nrec: string) {
-  const capturedAt = coverage?.groups[nrec]?.capturedAt;
+  const entry = coverage?.groups[nrec];
+  const capturedAt = entry?.capturedAt;
+  if (entry?.validThrough && entry.validThrough < dateKeyFromDate()) {
+    return `Архив до ${new Date(`${entry.validThrough}T12:00:00`).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
+  }
   if (capturedAt) return `Есть данные от ${new Date(capturedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
   return coverage ? "Данных пока нет" : null;
 }
