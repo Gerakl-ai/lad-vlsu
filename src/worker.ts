@@ -73,7 +73,8 @@ function responseWithPlatformHeaders(response: Response, env: Env, request: Requ
   if (env.CF_VERSION_METADATA?.id) {
     headers.set("X-Lad-Worker-Version", env.CF_VERSION_METADATA.id);
   }
-  if (url.pathname.startsWith("/app-api/schedule/") && url.searchParams.get("cached") === "1") {
+  if (url.pathname.startsWith("/app-api/schedule/")
+    && (url.searchParams.get("cached") === "1" || url.searchParams.get("discover") === "1")) {
     const origin = request.headers.get("Origin");
     if (origin && ARCHIVE_READ_ORIGINS.has(origin)) {
       headers.set("Access-Control-Allow-Origin", origin);
@@ -514,7 +515,8 @@ async function getGroupScheduleSnapshot(request: Request, env: Env, context?: Wo
   if (request.method !== "GET" && request.method !== "HEAD") return methodNotAllowed("GET, HEAD");
   const url = new URL(request.url);
   const cachedOnly = url.searchParams.get("cached") === "1";
-  if (!(cachedOnly ? isAllowedArchiveRead(request) : isSameOriginRequest(request))) {
+  const discover = url.searchParams.get("discover") === "1";
+  if (!((cachedOnly || discover) ? isAllowedArchiveRead(request) : isSameOriginRequest(request))) {
     return jsonResponse({ error: "Cross-origin request denied", requestId: id }, 403);
   }
   const match = url.pathname.match(/^\/app-api\/schedule\/([a-f\d]{32})\/?$/i);

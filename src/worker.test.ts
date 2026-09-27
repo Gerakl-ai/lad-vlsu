@@ -151,6 +151,26 @@ describe("Cloudflare worker", () => {
     expect(response.headers.get("Access-Control-Allow-Origin")).toBeNull();
   });
 
+  it("discovers a missing group for Pages and keeps other origins out", async () => {
+    const env = { ...createEnv(), SCHEDULE_SNAPSHOT: createSnapshotKv() };
+    const upstream = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      return jsonResponseForTest(url.endsWith("/GetGroupCurrentInfo") ? currentInfo : schedule);
+    });
+    vi.stubGlobal("fetch", upstream);
+    const url = `https://app.example/app-api/schedule/${groupNrec}?discover=1`;
+    const denied = await worker.fetch(new Request(url, { headers: { Origin: "https://untrusted.example" } }), env);
+    expect(denied.status).toBe(403);
+    expect(upstream).not.toHaveBeenCalled();
+
+    const response = await worker.fetch(new Request(url, { headers: { Origin: "https://germanpolkin.ru" } }), env);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe("https://germanpolkin.ru");
+    expect((await response.json() as { source: string }).source).toBe("live");
+    expect(upstream).toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
   it("keeps the last valid v2 snapshot when VLSU returns days without lessons", async () => {
     const snapshotKv = createSnapshotKv();
     const env = { ...createEnv(), SCHEDULE_SNAPSHOT: snapshotKv };

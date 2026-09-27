@@ -610,14 +610,14 @@ async function fetchGroupScheduleSnapshot(nrec: string) {
   }
 }
 
-export async function fetchArchivedWorkerSnapshot(nrec: string, workerUrl = import.meta.env.VITE_SCHEDULE_FALLBACK_URL): Promise<ScheduleState> {
+export async function fetchArchivedWorkerSnapshot(nrec: string, workerUrl = import.meta.env.VITE_SCHEDULE_FALLBACK_URL, discover = false): Promise<ScheduleState> {
   if (!workerUrl || !/^[a-f\d]{32}$/i.test(nrec)) throw new Error("Archived schedule fallback is unavailable");
   const base = new URL(workerUrl);
   if (base.protocol !== "https:") throw new Error("Archived schedule fallback requires HTTPS");
   const controller = new AbortController();
-  const timeout = globalThis.setTimeout(() => controller.abort("timeout"), 2_500);
+  const timeout = globalThis.setTimeout(() => controller.abort("timeout"), discover ? REQUEST_TIMEOUT_MS + 1_500 : 2_500);
   try {
-    const url = new URL(`/app-api/schedule/${nrec}?cached=1`, base);
+    const url = new URL(`/app-api/schedule/${nrec}?${discover ? "discover" : "cached"}=1`, base);
     const response = await fetch(url.toString(), {
       headers: { Accept: "application/json" },
       signal: controller.signal,
@@ -651,14 +651,17 @@ export async function loadSchedule(group: GroupProfile): Promise<ScheduleState> 
     const staticState = await loadStaticSchedule(group);
     writeGroupScheduleCache(staticState);
     return staticState;
-  } catch (error) {
+  } catch {
     if (import.meta.env.PROD && import.meta.env.BASE_URL !== "/") {
       try {
         const archived = await fetchArchivedWorkerSnapshot(group.nrec);
         writeGroupScheduleCache(archived);
         return archived;
-      } catch {
-        throw error;
+      } catch (archiveError) {
+        if (!(archiveError instanceof ApiResponseError && archiveError.status === 404)) throw archiveError;
+        const discovered = await fetchArchivedWorkerSnapshot(group.nrec, undefined, true);
+        writeGroupScheduleCache(discovered);
+        return discovered;
       }
     }
     // Снимка для этой группы ещё нет — пробуем прежние источники.

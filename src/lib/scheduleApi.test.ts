@@ -285,4 +285,28 @@ describe("schedule snapshot v2", () => {
     expect(state.source).toBe("global-snapshot");
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it("discovers an uncached Pages group through the Worker", async () => {
+    vi.stubEnv("PROD", true);
+    vi.stubEnv("BASE_URL", "/vlsu-pi-124-schedule/");
+    vi.stubEnv("VITE_SCHEDULE_FALLBACK_URL", "https://worker.example");
+    const storage = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value)
+    });
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/data/schedule/")) return new Response("Not found", { status: 404 });
+      if (url.includes("?cached=1")) return new Response("{}", { status: 404 });
+      if (url.includes("?discover=1")) return new Response(JSON.stringify(snapshot), { status: 200 });
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const state = await loadSchedule(LEGACY_PI124_GROUP);
+    expect(state.source).toBe("live");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledWith(`https://worker.example/app-api/schedule/${nrec}?discover=1`,
+      expect.objectContaining({ credentials: "omit" }));
+  });
 });
