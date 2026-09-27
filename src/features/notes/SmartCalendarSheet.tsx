@@ -192,7 +192,7 @@ async function shareCalendar(events: CalendarEvent[], fileName: string, title: s
 export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate, createEventOnOpen = false, onClose, onCreateForDate, onOpenNote, onSelectDate }: SmartCalendarSheetProps) {
   const personalEvents = usePersonalEvents();
   const [editingEvent, setEditingEvent] = useState<PersonalEvent | "new" | null>(null);
-  const swipe = useRef<{ x: number; y: number } | null>(null);
+  const swipe = useRef<{ pointerId: number; x: number; y: number } | null>(null);
   const suppressClickUntil = useRef(0);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
@@ -360,15 +360,33 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
         </div>
         <div className="calendar-grid-track" aria-label={monthLabel}
           style={{ touchAction: "pan-y" }}
-          onPointerDown={(event) => { if (event.isPrimary) swipe.current = { x: event.clientX, y: event.clientY }; }}
-          onPointerCancel={() => { swipe.current = null; }}
+          onPointerDown={(event) => {
+            if (event.isPrimary && !monthTransition) swipe.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+          }}
+          onPointerMove={(event) => {
+            const origin = swipe.current;
+            if (!origin || origin.pointerId !== event.pointerId) return;
+            const dx = event.clientX - origin.x;
+            const dy = event.clientY - origin.y;
+            if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+            const grid = event.currentTarget.lastElementChild as HTMLElement | null;
+            if (grid) grid.style.transform = `translate3d(${Math.sign(dx) * Math.min(Math.abs(dx) * .78, event.currentTarget.clientWidth * .78)}px,0,0)`;
+          }}
+          onPointerCancel={(event) => {
+            swipe.current = null;
+            const grid = event.currentTarget.lastElementChild as HTMLElement | null;
+            if (grid) grid.style.transform = "";
+          }}
           onPointerUp={(event) => {
             const origin = swipe.current;
             swipe.current = null;
-            if (!origin) return;
+            if (!origin || origin.pointerId !== event.pointerId) return;
             const dx = event.clientX - origin.x;
             const dy = event.clientY - origin.y;
+            const grid = event.currentTarget.lastElementChild as HTMLElement | null;
+            if (grid) grid.style.transform = "";
             if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+              event.currentTarget.style.setProperty("--calendar-drag-start", `${Math.sign(dx) * Math.min(Math.abs(dx) * .78, event.currentTarget.clientWidth * .78)}px`);
               suppressClickUntil.current = Date.now() + 350;
               moveMonth(dx < 0 ? 1 : -1);
             }
