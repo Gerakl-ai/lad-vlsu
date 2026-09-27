@@ -38,7 +38,9 @@ export function autumnTeachingWeekNumber(date: Date): number | null {
 }
 
 export function vlsuWeekModeForDate(date = new Date()): WeekMode {
-  const academicYear = date.getMonth() >= 8 ? date.getFullYear() : date.getFullYear() - 1;
+  const thisYear = date.getFullYear();
+  const firstAcademicMonday = mondayOf(new Date(thisYear, 8, 1));
+  const academicYear = date >= firstAcademicMonday ? thisYear : thisYear - 1;
   const firstSeptember = new Date(academicYear, 8, 1);
   firstSeptember.setHours(0, 0, 0, 0);
   const weekDelta = calendarWeekDelta(date, firstSeptember);

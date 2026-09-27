@@ -18,7 +18,7 @@ export function createReviewTemplate(staging, catalog, { nrec, page, column }) {
       validThrough: ""
     },
     group: { nrec, name: group.name, pdfHeader: "", instituteId: institute.id, page, column },
-    review: { status: "draft", transcribedBy: "", verifiedBy: "", verifiedAt: "" },
+    review: { status: "draft", transcribedBy: "" },
     semester: null,
     schedule: DAY_NAMES.map((name) => ({
       type: "Lessons",

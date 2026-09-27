@@ -24,7 +24,7 @@ function validTimestamp(value) {
     && Number.isFinite(Date.parse(value));
 }
 
-export function buildReviewedSnapshot(review, staging, catalog) {
+export function buildReviewedSnapshot(review, staging, catalog, verification) {
   assert(review?.schemaVersion === 1 && staging?.schemaVersion === 1 && catalog?.schemaVersion === 3,
     "Unknown review, staging, or catalog version");
   const source = review.source;
@@ -48,9 +48,13 @@ export function buildReviewedSnapshot(review, staging, catalog) {
 
   const approval = review.review;
   assert(approval?.status === "approved" && typeof approval.transcribedBy === "string"
-    && approval.transcribedBy.trim() && typeof approval.verifiedBy === "string"
-    && approval.verifiedBy.trim() && approval.transcribedBy !== approval.verifiedBy
-    && validTimestamp(approval.verifiedAt), "Two distinct reviewers and verification time are required");
+    && approval.transcribedBy.trim(), "An approved transcription and its author are required");
+  assert(verification?.schemaVersion === 1 && verification.reviewHash === sha256(review),
+    "Verification must match the exact reviewed transcription hash");
+  assert(typeof verification.verifiedBy === "string" && verification.verifiedBy.trim()
+    && approval.transcribedBy.trim() !== verification.verifiedBy.trim()
+    && validTimestamp(verification.verifiedAt),
+  "A separate reviewer and verification time are required");
   assert(Number.isInteger(review.semester) && review.semester > 0, "Semester is required");
 
   const schedule = review.schedule;
@@ -104,14 +108,14 @@ export function buildReviewedSnapshot(review, staging, catalog) {
     schedule,
     quality,
     scheduleHash: sha256({ semester, schedule }),
-    capturedAt: approval.verifiedAt,
+    capturedAt: verification.verifiedAt,
     validFrom: source.validFrom,
     validThrough: source.validThrough,
     sourceDocument: {
       title: source.title.trim(),
       url: source.url,
       sha256: source.sha256,
-      reviewedAt: approval.verifiedAt
+      reviewedAt: verification.verifiedAt
     },
     provenance: null
   };
@@ -126,14 +130,15 @@ async function main() {
   const reviewPath = value("--review");
   const stagingPath = value("--staging");
   const catalogPath = value("--catalog");
+  const verificationPath = value("--verification");
   const out = value("--out");
   const write = args.includes("--write");
-  if (!reviewPath || !stagingPath || !catalogPath || (write && !out)) {
-    throw new Error("Use --review <json> --staging <manifest.json> --catalog <catalog.json> [--out <data-dir> --write]");
+  if (!reviewPath || !stagingPath || !catalogPath || !verificationPath || (write && !out)) {
+    throw new Error("Use --review <json> --verification <json> --staging <manifest.json> --catalog <catalog.json> [--out <data-dir> --write]");
   }
-  const [review, staging, catalog] = await Promise.all([reviewPath, stagingPath, catalogPath]
+  const [review, staging, catalog, verification] = await Promise.all([reviewPath, stagingPath, catalogPath, verificationPath]
     .map(async (file) => JSON.parse(await readFile(file, "utf8"))));
-  const snapshot = buildReviewedSnapshot(review, staging, catalog);
+  const snapshot = buildReviewedSnapshot(review, staging, catalog, verification);
   console.log(`Verified ${snapshot.group.name}: ${snapshot.quality.lessonDays} days, ${review.cells.length} non-empty cells, ${snapshot.validFrom}..${snapshot.validThrough}`);
   if (!write) {
     console.log("Dry run only. No schedule or coverage files were written.");

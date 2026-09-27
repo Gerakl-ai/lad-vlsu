@@ -150,21 +150,30 @@ node scripts/pdf/createReviewTemplate.mjs --staging "artifacts/pdf-staging/a9cc2
 - `group.pdfHeader` точно по изображению `header.png`, `semester`;
 - шесть дней `schedule`: для каждой пары строки `n1`-`n7` и `z1`-`z7`, пустые ячейки оставить пустыми строками;
 - для каждой непустой строки один элемент `cells` с `dayIndex`, `mode` (`n` или `z`), `pairIndex`, тем же `rawText`, путём `sourceImage` из manifest и `pageBounds` в координатах PDF;
-- после независимой сверки `review.status: "approved"`, разные псевдонимы `transcribedBy` и `verifiedBy`, `verifiedAt` в ISO 8601.
+- после расшифровки `review.status: "approved"` и псевдоним автора в `transcribedBy`.
 
 Важная проверка: жёлтая ячейка означает знаменатель, белая - числитель.
 Ограничения вида `(с 9 по 15 нед)` должны остаться в тексте занятия: приложение
 уже применяет их к учебному календарю. Объединённую ячейку и каждую подгруппу
 нужно сверять по исходной странице, не только по узкому crop.
 
+Второй человек сверяет заполненную форму с PDF, включая день, тип недели,
+подгруппы, преподавателя, аудиторию и ограничения по неделям. После сверки
+создаёт отдельную форму и заполняет `verifiedBy` своим псевдонимом, а
+`verifiedAt` временем проверки в ISO 8601. Имя должно отличаться от
+`transcribedBy`. Хэш привязывает подтверждение к точному содержимому формы:
+если расшифровку поменяли, старое подтверждение недействительно.
+
 ```powershell
-node scripts/pdf/reviewedSnapshot.mjs --review "artifacts/pdf-staging/a9cc2c23cfc6/PI-124.review.json" --staging "artifacts/pdf-staging/a9cc2c23cfc6/manifest.json" --catalog "<путь-к-data/catalog.json>"
+node scripts/pdf/createVerificationTemplate.mjs --review "artifacts/pdf-staging/a9cc2c23cfc6/PI-124.review.json" --out "artifacts/pdf-staging/a9cc2c23cfc6/PI-124.verification.json"
+node scripts/pdf/reviewedSnapshot.mjs --review "artifacts/pdf-staging/a9cc2c23cfc6/PI-124.review.json" --verification "artifacts/pdf-staging/a9cc2c23cfc6/PI-124.verification.json" --staging "artifacts/pdf-staging/a9cc2c23cfc6/manifest.json" --catalog "<путь-к-data/catalog.json>"
 ```
 
 Это dry-run. Он сверяет SHA-256 документа, `nrec` и название группы с каталогом,
-период, каждого проверяющего, число ячеек, текст ячейки и её координаты.
+период, отдельное подтверждение с хэшем, число ячеек, текст ячейки и её координаты.
 Успешный dry-run **не является доказательством**, что люди правильно прочитали
-PDF, и не даёт права публикации. До согласования с ВлГУ снимок остаётся в
+PDF или что псевдонимы принадлежат разным людям, и не даёт права публикации.
+До согласования с ВлГУ снимок остаётся в
 локальном staging. После разрешения и второй сверки к команде можно добавить
 `--out "<путь-к-data>" --write`: она создаст новый `schedule/<nrec>.json` и
 обновит `coverage.json`, но откажется перезаписать существующую группу.
