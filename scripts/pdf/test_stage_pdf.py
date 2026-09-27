@@ -16,6 +16,23 @@ class GeometryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "not contiguous"):
             detect_group_headers(drawings, 1000)
 
+    def test_group_codes_win_over_course_and_period_rows(self):
+        drawings = [rect(100, 200, 500, 242, "f"), rect(500, 200, 900, 242, "f"),
+                    rect(100, 243, 500, 285, "f"), rect(500, 243, 900, 285, "f"),
+                    rect(100, 286, 900, 328, "f")]
+        texts = {200: "1 курс", 243: "ПИ-124", 286: "с 01.09.2026 по 30.12.2026"}
+        selected = detect_group_headers(drawings, 1000, lambda bounds: texts[bounds[1]])
+        self.assertTrue(all(bounds[1] == 243 for bounds in selected))
+        with self.assertRaisesRegex(ValueError, "No group-code"):
+            detect_group_headers(drawings[:2], 1000, lambda bounds: texts[bounds[1]])
+
+    def test_single_wide_group_column_requires_text_verification(self):
+        drawings = [rect(100, 243, 900, 285, "f")]
+        self.assertEqual(detect_group_headers(drawings, 1000, lambda _: "ВАДТ-126"),
+                         [(100, 243, 900, 285)])
+        with self.assertRaisesRegex(ValueError, "incomplete"):
+            detect_group_headers(drawings, 1000)
+
     def test_day_bands_require_full_width_lines(self):
         drawings = [rect(30, 328, 970, 328, "s"), rect(30, 924, 970, 924, "s"),
                     rect(30, 1520, 970, 1520, "s"), rect(30, 700, 200, 700, "s")]

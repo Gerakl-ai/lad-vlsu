@@ -14,4 +14,5 @@ qa/
 /data/
 snapshot-data/
 /artifacts/pdf-staging/
+/artifacts/vlsu-sources/
 __pycache__/

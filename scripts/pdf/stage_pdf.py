@@ -9,11 +9,19 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 
-def detect_group_headers(drawings: list[dict[str, Any]], page_width: float) -> list[tuple[float, float, float, float]]:
+GROUP_CODE = re.compile(r"-\d{3}(?:\b|$)")
+
+
+def detect_group_headers(
+    drawings: list[dict[str, Any]],
+    page_width: float,
+    text_for_rect: Callable[[tuple[float, float, float, float]], str] | None = None,
+) -> list[tuple[float, float, float, float]]:
     candidates: dict[int, list[tuple[float, float, float, float]]] = {}
     for drawing in drawings:
         rect = drawing["rect"]
@@ -26,8 +34,17 @@ def detect_group_headers(drawings: list[dict[str, Any]], page_width: float) -> l
 
     if not candidates:
         raise ValueError("No filled group header row found")
-    row = sorted(max(candidates.values(), key=len), key=lambda rect: rect[0])
-    if len(row) < 2 or row[-1][2] - row[0][0] < page_width * 0.7:
+    if text_for_rect is None:
+        row = max(candidates.values(), key=len)
+    else:
+        scored = [(sum(bool(GROUP_CODE.search(text_for_rect(rect))) for rect in rects), rects)
+                  for rects in candidates.values()]
+        count, row = max(scored, key=lambda item: (item[0], len(item[1])))
+        if count < 1:
+            raise ValueError("No group-code header row found")
+    row = sorted(row, key=lambda rect: rect[0])
+    if (len(row) < (1 if text_for_rect is not None else 2)
+            or row[-1][2] - row[0][0] < page_width * 0.7):
         raise ValueError("Group header row is incomplete")
     if any(abs(left[2] - right[0]) > 2 for left, right in zip(row, row[1:])):
         raise ValueError("Group header columns are not contiguous")
@@ -105,7 +122,8 @@ def main() -> None:
     for page_number in pages:
         page = document[page_number - 1]
         drawings = page.get_drawings()
-        headers = detect_group_headers(drawings, page.rect.width)
+        headers = detect_group_headers(drawings, page.rect.width,
+                                       lambda rect: page.get_textbox(pymupdf.Rect(*rect)))
         days = detect_day_bounds(drawings, page.rect.width, headers[0][3])
         page_header_image = f"page-{page_number:02d}/source-heading.png"
         render(page, (headers[0][0], 110, headers[-1][2], days[0][0]), output / page_header_image)
