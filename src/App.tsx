@@ -1929,16 +1929,8 @@ function SessionScheduleView({ lessons, notes, groupNrec, onToggleNote, onOpenCa
 function WeekMap({ dayLoads, onSelectDate }: { dayLoads: WeekDayLoad[]; onSelectDate: (date: Date) => void }) {
   const todayKey = dateKeyFromDate(new Date());
   const maxCount = Math.max(1, ...dayLoads.map((day) => day.count));
-  const totalLessons = dayLoads.reduce((sum, day) => sum + day.count, 0);
-  const noVerifiedDays = dayLoads.every((day) => day.outsidePeriod);
-  const partialWeek = !noVerifiedDays && dayLoads.some((day) => day.outsidePeriod);
-
   return (
     <section className="week-map week-rhythm" aria-label="Нагрузка по дням недели">
-      <div className="week-map-head">
-        <span>По дням</span>
-        <strong>{noVerifiedDays ? "нет данных" : partialWeek ? "частично" : formatLessonCount(totalLessons)}</strong>
-      </div>
       <div className="week-rhythm-grid">
         {dayLoads.map((day) => (
           <button
