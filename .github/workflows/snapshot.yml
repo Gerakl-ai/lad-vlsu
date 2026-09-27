@@ -64,18 +64,30 @@ jobs:
 
       - name: Обойти API ВлГУ
         id: build
+        env:
+          SNAPSHOT_INSTITUTES: ${{ inputs.institutes }}
+          SNAPSHOT_CATALOG_ONLY: ${{ inputs.catalog_only }}
         run: |
-          ARGS="--out snapshot-data/data --concurrency 3 --delay 250"
-          if [ -n "${{ inputs.institutes }}" ]; then
-            ARGS="$ARGS --institutes ${{ inputs.institutes }}"
+          set -euo pipefail
+          args=(--out snapshot-data/data --concurrency 3 --delay 250)
+          if [ -n "$SNAPSHOT_INSTITUTES" ]; then
+            [[ "$SNAPSHOT_INSTITUTES" =~ ^[0-9]+$ ]] || { echo "institutes must be a number" >&2; exit 1; }
+            args+=(--institutes "$SNAPSHOT_INSTITUTES")
           fi
-          if [ "${{ inputs.catalog_only }}" = "true" ]; then
-            ARGS="$ARGS --catalog-only"
+          if [ "$SNAPSHOT_CATALOG_ONLY" = "true" ]; then
+            args+=(--catalog-only)
           fi
-          echo "Аргументы: $ARGS"
-          # Сбой расписания не должен ронять шаг: файлы на диске остаются
-          # прежними, а причина уже записана в status.json.
-          node scripts/snapshot/buildSnapshot.mjs $ARGS || echo "exit=$?" >> "$GITHUB_OUTPUT"
+          printf 'Аргументы: %s\n' "${args[*]}"
+          set +e
+          node scripts/snapshot/buildSnapshot.mjs "${args[@]}"
+          result=$?
+          set -e
+          if [ "$result" -eq 2 ]; then
+            node -e "const s=require('./snapshot-data/data/status.json'); if (s.probeAttempted!==3 || s.probeEmpty!==3 || s.scheduleSkipped!==s.groupsInCatalog || s.scheduleAttempted!==0) process.exit(1)"
+            echo "::warning::ВлГУ вернул пустые ответы. Отчёт будет опубликован, старые снимки сохранены."
+          elif [ "$result" -ne 0 ]; then
+            exit "$result"
+          fi
 
       - name: Зафиксировать изменения
         run: |

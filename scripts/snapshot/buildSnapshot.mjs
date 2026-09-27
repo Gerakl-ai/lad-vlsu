@@ -355,6 +355,15 @@ export function buildProvenance(env = process.env) {
   };
 }
 
+export function crawlExitCode(report, catalogOnly = false) {
+  if (catalogOnly) return 0;
+  if (report.scheduleSkipped > 0) {
+    return report.probeAttempted === 3 && report.probeEmpty === 3
+      && report.scheduleAttempted === 0 ? 2 : 1;
+  }
+  return report.scheduleAttempted > 0 && report.scheduleOk === 0 ? 1 : 0;
+}
+
 /* ------------------------------------------------------------------ *
  * Главный проход
  * ------------------------------------------------------------------ */
@@ -484,11 +493,13 @@ async function main() {
     }
   }
 
-  // Полностью провалившийся обход — это поломка, и она должна быть заметна в CI.
-  if (!args.catalogOnly && (report.scheduleSkipped > 0 || (report.scheduleAttempted > 0 && report.scheduleOk === 0))) {
-    console.error("[снимок] ни одна группа не получила расписание — обход считается проваленным");
-    process.exitCode = 1;
+  const exitCode = crawlExitCode(report, args.catalogOnly);
+  if (exitCode === 2) {
+    console.warn("[снимок] ожидаемый сбой источника: отчёт обновлён, прежние снимки сохранены");
+  } else if (exitCode === 1) {
+    console.error("[снимок] ни одна группа не получила расписание - обход считается проваленным");
   }
+  process.exitCode = exitCode;
 }
 
 const isDirectRun = process.argv[1] && process.argv[1].endsWith("buildSnapshot.mjs");

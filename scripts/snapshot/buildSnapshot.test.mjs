@@ -3,7 +3,19 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-import { collectCoverage, instituteShortName, isEmptyScheduleResponse, scheduleQuality, sha256, stableStringify } from "./buildSnapshot.mjs";
+import { collectCoverage, crawlExitCode, instituteShortName, isEmptyScheduleResponse, scheduleQuality, sha256, stableStringify } from "./buildSnapshot.mjs";
+
+describe("crawl exit status", () => {
+  it("distinguishes a known empty upstream from unexpected full failure", () => {
+    const emptyApi = { probeAttempted: 3, probeEmpty: 3, scheduleAttempted: 0,
+      scheduleSkipped: 965, scheduleOk: 0 };
+    expect(crawlExitCode(emptyApi)).toBe(2);
+    expect(crawlExitCode({ ...emptyApi, probeEmpty: 2 })).toBe(1);
+    expect(crawlExitCode({ ...emptyApi, scheduleSkipped: 0, scheduleAttempted: 965 })).toBe(1);
+    expect(crawlExitCode({ ...emptyApi, scheduleSkipped: 0, scheduleAttempted: 965, scheduleOk: 1 })).toBe(0);
+    expect(crawlExitCode(emptyApi, true)).toBe(0);
+  });
+});
 import { decodePayload, UpstreamError } from "./vlsuClient.mjs";
 
 describe("stableStringify", () => {
