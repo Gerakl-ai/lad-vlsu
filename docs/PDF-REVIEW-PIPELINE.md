@@ -84,6 +84,18 @@ python scripts/pdf/draft_cells.py --source "<проверенный-PDF>" --sha2
 `reviewedSnapshot.mjs`: только ревьюер переносит сверенные пары в форму,
 а второй человек подтверждает их по изображениям и исходному PDF.
 
+Для ускорения ручного переноса можно предварительно заполнить форму только
+блоками без предупреждений и без конфликта с другой строкой той же ячейки:
+
+```powershell
+node scripts/pdf/createReviewDraft.mjs --candidates "<candidates.json>" --staging "<manifest.json>" --catalog "<путь-к-data/catalog.json>" --nrec "<nrec>" --out "<review-draft.json>"
+```
+
+Файл остаётся со статусом `draft`. Поле `draftDiagnostics.unresolved` содержит
+спорные блоки и причины. Перед независимой проверкой человек обязан сверить
+**все** ячейки с PDF, заполнить пропуски и удалить `draftDiagnostics`. Пока
+это поле есть, импорт не примет форму даже со статусом `approved`.
+
 ## Подготовить пакет
 
 Нужен Python 3 и PyMuPDF. PDF берётся из [официального архива ВлГУ](https://www.vlsu.ru/studentu/raspisanie-zanjatii/)

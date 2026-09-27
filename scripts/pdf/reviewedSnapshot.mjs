@@ -49,6 +49,8 @@ export function buildReviewedSnapshot(review, staging, catalog, verification) {
   const approval = review.review;
   assert(approval?.status === "approved" && typeof approval.transcribedBy === "string"
     && approval.transcribedBy.trim(), "An approved transcription and its author are required");
+  assert(review.draftDiagnostics === undefined,
+    "Remove draft diagnostics only after resolving and checking every PDF cell");
   assert(verification?.schemaVersion === 1 && verification.reviewHash === sha256(review),
     "Verification must match the exact reviewed transcription hash");
   assert(typeof verification.verifiedBy === "string" && verification.verifiedBy.trim()
