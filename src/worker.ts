@@ -34,6 +34,7 @@ const ACTIVE_GROUPS_KEY = "v2:active-groups";
 const MAX_ACTIVE_GROUPS = 48;
 const REFRESH_BATCH_SIZE = 4;
 const ACTIVE_GROUP_MAX_AGE_MS = 45 * 24 * 60 * 60 * 1000;
+const ARCHIVE_READ_ORIGINS = new Set(["https://germanpolkin.ru", "https://gerakl-ai.github.io"]);
 
 const allowedVlsuRoutes = new Map<string, "GET" | "POST">([
   ["catalogs/GetInstitutes", "GET"],
@@ -52,6 +53,11 @@ function isSameOriginRequest(request: Request) {
   return !origin || origin === new URL(request.url).origin;
 }
 
+function isAllowedArchiveRead(request: Request) {
+  const origin = request.headers.get("Origin");
+  return isSameOriginRequest(request) || (origin !== null && ARCHIVE_READ_ORIGINS.has(origin));
+}
+
 function responseWithPlatformHeaders(response: Response, env: Env, request: Request) {
   const headers = new Headers(response.headers);
   const url = new URL(request.url);
@@ -66,6 +72,13 @@ function responseWithPlatformHeaders(response: Response, env: Env, request: Requ
   }
   if (env.CF_VERSION_METADATA?.id) {
     headers.set("X-Lad-Worker-Version", env.CF_VERSION_METADATA.id);
+  }
+  if (url.pathname.startsWith("/app-api/schedule/") && url.searchParams.get("cached") === "1") {
+    const origin = request.headers.get("Origin");
+    if (origin && ARCHIVE_READ_ORIGINS.has(origin)) {
+      headers.set("Access-Control-Allow-Origin", origin);
+      headers.append("Vary", "Origin");
+    }
   }
 
   return new Response(response.body, {
@@ -499,13 +512,22 @@ function groupSnapshotResponse(snapshot: GroupScheduleSnapshotV2, source: GroupS
 async function getGroupScheduleSnapshot(request: Request, env: Env, context?: WorkerExecutionContext) {
   const id = requestId();
   if (request.method !== "GET" && request.method !== "HEAD") return methodNotAllowed("GET, HEAD");
-  if (!isSameOriginRequest(request)) return jsonResponse({ error: "Cross-origin request denied", requestId: id }, 403);
-  const match = new URL(request.url).pathname.match(/^\/app-api\/schedule\/([a-f\d]{32})\/?$/i);
+  const url = new URL(request.url);
+  const cachedOnly = url.searchParams.get("cached") === "1";
+  if (!(cachedOnly ? isAllowedArchiveRead(request) : isSameOriginRequest(request))) {
+    return jsonResponse({ error: "Cross-origin request denied", requestId: id }, 403);
+  }
+  const match = url.pathname.match(/^\/app-api\/schedule\/([a-f\d]{32})\/?$/i);
   if (!match) return jsonResponse({ error: "Invalid group identifier", requestId: id }, 400);
   const nrec = match[1];
 
   const cached = await readLatestGroupSnapshotV2(env.SCHEDULE_SNAPSHOT, nrec)
     ?? await migrateLegacyGroupSnapshot(env.SCHEDULE_SNAPSHOT, nrec);
+  if (cachedOnly) {
+    return cached
+      ? groupSnapshotResponse(cached, "global-snapshot", id)
+      : jsonResponse({ error: "No saved schedule for this group", requestId: id }, 404);
+  }
   const freshPromise = fetchGroupSnapshotV2(nrec);
 
   if (cached) {

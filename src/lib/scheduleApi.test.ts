@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { decodeApiPayload, loadGroups, loadInstitutes, normalizeCachedSchedule, normalizeGroupScheduleSnapshot, normalizeSchedule, parseLessonText, type ExamSessionDto, type ScheduleDayDto } from "./scheduleApi";
+import { decodeApiPayload, fetchArchivedWorkerSnapshot, loadGroups, loadInstitutes, loadSchedule, normalizeCachedSchedule, normalizeGroupScheduleSnapshot, normalizeSchedule, parseLessonText, type ExamSessionDto, type ScheduleDayDto } from "./scheduleApi";
+import { LEGACY_PI124_GROUP } from "../features/groups/groupTypes";
 
 const subgroupSlot = [
   "109-3, лб, Аджамиех С.М., Основы frontend разработки",
@@ -8,6 +9,7 @@ const subgroupSlot = [
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 describe("VLSU catalogs", () => {
@@ -240,5 +242,47 @@ describe("schedule snapshot v2", () => {
       ...snapshot,
       schedule: [{ type: "Lessons", name: "Понедельник" }]
     }, nrec)).toThrow("invalid schedule data");
+  });
+
+  it("loads a stored Worker snapshot from the configured HTTPS origin", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ...snapshot, source: "global-snapshot" }), {
+      status: 200, headers: { "Content-Type": "application/json" }
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    const state = await fetchArchivedWorkerSnapshot(nrec, "https://worker.example");
+    expect(state.source).toBe("global-snapshot");
+    expect(state.fetchedAt).toBe(snapshot.scheduleFetchedAt);
+    expect(fetchMock).toHaveBeenCalledWith(`https://worker.example/app-api/schedule/${nrec}?cached=1`,
+      expect.objectContaining({ credentials: "omit" }));
+  });
+
+  it("rejects missing or malformed archived snapshots", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 404 })));
+    await expect(fetchArchivedWorkerSnapshot(nrec, "https://worker.example")).rejects.toThrow("404");
+    await expect(fetchArchivedWorkerSnapshot(nrec, "http://worker.example")).rejects.toThrow("HTTPS");
+    await expect(fetchArchivedWorkerSnapshot("not-a-group", "https://worker.example")).rejects.toThrow("unavailable");
+  });
+
+  it("uses a saved Worker copy when a Pages group has no static snapshot", async () => {
+    vi.stubEnv("PROD", true);
+    vi.stubEnv("BASE_URL", "/vlsu-pi-124-schedule/");
+    vi.stubEnv("VITE_SCHEDULE_FALLBACK_URL", "https://worker.example");
+    const storage = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value)
+    });
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/data/schedule/")) return new Response("Not found", { status: 404 });
+      if (url.includes("?cached=1")) {
+        return new Response(JSON.stringify({ ...snapshot, source: "global-snapshot" }), { status: 200 });
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const state = await loadSchedule(LEGACY_PI124_GROUP);
+    expect(state.source).toBe("global-snapshot");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

@@ -60,7 +60,7 @@ function snapshotLabel(coverage: StaticCoverage | null, nrec: string) {
     return `Архив до ${new Date(`${entry.validThrough}T12:00:00`).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
   }
   if (capturedAt) return `Есть данные от ${new Date(capturedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
-  return coverage ? "Данных пока нет" : null;
+  return coverage ? "Проверим архив при открытии" : null;
 }
 
 export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: GroupPickerSheetProps) {
@@ -215,7 +215,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
         </div>
         {coverage && showCoverageWarning && (
           <p className="group-picker-coverage">
-            На сервере сохранено расписание для {coverage.available} из {coverage.catalogGroups} групп. Для остальных данных пока нет.
+            Проверенные снимки есть для {coverage.available} из {coverage.catalogGroups} групп. Для остальных попробуем резервный архив; он может быть пустым.
           </p>
         )}
 

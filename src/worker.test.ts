@@ -113,6 +113,44 @@ describe("Cloudflare worker", () => {
     vi.unstubAllGlobals();
   });
 
+  it("serves a saved group to the Pages origin without contacting VLSU", async () => {
+    const snapshotKv = createSnapshotKv();
+    const env = { ...createEnv(), SCHEDULE_SNAPSHOT: snapshotKv };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      return jsonResponseForTest(url.endsWith("/GetGroupCurrentInfo") ? currentInfo : schedule);
+    }));
+    await worker.fetch(new Request(`https://app.example/app-api/schedule/${groupNrec}`), env);
+    const upstream = vi.fn(async () => { throw new Error("VLSU must not be contacted"); });
+    vi.stubGlobal("fetch", upstream);
+
+    const request = new Request(`https://app.example/app-api/schedule/${groupNrec}?cached=1`, {
+      headers: { Origin: "https://germanpolkin.ru" }
+    });
+    const response = await worker.fetch(request, env);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe("https://germanpolkin.ru");
+    expect(response.headers.get("Vary")).toContain("Origin");
+    expect((await response.json() as { source: string }).source).toBe("global-snapshot");
+    expect(upstream).not.toHaveBeenCalled();
+
+    const missing = await worker.fetch(new Request(`https://app.example/app-api/schedule/${"b".repeat(32)}?cached=1`, {
+      headers: { Origin: "https://gerakl-ai.github.io" }
+    }), env);
+    expect(missing.status).toBe(404);
+    expect(missing.headers.get("Access-Control-Allow-Origin")).toBe("https://gerakl-ai.github.io");
+    expect(upstream).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
+  it("does not expose saved groups to an arbitrary cross-origin caller", async () => {
+    const response = await worker.fetch(new Request(`https://app.example/app-api/schedule/${groupNrec}?cached=1`, {
+      headers: { Origin: "https://untrusted.example" }
+    }), { ...createEnv(), SCHEDULE_SNAPSHOT: createSnapshotKv() });
+    expect(response.status).toBe(403);
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBeNull();
+  });
+
   it("keeps the last valid v2 snapshot when VLSU returns days without lessons", async () => {
     const snapshotKv = createSnapshotKv();
     const env = { ...createEnv(), SCHEDULE_SNAPSHOT: snapshotKv };

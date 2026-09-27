@@ -51,6 +51,7 @@ jobs:
           # Проектный сайт живёт в подкаталоге с именем репозитория.
           # Для своего домена достаточно заменить это на "/".
           PAGES_BASE: /${{ github.event.repository.name }}/
+          VITE_SCHEDULE_FALLBACK_URL: https://vlsu-pi-124-schedule.polkin-06.workers.dev
         run: pnpm run build
 
       - name: Добавить снимки расписания из ветки data
