@@ -13,3 +13,5 @@ qa/
 # Снимки расписания живут в отдельной ветке data, а не в main.
 /data/
 snapshot-data/
+/artifacts/pdf-staging/
+__pycache__/

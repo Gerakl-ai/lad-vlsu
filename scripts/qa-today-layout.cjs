@@ -24,7 +24,7 @@ const fs = require('node:fs');
         await page.locator('.today-view').waitFor();
         if (empty) {
           assert.equal(await page.locator('.today-view .empty-state').count(), 0);
-          await page.getByRole('button', { name: 'Календарь дня', exact: true }).click();
+          await page.getByTestId('today-calendar-launch').click();
           await page.getByRole('dialog', { name: 'Календарь', exact: true }).waitFor();
           await page.getByRole('button', { name: 'Закрыть календарь', exact: true }).click();
         } else {
