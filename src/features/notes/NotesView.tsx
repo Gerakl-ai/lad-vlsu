@@ -170,6 +170,7 @@ export function NotesView({
   }, [folders, notes]);
 
   const openCount = notes.filter((note) => note.status === "open").length;
+  const showNoteControls = ready && notes.length > 0;
   const studyCount = notes.filter((note) => note.status === "open" && (note.space === "Учёба" || note.kind === "homework")).length;
   const todayDateKey = new Date().toDateString();
   const todayCount = notes.filter((note) => note.status === "open" && note.dueAt && new Date(note.dueAt).toDateString() === todayDateKey).length;
@@ -274,6 +275,12 @@ export function NotesView({
   useEffect(() => {
     if (revealedNoteId && !notes.some((note) => note.id === revealedNoteId)) setRevealedNoteId(null);
   }, [notes, revealedNoteId]);
+
+  useEffect(() => {
+    if (!ready || notes.length > 0) return;
+    setActiveFilter("all");
+    setQuery("");
+  }, [ready, notes.length]);
 
   useEffect(() => {
     if (!reorderState) return;
@@ -398,7 +405,11 @@ export function NotesView({
 
   async function saveNote(input: NoteDocumentInput, noteId?: string) {
     if (noteId) await onUpdate(noteId, input);
-    else await onCreate(input);
+    else {
+      await onCreate(input);
+      setActiveFilter("all");
+      setQuery("");
+    }
   }
 
   return (
@@ -413,13 +424,10 @@ export function NotesView({
             <button type="button" onPointerDown={preloadNoteComposer} onClick={startDictation} aria-label="Начать умную диктовку" title="Умная диктовка" data-testid="start-smart-dictation">
               <Mic size={20} />
             </button>
-            <button type="button" onPointerDown={preloadSmartCalendar} onClick={() => setCalendarOpen(true)} aria-label="Открыть умный календарь" title="Календарь" data-testid="open-smart-calendar">
-              <CalendarDays size={20} />
-            </button>
           </div>
         </section>
 
-        <section className="notes-pulse" aria-label="Умные фильтры записей">
+        {showNoteControls && <section className="notes-pulse" aria-label="Умные фильтры записей">
           <button type="button" className={activeFilter === "smart:open" ? "active" : ""} onClick={() => { setActiveFilter("smart:open"); setRevealedNoteId(null); }} aria-pressed={activeFilter === "smart:open"}>
             <span>Открыто</span><strong>{openCount}</strong><ListTodo size={18} />
           </button>
@@ -429,7 +437,7 @@ export function NotesView({
           <button type="button" className={activeFilter === "smart:today" ? "active" : ""} onClick={() => { setActiveFilter("smart:today"); setRevealedNoteId(null); }} aria-pressed={activeFilter === "smart:today"}>
             <span>Сегодня</span><strong>{todayCount}</strong><CheckCircle2 size={18} />
           </button>
-        </section>
+        </section>}
 
         <button className="quick-capture create-entry" type="button" onPointerDown={preloadNoteComposer} onClick={() => createBlankNote()} aria-label="Создать запись" data-testid="open-note-composer">
           <span className="quick-capture-icon"><SquarePen size={23} /></span>
@@ -453,14 +461,14 @@ export function NotesView({
           <span className="calendar-launch-tail" aria-hidden="true"><CalendarDays size={18} /><ChevronRight size={21} /></span>
         </button>
 
-        <label className="notes-search">
+        {showNoteControls && <label className="notes-search">
           <Search size={18} />
           <input value={query} onChange={(event) => { setQuery(event.target.value); setRevealedNoteId(null); }} placeholder="Поиск по записям" aria-label="Поиск по записям" />
           {query && <button type="button" onClick={() => setQuery("")} aria-label="Очистить поиск" title="Очистить"><X size={16} /></button>}
-        </label>
+        </label>}
 
         <div className="space-rail" aria-label="Папки записей">
-          {filters.map(({ id, label, space, color, icon: Icon }) => {
+          {showNoteControls && filters.map(({ id, label, space, color, icon: Icon }) => {
             const count = notes.filter((note) => !space || note.space === space).length;
             return (
               <button key={id} className={selectedFilter.id === id ? "active" : ""} type="button" onClick={() => { setActiveFilter(id); setRevealedNoteId(null); }} aria-pressed={selectedFilter.id === id}>
@@ -516,16 +524,6 @@ export function NotesView({
             <Sparkles size={23} />
             <h3>{query ? "Ничего не найдено" : "Здесь пока тихо"}</h3>
             <p>{query ? "Попробуйте другой запрос." : "Новая запись появится в этом пространстве."}</p>
-            {!query && (
-              <button
-                className="notes-empty-create"
-                type="button"
-                onClick={() => createBlankNote()}
-              >
-                <SquarePen size={17} />
-                Создать запись
-              </button>
-            )}
             {!query && ready && notes.length === 0 && (
               <button className="notes-empty-recovery" type="button" onClick={onOpenSettings}>
                 Были записи на другом адресе? Открыть импорт
