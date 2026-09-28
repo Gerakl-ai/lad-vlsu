@@ -36,3 +36,32 @@ it.each([false, true])('installs all chunks atomically; missing chunk=%s', async
   expect(activated).toBe(!missing);
   if (!missing) expect(stored).toEqual(expect.arrayContaining(['/app/', '/app/assets/main.js', '/app/assets/lazy.js', '/app/assets/main.css']));
 });
+
+it('does not require optional images or icons to install the offline shell', async () => {
+  const listeners = {};
+  const requested = [];
+  let installation;
+  let activated = false;
+  runInNewContext(source, {
+    URL, Response, Headers, AbortController, setTimeout, clearTimeout,
+    self: {
+      location: new URL('https://example.org/app/sw.js?release=old-build'),
+      addEventListener: (name, fn) => { listeners[name] = fn; },
+      skipWaiting: async () => { activated = true; }
+    },
+    caches: { open: async () => ({ put: async () => {} }) },
+    fetch: async (resource) => {
+      requested.push(resource);
+      if (resource.includes('/icons/') || resource.includes('/images/')) {
+        return new Response('', { status: 503 });
+      }
+      const type = resource.endsWith('.js') ? 'text/javascript' : resource.endsWith('.css') ? 'text/css' : 'text/html';
+      return new Response('<meta name="lad-release" content="new-build">', { headers: { 'Content-Type': type } });
+    }
+  });
+  listeners.install({ waitUntil: (promise) => { installation = promise; } });
+  await installation;
+  expect(activated).toBe(true);
+  expect(requested).not.toContain('/app/images/hero-obsidian-campus.jpg');
+  expect(requested).not.toContain('/app/icons/icon-192.png');
+});

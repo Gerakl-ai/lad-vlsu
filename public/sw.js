@@ -17,14 +17,9 @@ function path(value) {
   return BASE + String(value).replace(/^\//, "");
 }
 
-const APP_SHELL = [
-  BASE,
-  path("manifest.webmanifest"),
-  path("icons/icon-192.png"),
-  path("icons/icon-512.png"),
-  path("images/hero-obsidian-campus.jpg"),
-  path("images/hero-porcelain-campus.jpg")
-];
+// Only resources required to boot belong to the atomic install. Decorative
+// images and icons enter the runtime cache when requested by the app.
+const APP_SHELL = [BASE];
 
 const ASSETS_PREFIX = path("assets/");
 const ICON_192 = path("icons/icon-192.png");
@@ -125,9 +120,8 @@ self.addEventListener("activate", (event) => {
         Promise.all(keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME).map((key) => caches.delete(key)))
       ),
       self.registration.navigationPreload?.enable?.() ?? Promise.resolve()
-    ])
+    ]).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
