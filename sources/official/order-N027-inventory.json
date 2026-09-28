@@ -1,0 +1,1584 @@
+{
+  "schemaVersion": 1,
+  "purpose": "review-planning-only",
+  "source": {
+    "url": "https://www.vlsu.ru/fileadmin/class-schedule/order_N027_20_20260818_ochno_zaochn_VO.zip",
+    "sha256": "3bea39345b5188e8ad002e50ee22ab4baa9fcbccdfea3ceee33ebd2b0433f2f7"
+  },
+  "catalogCapturedAt": "2026-09-26T16:24:03.189Z",
+  "summary": {
+    "scheduleDocuments": 7,
+    "schedulePages": 24,
+    "otherDocuments": 1,
+    "groupColumns": 101,
+    "uniqueCatalogGroups": 99,
+    "matches": {
+      "unique-catalog-name": 99,
+      "ambiguous-catalog-name": 0,
+      "not-in-catalog": 2
+    }
+  },
+  "documents": [
+    {
+      "member": 0,
+      "kind": "other-document",
+      "pdfSha256": "f3d327e1dfc82f0416483da9f995fd7c8b2f54bc3e1f3e61ddd89203c8bf3b06",
+      "pages": 1,
+      "heading": [
+        "Министерство науки и высшего образования Российской Федерации",
+        "Федеральное государственное бюджетное образовательное учреждение",
+        "высшего образования",
+        "«Владимирский государственный университет",
+        "имени Александра Григорьевича и Николая Григорьевича Столетовых»",
+        "(ВлГУ)",
+        "ПРИКАЗ",
+        "г. Владимир",
+        "18.08.2026",
+        "№"
+      ],
+      "groupColumns": []
+    },
+    {
+      "member": 1,
+      "kind": "schedule",
+      "pdfSha256": "5750e7512bdcf8b8585ea2de9e388311752a1e3ce3387e6b5515ffe4b099076d",
+      "pages": 1,
+      "heading": [
+        "РАСПИСАНИЕ ЗАНЯТИЙ НА ОСЕННИЙ СЕМЕСТР 2026/2027 УЧЕБНОГО ГОДА",
+        "ВЫСШАЯ ШКОЛА МУЗЫКИ И ТЕАТРА",
+        "⚓^",
+        "1 курс",
+        "Специалитет",
+        "c 01.09.2026 г. по 30.12.2026 г.",
+        "ВАДТ-126",
+        "-11855523111",
+        "1-я пара",
+        "Понедельник"
+      ],
+      "groupColumns": [
+        {
+          "page": 1,
+          "column": 1,
+          "header": "ВАДТ-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВАДТ-126",
+              "nrec": "5d9ae4cc62b2bd080991a851ef74c1cc",
+              "instituteId": "1d64876a8b7fee4092550670efa5932d",
+              "instituteName": "Высшая школа музыки и театра"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "member": 2,
+      "kind": "schedule",
+      "pdfSha256": "47dea459139d5a1436c893692dd51345448fbedfb3db7ff341eb34baf1b16d9d",
+      "pages": 1,
+      "heading": [
+        "РАСПИСАНИЕ ЗАНЯТИЙ НА ОСЕННИЙ СЕМЕСТР 2026/2027 УЧЕБНОГО ГОДА",
+        "ГУМАНИТАРНОГО ИНСТИТУТА",
+        "⚓^",
+        "2 курс",
+        "3 курс",
+        "4 курс",
+        "1 курс",
+        "2 курс",
+        "Бакалавриат",
+        "Магистратура"
+      ],
+      "groupColumns": [
+        {
+          "page": 1,
+          "column": 1,
+          "header": "ВПЛ-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВПЛ-125",
+              "nrec": "6f852f495b17329fc7deee9e45bbe71e",
+              "instituteId": "c22ac11fe7a7799355b1b90ba6957321",
+              "instituteName": "Гуманитарный институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 2,
+          "header": "ВПЛ-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВПЛ-124",
+              "nrec": "f808cb24ec1c2c316fd853d9a1ff47ef",
+              "instituteId": "c22ac11fe7a7799355b1b90ba6957321",
+              "instituteName": "Гуманитарный институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 3,
+          "header": "ВПЛ-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВПЛ-123",
+              "nrec": "147ff2478ba51c62715036f91e027bbf",
+              "instituteId": "c22ac11fe7a7799355b1b90ba6957321",
+              "instituteName": "Гуманитарный институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 4,
+          "header": "ВПЛм-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВПЛм-126",
+              "nrec": "8e58e9ad2c962fd09ee42baa73339d39",
+              "instituteId": "c22ac11fe7a7799355b1b90ba6957321",
+              "instituteName": "Гуманитарный институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 5,
+          "header": "ВПЛм-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВПЛм-125",
+              "nrec": "0ab9aa5ba986f255ee9dad72747240fa",
+              "instituteId": "c22ac11fe7a7799355b1b90ba6957321",
+              "instituteName": "Гуманитарный институт"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "member": 3,
+      "kind": "schedule",
+      "pdfSha256": "6ffd2a85cee4983bdac9d65de84083f037378248f6b62f56aa507c554b56a1da",
+      "pages": 9,
+      "heading": [
+        "РАСПИСАНИЕ ЗАНЯТИЙ НА ОСЕННИЙ СЕМЕСТР 2026/2027 УЧЕБНОГО ГОДА",
+        "ИНСТИТУТА АРХИТЕКТУРЫ, СТРОИТЕЛЬСТВА И ЭНЕРГЕТИКИ",
+        "⚓^",
+        "1 курс",
+        "Бакалавриат",
+        "c 01.09.2026 г. по 30.12.2026 г.",
+        "ВС-126",
+        "ВС-226",
+        "ВС-326",
+        "ВС-426"
+      ],
+      "groupColumns": [
+        {
+          "page": 1,
+          "column": 1,
+          "header": "ВС-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-126",
+              "nrec": "2e57434244b112369ac6971c0e6a1681",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 2,
+          "header": "ВС-226",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-226",
+              "nrec": "5c6c77651ff5766b5fa389249c8e99be",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 3,
+          "header": "ВС-326",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-326",
+              "nrec": "a07a215b507aacf25816d4c9dbede473",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 4,
+          "header": "ВС-426",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-426",
+              "nrec": "94bdce5e26d7aa15e945a4c23cbfcc48",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 1,
+          "header": "ВСу-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-126",
+              "nrec": "74afe8bac83e967a86ade0c0ed27be7f",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 2,
+          "header": "ВСу-226",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-226",
+              "nrec": "70d101dea1e395c4cbfbd82df4538bb9",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 3,
+          "header": "ВСу-326",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-326",
+              "nrec": "2b3266a19e3e8db183f14b085291da7d",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 4,
+          "header": "ВСу-426",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-426",
+              "nrec": "5a370fd5404818169955449f4948b107",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 1,
+          "header": "ВС-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-125",
+              "nrec": "1d4d9b837897c941b80c9c882fc5d268",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 2,
+          "header": "ВС-225",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-225",
+              "nrec": "f92b471f6f33f7ad72bc89d61c1d1815",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 3,
+          "header": "ВС-325",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-325",
+              "nrec": "f883c0c2ffdb3356d2ebe3e2fa81c028",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 4,
+          "header": "ВС-425",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-425",
+              "nrec": "5f49a74c56b6f6c36bb5eaf7cf94fa43",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 1,
+          "header": "ВСу-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-125",
+              "nrec": "67d090e08fa71a562159ca420f82b7b3",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 2,
+          "header": "ВСу-225",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-225",
+              "nrec": "a04c704235d3870fa5b902fa99148e5b",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 3,
+          "header": "ВСу-325",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-325",
+              "nrec": "3a37e49363fd2e50d1d2254403fec6a5",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 4,
+          "header": "ВСу-425",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-425",
+              "nrec": "3929725c28c1009f1f117b0709697b39",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 1,
+          "header": "ВС-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-124",
+              "nrec": "2032cfa14752d65d3b88e319cfa372f7",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 2,
+          "header": "ВС-224",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-224",
+              "nrec": "f2b273b93dd6486cfacf407bede11569",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 3,
+          "header": "ВС-324",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-324",
+              "nrec": "7f2ae556d8183749a9b87ae9bc5256e0",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 4,
+          "header": "ВС-424",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-424",
+              "nrec": "3510aaaf444f1d726eac2cc41077f14d",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 6,
+          "column": 1,
+          "header": "ВСу-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-124",
+              "nrec": "e32711805d6dc003b34bcacab2188a1a",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 6,
+          "column": 2,
+          "header": "ВСу-224",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-224",
+              "nrec": "933c52ba58fdc4143ea1298fc96d133c",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 6,
+          "column": 3,
+          "header": "ВСу-324",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-324",
+              "nrec": "0eb76a89404f76610a29af9f874cec34",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 6,
+          "column": 4,
+          "header": "ВСу-424",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-424",
+              "nrec": "9dde17c0a496f144b430dff5e7d8f508",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 7,
+          "column": 1,
+          "header": "ВС-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-123",
+              "nrec": "26116766749036772b86dae476a17459",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 7,
+          "column": 2,
+          "header": "ВС-223",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-223",
+              "nrec": "4fe693d8e66ed59bb8303121b4ef0a7a",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 7,
+          "column": 3,
+          "header": "ВС-323",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-323",
+              "nrec": "141c15f5dd5ccf2f1b08d465928b4e2f",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 7,
+          "column": 4,
+          "header": "ВС-423",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-423",
+              "nrec": "04bd2331c4bbfdbd408a52e99d336ff6",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 7,
+          "column": 5,
+          "header": "ВС-523",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-523",
+              "nrec": "19e0b11b85d4531de45e3fa23d51e50d",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 8,
+          "column": 1,
+          "header": "ВСу-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-123",
+              "nrec": "1fd930985a245930b7c278e36416b485",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 8,
+          "column": 2,
+          "header": "ВСу-223",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-223",
+              "nrec": "58bc72a38af35f8a352868fa7c0fe8b3",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 8,
+          "column": 3,
+          "header": "ВСу-323",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-323",
+              "nrec": "2576f19ad75ccca2c32ebb79f1074c0a",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 8,
+          "column": 4,
+          "header": "ВСу-423",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСу-423",
+              "nrec": "cdf260c98102734d84b577a199d4de46",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 9,
+          "column": 1,
+          "header": "ВС-122",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-122",
+              "nrec": "6551e5dd6993f17f4350084bbdd9d2e3",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 9,
+          "column": 2,
+          "header": "ВС-322",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-322",
+              "nrec": "44f4bd42e50650ec45109df1c507c8a0",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 9,
+          "column": 3,
+          "header": "ВС-422",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-422",
+              "nrec": "aa7bea7228b4c524030a079ff3249edf",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        },
+        {
+          "page": 9,
+          "column": 4,
+          "header": "ВС-522",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВС-522",
+              "nrec": "c077a2196f972365deb7ebb961494a9f",
+              "instituteId": "b175b4e482d0e83192900749ffba202c",
+              "instituteName": "Институт архитектуры, строительства и энергетики"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "member": 4,
+      "kind": "schedule",
+      "pdfSha256": "35a7b71e659ccba368280cdfb005f7e7b1ee41560a1d59eff1c50578f37f2dea",
+      "pages": 2,
+      "heading": [
+        "РАСПИСАНИЕ ЗАНЯТИЙ НА ОСЕННИЙ СЕМЕСТР 2026/2027 УЧЕБНОГО ГОДА",
+        "ИНСТИТУТА ФИЗИЧЕСКОЙ КУЛЬТУРЫ, СПОРТА И ХОРЕОГРАФИИ",
+        "⚓^",
+        "2 курс",
+        "Бакалавриат",
+        "c 01.09.2026 г. по 30.12.2026 г.",
+        "ВАФВ-125",
+        "ВАФВу-125",
+        "92193465011",
+        "-170220923211"
+      ],
+      "groupColumns": [
+        {
+          "page": 1,
+          "column": 1,
+          "header": "ВАФВ-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВАФВ-125",
+              "nrec": "7b2c22b61579cb304a7540f403c9bb64",
+              "instituteId": "7e8eafead3a2aa6b73597950f8205ce0",
+              "instituteName": "Институт физической культуры, спорта и хореографии"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 2,
+          "header": "ВАФВу-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВАФВу-125",
+              "nrec": "dc2b3a5904b33407ebcf5b1dba079020",
+              "instituteId": "7e8eafead3a2aa6b73597950f8205ce0",
+              "instituteName": "Институт физической культуры, спорта и хореографии"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 1,
+          "header": "ВФС-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВФС-124",
+              "nrec": "72ef6a64bf31e6375ba5719cf01e76e7",
+              "instituteId": "7e8eafead3a2aa6b73597950f8205ce0",
+              "instituteName": "Институт физической культуры, спорта и хореографии"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 2,
+          "header": "ВАФВу-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВАФВу-124",
+              "nrec": "6748f4180c05d5851dcf91e1df52d055",
+              "instituteId": "7e8eafead3a2aa6b73597950f8205ce0",
+              "instituteName": "Институт физической культуры, спорта и хореографии"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "member": 5,
+      "kind": "schedule",
+      "pdfSha256": "878d3fc8ae7dedd1e49e8078662235ca94a4be3dfc616919287f352634775e97",
+      "pages": 5,
+      "heading": [
+        "РАСПИСАНИЕ ЗАНЯТИЙ НА ОСЕННИЙ СЕМЕСТР 2026/2027 УЧЕБНОГО ГОДА",
+        "ИНСТИТУТА ЭКОНОМИКИ И ТУРИЗМА",
+        "⚓^",
+        "1 курс",
+        "2 курс",
+        "Бакалавриат",
+        "c 01.09.2026 г. по 30.12.2026 г.",
+        "ВМНу-126",
+        "ВМН-125",
+        "ВМНу-125"
+      ],
+      "groupColumns": [
+        {
+          "page": 1,
+          "column": 1,
+          "header": "ВМНу-126",
+          "match": {
+            "status": "not-in-catalog"
+          }
+        },
+        {
+          "page": 1,
+          "column": 2,
+          "header": "ВМН-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВМН-125",
+              "nrec": "5ecdb6b8d8ef950358b76a98f662ce13",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 3,
+          "header": "ВМНу-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВМНу-125",
+              "nrec": "5a29f3352f16698eb99f03fcc43021d4",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 1,
+          "header": "ВЭКу-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЭКу-124",
+              "nrec": "1a71c902d3caca7fbff339a1281c764b",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 2,
+          "header": "ВМН-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВМН-124",
+              "nrec": "600dfa91708c84e9f6c252293b241a6f",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 3,
+          "header": "ВУПу-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВУПу-124",
+              "nrec": "cb49c71b04b45f76103b891b0d921ca6",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 1,
+          "header": "ВЭК-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЭК-123",
+              "nrec": "ee1c712dcd4185a24ff68900353f3eec",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 2,
+          "header": "ВЭКу-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЭКу-123",
+              "nrec": "36f15a7c603579305b067a978d79df62",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 3,
+          "header": "ВБИ-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВБИ-123",
+              "nrec": "671ccdf640ab71ea737601568d26ce30",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 1,
+          "header": "ВМН-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВМН-123",
+              "nrec": "c407646d8cdbf79b58d4c3debae17012",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 2,
+          "header": "ВМНу-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВМНу-123",
+              "nrec": "6600a1cc0c609006432fdb0c61a19abb",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 3,
+          "header": "ВУПу-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВУПу-123",
+              "nrec": "5ffaed3eeb15c808c79b3e6a7d8f6b8d",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 1,
+          "header": "ВЭК-122",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЭК-122",
+              "nrec": "4549b5a8d4cfbfe40fe737eed26510f0",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 2,
+          "header": "ВМН-122",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВМН-122",
+              "nrec": "ccb2404239de2a76967dd6b6c8dc1d0e",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 3,
+          "header": "ВУП-122",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВУП-122",
+              "nrec": "23ea8ce37cf57739f9d1a0e88188be0e",
+              "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+              "instituteName": "Институт экономики и туризма"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "member": 6,
+      "kind": "schedule",
+      "pdfSha256": "a3efa01fa320d8737cd96fee7bae2e7d19c3d4f47f715357e36d4fb8c0032eb1",
+      "pages": 1,
+      "heading": [
+        "РАСПИСАНИЕ ЗАНЯТИЙ НА ОСЕННИЙ СЕМЕСТР 2026/2027 УЧЕБНОГО ГОДА",
+        "ПЕДАГОГИЧЕСКОГО ИНСТИТУТА",
+        "⚓^",
+        "1 курс",
+        "2 курс",
+        "3 курс",
+        "4 курс",
+        "5 курс",
+        "1 курс",
+        "Бакалавриат"
+      ],
+      "groupColumns": [
+        {
+          "page": 1,
+          "column": 1,
+          "header": "ВД-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВД-126",
+              "nrec": "8b84a6f64e764911d53e08181585c6ba",
+              "instituteId": "e455d212af0d8b23a5f59d8503a25cea",
+              "instituteName": "Педагогический институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 2,
+          "header": "ВД-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВД-125",
+              "nrec": "13a315843a8392ff784a2c4ba6b5de9e",
+              "instituteId": "e455d212af0d8b23a5f59d8503a25cea",
+              "instituteName": "Педагогический институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 3,
+          "header": "ВД-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВД-124",
+              "nrec": "baf02edeed2335fc4d8b6a64d1492779",
+              "instituteId": "e455d212af0d8b23a5f59d8503a25cea",
+              "instituteName": "Педагогический институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 4,
+          "header": "ВД-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВД-123",
+              "nrec": "b8f6344037886176735de6c78aff2d22",
+              "instituteId": "e455d212af0d8b23a5f59d8503a25cea",
+              "instituteName": "Педагогический институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 5,
+          "header": "ВД-122",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВД-122",
+              "nrec": "779ff7410d9e60acf2955076694b1cd6",
+              "instituteId": "e455d212af0d8b23a5f59d8503a25cea",
+              "instituteName": "Педагогический институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 6,
+          "header": "ВиРм-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВиРм-126",
+              "nrec": "7234a87d1814999cda8d88dbb85dc7a8",
+              "instituteId": "e455d212af0d8b23a5f59d8503a25cea",
+              "instituteName": "Педагогический институт"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "member": 7,
+      "kind": "schedule",
+      "pdfSha256": "99b622e120459d48f88ecc5ca34938545a471d9b5fb6f02768d42df9660a3540",
+      "pages": 5,
+      "heading": [
+        "РАСПИСАНИЕ ЗАНЯТИЙ НА ОСЕННИЙ СЕМЕСТР 2026/2027 УЧЕБНОГО ГОДА",
+        "ЮРИДИЧЕСКОГО ИНСТИТУТА",
+        "⚓^",
+        "1 курс",
+        "Бакалавриат",
+        "Специалитет",
+        "Бакалавриат",
+        "Специалитет",
+        "c 01.09.2026 г. по 30.12.2026 г.",
+        "ВЮ-126"
+      ],
+      "groupColumns": [
+        {
+          "page": 1,
+          "column": 1,
+          "header": "ВЮ-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮ-126",
+              "nrec": "9a26c2258ef1da239bdf7e119319563b",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 2,
+          "header": "ВЮ-226",
+          "match": {
+            "status": "not-in-catalog"
+          }
+        },
+        {
+          "page": 1,
+          "column": 3,
+          "header": "ВСПД-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПД-126",
+              "nrec": "77f3410be4d22962c19abc064447c662",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 4,
+          "header": "ВЮу-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮу-126",
+              "nrec": "9ef0cf477b701511f2b9be459d048080",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 5,
+          "header": "ВЮу-226",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮу-226",
+              "nrec": "450c9f3e2c8b39dd2918210922cf2ae1",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 6,
+          "header": "ВСПДу-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПДу-126",
+              "nrec": "8be29b59cf05cd8766a2f70d7a7db776",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 1,
+          "header": "ВЮ-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮ-125",
+              "nrec": "32a0ad5c053eec1bd1742caa4b54e309",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 2,
+          "header": "ВСПД-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПД-125",
+              "nrec": "526ddd8711ed18b58dad38684a99ccd0",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 3,
+          "header": "ВЮу-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮу-125",
+              "nrec": "dc3e8af8c4368805a00360fa1b045a04",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 4,
+          "header": "ВЮу-225",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮу-225",
+              "nrec": "a80d1095debb408eee84844d641ef710",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 5,
+          "header": "ВСПДу-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПДу-125",
+              "nrec": "2ac15476328122608c9f700485205b77",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 6,
+          "header": "ВЮв-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮв-125",
+              "nrec": "5d9515b2fdad821028e15959235c0a6e",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 7,
+          "header": "ВСПДв-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПДв-125",
+              "nrec": "b0a7f20872dde0611c7916f802a9320b",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 1,
+          "header": "ВЮ-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮ-124",
+              "nrec": "131b1300e2817bcde04f2671d7ccc82d",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 2,
+          "header": "ВЮ-224",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮ-224",
+              "nrec": "fa693c2bc0cfab9e119a0bc877af9a19",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 3,
+          "header": "ВСПД-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПД-124",
+              "nrec": "4feab2b4cb4b919eecd445d94b85301c",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 4,
+          "header": "ВЮу-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮу-124",
+              "nrec": "b6102af86ab7ae42fea41740980ab868",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 5,
+          "header": "ВЮу-224",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮу-224",
+              "nrec": "1fd913896033583119c90fd68fce904c",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 6,
+          "header": "ВСПДу-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПДу-124",
+              "nrec": "6b37e6e6fc1afd9a2c475c6b68412c73",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 7,
+          "header": "ВЮв-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮв-124",
+              "nrec": "c897bc20c33b1fd47569c412e81ce501",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 8,
+          "header": "ВСПДв-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПДв-124",
+              "nrec": "0a032085a8f92d3a75a5e185fd280650",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 1,
+          "header": "ВЮ-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮ-123",
+              "nrec": "9600b4c539be07fe1e4a2c556fd7c9b6",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 2,
+          "header": "ВЮ-223",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮ-223",
+              "nrec": "801861dd79ef780dc7c3e5bd77e592ef",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 3,
+          "header": "ВСПД-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПД-123",
+              "nrec": "2952e1c9cccfb0853196719dc614193b",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 4,
+          "header": "ВЮу-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮу-123",
+              "nrec": "23cde25e84cac2daa08a474006d8403a",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 5,
+          "header": "ВЮу-223",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮу-223",
+              "nrec": "bde4387ca727488612d3843a1cdcdca3",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 6,
+          "header": "ВЮу-323",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮу-323",
+              "nrec": "ffe814719fa2f8df73b892137a4a3171",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 7,
+          "header": "ВСПДу-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПДу-123",
+              "nrec": "83f7c8c1fca4466c1e2d4757acd426bf",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 1,
+          "header": "ВСПДв-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПДв-123",
+              "nrec": "64211c20eef683fcac7850c40294437d",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 2,
+          "header": "ВЮ-122",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮ-122",
+              "nrec": "590604df6f0cd7a605579e51b1717d6c",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 3,
+          "header": "ВЮ-222",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВЮ-222",
+              "nrec": "ea50212bf9a8ee41fe3c795f5ced6107",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 4,
+          "header": "ВСПД-122",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПД-122",
+              "nrec": "ba1be0942dafdbe696eae67d976eeb6a",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 5,
+          "header": "ВСПДу-122",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВСПДу-122",
+              "nrec": "8130445f795e7e1b66a09ae5c5541d25",
+              "instituteId": "928b59357e2f04b381282fe605b710da",
+              "instituteName": "Юридический институт"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

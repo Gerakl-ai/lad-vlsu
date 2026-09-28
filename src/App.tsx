@@ -72,7 +72,7 @@ import { assetUrl } from "./lib/assetUrl";
 import { backupSignature, markBackupMade, readBackupMade } from "./features/notes/backupState";
 import { RELEASE_CHANNEL } from "./release";
 import { lessonView, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
-import { fetchCrawlStatus, type CrawlStatus } from "./lib/staticData";
+import { fetchCrawlStatus, fetchOfficialDocumentLocation, type CrawlStatus, type OfficialDocumentLocation } from "./lib/staticData";
 import { readReminderSettings, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import { resolveScreenSwipe } from "./lib/screenGestures";
@@ -838,7 +838,7 @@ export function App() {
           {isLoading && (activeTab === "today" || activeTab === "week") && <SkeletonView />}
 
           {isScheduleUnavailable && (activeTab === "today" || activeTab === "week") && (
-            <ScheduleUnavailableView onRetry={() => refreshSchedule()} onRestore={lastAvailableGroupRef.current ? () => selectGroup(lastAvailableGroupRef.current!) : undefined} />
+            <ScheduleUnavailableView groupNrec={selectedGroup?.nrec} onRetry={() => refreshSchedule()} onGroupOpen={() => setGroupPickerOpen(true)} onRestore={lastAvailableGroupRef.current ? () => selectGroup(lastAvailableGroupRef.current!) : undefined} />
           )}
 
           {!isLoading && !isScheduleUnavailable && activeTab === "today" && (
@@ -2254,16 +2254,33 @@ function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange:
   );
 }
 
-function ScheduleUnavailableView({ onRetry, onRestore }: { onRetry: () => void; onRestore?: () => void }) {
+function ScheduleUnavailableView({ groupNrec, onRetry, onGroupOpen, onRestore }: { groupNrec?: string; onRetry: () => void; onGroupOpen: () => void; onRestore?: () => void }) {
+  const [document, setDocument] = useState<OfficialDocumentLocation | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    setDocument(null);
+    if (groupNrec) void fetchOfficialDocumentLocation(groupNrec)
+      .then((value) => { if (active) setDocument(value); })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [groupNrec]);
+
   return (
     <section className="schedule-unavailable" role="status" aria-live="polite">
       <span className="schedule-unavailable-icon" aria-hidden="true"><CalendarX2 size={27} /></span>
       <span className="schedule-unavailable-copy">
         <small>Данных для группы пока нет</small>
         <strong>Расписание не получено</strong>
-        <p>Проверенный снимок этой группы ещё не опубликован и не сохранён на устройстве. Повторите загрузку позже или сверьтесь с первоисточником.</p>
-        <a href="https://www.vlsu.ru/studentu/raspisanie-zanjatii/" target="_blank" rel="noopener noreferrer">
-          Официальная страница ВлГУ <ExternalLink size={14} aria-hidden="true" />
+        <p>Проверенного цифрового снимка этой группы пока нет. Повторите загрузку позже или откройте исходный документ ВлГУ.</p>
+        {document && (
+          <p className="schedule-source-location">
+            <strong>{document.groupName} · {document.period}</strong>
+            {document.title}. PDF №{document.member} в архиве, страница {document.page}, столбец {document.column}.
+          </p>
+        )}
+        <a href={document?.url ?? "https://www.vlsu.ru/studentu/raspisanie-zanjatii/"} target="_blank" rel="noopener noreferrer">
+          {document ? "Открыть архив ВлГУ" : "Официальная страница ВлГУ"} <ExternalLink size={14} aria-hidden="true" />
         </a>
       </span>
       {onRestore && <button type="button" onClick={onRestore}>Вернуться к прошлой группе</button>}
@@ -2271,6 +2288,7 @@ function ScheduleUnavailableView({ onRetry, onRestore }: { onRetry: () => void; 
         <RefreshCw size={17} />
         Повторить
       </button>
+      <button type="button" className="secondary" onClick={onGroupOpen}>Выбрать другую группу</button>
     </section>
   );
 }

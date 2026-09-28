@@ -5,15 +5,41 @@ import { vlsuWeekModeForDate, vlsuWeekTypeForDate } from "./academicWeek";
 import {
   catalogGroups,
   catalogInstitutes,
+  fetchOfficialDocumentGroupIds,
+  fetchOfficialDocumentLocation,
   normalizeStaticCatalog,
   normalizeStaticSnapshot,
   normalizeStaticCoverage,
   resetStaticCatalogCache,
   normalizeCrawlStatus,
   normalizeProvenance,
+  resetOfficialDocumentIndexCache,
   scheduleStateFromSnapshot,
   staticDataUrl
 } from "./staticData";
+
+describe("официальный документ группы", () => {
+  it("находит координаты и принимает только ссылку ВлГУ", async () => {
+    resetOfficialDocumentIndexCache();
+    const nrec = "a".repeat(32);
+    const payload = {
+      schemaVersion: 1,
+      period: "Осень 2026",
+      groups: { [nrec]: { groupName: "ПИ-124", sourceId: "029", member: 1, page: 3, column: 5 } },
+      sources: { "029": { title: "Приказ", url: "https://www.vlsu.ru/fileadmin/class-schedule/order.zip" } }
+    };
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(payload), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await fetchOfficialDocumentLocation(nrec)).toMatchObject({ page: 3, column: 5, title: "Приказ" });
+    expect((await fetchOfficialDocumentGroupIds()).has(nrec)).toBe(true);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    payload.sources["029"].url = "https://example.com/archive.zip";
+    resetOfficialDocumentIndexCache();
+    expect(await fetchOfficialDocumentLocation(nrec)).toBeNull();
+    vi.unstubAllGlobals();
+    resetOfficialDocumentIndexCache();
+  });
+});
 
 const HASH = "a".repeat(64);
 

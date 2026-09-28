@@ -1,0 +1,1401 @@
+{
+  "schemaVersion": 1,
+  "purpose": "review-planning-only",
+  "source": {
+    "url": "https://www.vlsu.ru/fileadmin/class-schedule/order_N028_20_20260903_KITP_OSPJUO.zip",
+    "sha256": "f4a4470e0adf1176af41c747e9c65b73edb05a65945124fdab7521e05a16de4f"
+  },
+  "catalogCapturedAt": "2026-09-26T16:24:03.189Z",
+  "summary": {
+    "scheduleDocuments": 2,
+    "schedulePages": 11,
+    "otherDocuments": 1,
+    "groupColumns": 83,
+    "uniqueCatalogGroups": 100,
+    "matches": {
+      "unique-catalog-name": 64,
+      "multi-group-column": 18,
+      "ambiguous-catalog-name": 0,
+      "unresolved-multi-group": 1,
+      "not-in-catalog": 0
+    }
+  },
+  "documents": [
+    {
+      "member": 0,
+      "kind": "other-document",
+      "pdfSha256": "98b30b04d1d23eb3df3c050bf982b26d34aa203df098bb09307ac46aca667c5f",
+      "pages": 1,
+      "heading": [
+        "Министерство науки и высшего образования Российской Федерации",
+        "Федеральное государственное бюджетное образовательное учреждение",
+        "высшего образования",
+        "«Владимирский государственный университет",
+        "имени Александра Григорьевича и Николая Григорьевича Столетовых»",
+        "(ВлГУ)",
+        "ПРИКАЗ",
+        "г. Владимир",
+        "03.09.2026",
+        "№"
+      ],
+      "groupColumns": []
+    },
+    {
+      "member": 1,
+      "kind": "schedule",
+      "pdfSha256": "054e4baadf70f3a131a294223f2027778e38d5f40eb9ee279eada1f134dca3f3",
+      "pages": 8,
+      "heading": [
+        "РАСПИСАНИЕ ЗАНЯТИЙ НА ОСЕННИЙ СЕМЕСТР 2026/2027 УЧЕБНОГО ГОДА",
+        "КОЛЛЕДЖА ИННОВАЦИОННЫХ ТЕХНОЛОГИЙ И ПРЕДПРИНИМАТЕЛЬСТВА",
+        "⚓^",
+        "1 курс",
+        "СПО",
+        "c 01.09.2026 г. по 28.12.2026 г.",
+        "АРХспк-126",
+        "Ссп-126",
+        "СДсп-126",
+        "ВРспк-126"
+      ],
+      "groupColumns": [
+        {
+          "page": 1,
+          "column": 1,
+          "header": "АРХспк-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "АРХспк-126",
+              "nrec": "06b78b8a66a7129b74f2e64eb51a6f6b",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 2,
+          "header": "Ссп-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Ссп-126",
+              "nrec": "28a84a1da4579ec38132b106150c5644",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 3,
+          "header": "СДсп-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "СДсп-126",
+              "nrec": "6c40700017706fb503d71bb14a06c413",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 4,
+          "header": "ВРспк-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ВРспк-126",
+              "nrec": "3b3b53d4d091f5049e09b6a5a1c86b77",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 5,
+          "header": "ПОсп-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ПОсп-126",
+              "nrec": "d6162906597ef961f1a999be602c87a6",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 6,
+          "header": "ПОспк-226",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ПОспк-226",
+              "nrec": "f580ede6690b889a84657a6759564469",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 7,
+          "header": "РЭсп-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "РЭсп-126",
+              "nrec": "8b142ade44977211aaaefa17234fc5b9",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 8,
+          "header": "ЭОсп-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ЭОсп-126",
+              "nrec": "65e6767d9b230aa90de8a4061975ad0f",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 9,
+          "header": "Тсп-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Тсп-126",
+              "nrec": "ab039e51de1db6bc903f4457cbb554c5",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 1,
+          "header": "ПБсп-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ПБсп-126",
+              "nrec": "1279ce7491df31f4586b68c0c2150c51",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 2,
+          "header": "ТОсп-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТОсп-126",
+              "nrec": "a3bfd41b7fff777c2edbf548b099eae6",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 3,
+          "header": "БУспк-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "БУспк-126",
+              "nrec": "503de20217b483cfdc40fb130c1f712b",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 4,
+          "header": "ОДспк-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ОДспк-126",
+              "nrec": "b6dd95aa63b2e250bbc9e83717679f05",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 5,
+          "header": "Фспк-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Фспк-126",
+              "nrec": "bba9f7e9c88bed7a3f8c4d4ef8073508",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 6,
+          "header": "ТДспк-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТДспк-126",
+              "nrec": "d9bf8a5ac8375df930eb93880a7a8c75",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 7,
+          "header": "ТГспк-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТГспк-126",
+              "nrec": "63a914d6b1da9b7dc68df411f2ade08b",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 8,
+          "header": "ПДОсп-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ПДОсп-126",
+              "nrec": "81641441239e9534dfb78fff9be71e3e",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 9,
+          "header": "ФКсп-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ФКсп-126",
+              "nrec": "1ef354d474328cb897577f77adbc7941",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 10,
+          "header": "ТОспк-226",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТОспк-226",
+              "nrec": "5e2423fc19b7453b01128fba97914c17",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 1,
+          "header": "АРХспк-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "АРХспк-125",
+              "nrec": "0b502a05c051ab352ccf2dfe8291d778",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 2,
+          "header": "Ссп-125 Суспк-226",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "Ссп-125",
+                "nrec": "561a04518400d04fea01e11625e09f29",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "Суспк-226",
+                "nrec": "d6373e3dec320af30f214beaf623c159",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 3,
+          "column": 3,
+          "header": "СДсп-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "СДсп-125",
+              "nrec": "43bb04f47f2f67cb9699028b5d2858e3",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 4,
+          "header": "ИПсп-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ИПсп-125",
+              "nrec": "e4d077b5e8840dbea3a8a4dd14300d39",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 5,
+          "header": "ИРсп-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ИРсп-125",
+              "nrec": "64ecac97044575d8fc6d302c6c945507",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 6,
+          "header": "РЭсп-125 РЭуспк-226",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "РЭсп-125",
+                "nrec": "7d35958480d0e8056617faebdf81b482",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "РЭуспк-226",
+                "nrec": "dc8e293baac0922284f40bc2fb91093e",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 3,
+          "column": 7,
+          "header": "ЭОсп-125 ЭОуспк-226",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "ЭОсп-125",
+                "nrec": "1198e49a34d0bd04571ba6fb5958007e",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "ЭОуспк-226",
+                "nrec": "e3ad38623247d899a2f66f947ff8579f",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 3,
+          "column": 8,
+          "header": "Тсп-125 Туспк-226",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "Тсп-125",
+                "nrec": "f40e6536554d77b8ed7891e34c9dc026",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "Туспк-226",
+                "nrec": "b9d7ce2aabdd8d7dc78d3b66dfcf5db8",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 3,
+          "column": 9,
+          "header": "ПБсп-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ПБсп-125",
+              "nrec": "bb55c600e67751ae962c3068b4a5a8d2",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 10,
+          "header": "ТОсп-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТОсп-125",
+              "nrec": "23d0c2f22a1a6c2596ff49e0e9f74802",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 1,
+          "header": "ОДспк-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ОДспк-125",
+              "nrec": "1abf32488244966b3cdd587c200ef1d0",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 2,
+          "header": "ОДуспк-226",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ОДуспк-226",
+              "nrec": "2d694fd693fdde9ada8d3ea74c7868d9",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 3,
+          "header": "Фспк-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Фспк-125",
+              "nrec": "74731433e44838056f8ce70b578e517e",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 4,
+          "header": "ТДспк-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТДспк-125",
+              "nrec": "94869810525e94ac41f1cc7296b40a52",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 5,
+          "header": "ТГспк-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТГспк-125",
+              "nrec": "01925169fd06bc42f63d249b18a8d85c",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 6,
+          "header": "ТГуспк-226",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТГуспк-226",
+              "nrec": "381334ed43dd6f69249e007590571e5b",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 7,
+          "header": "ПДОспк-125 ПДОуспк-226",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "ПДОспк-125",
+                "nrec": "1eea4f23273ff7d29f5427ad53ec2279",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "ПДОуспк-226",
+                "nrec": "56386620c252b47d0001e0e74dce7f16",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 4,
+          "column": 8,
+          "header": "ФКсп-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ФКсп-125",
+              "nrec": "6e5b303d05af80bcf17958a52fa40394",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 4,
+          "column": 9,
+          "header": "ФКуспк-226 ФКспк-225",
+          "match": {
+            "status": "unresolved-multi-group",
+            "parts": [
+              {
+                "header": "ФКуспк-226",
+                "candidates": [
+                  {
+                    "name": "ФКуспк-226",
+                    "nrec": "a2b6b62ef5d43a04102fb7497d0dd811",
+                    "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                    "instituteName": "Колледж инновационных технологий и предпринимательства"
+                  }
+                ]
+              },
+              {
+                "header": "ФКспк-225",
+                "candidates": []
+              }
+            ]
+          }
+        },
+        {
+          "page": 5,
+          "column": 1,
+          "header": "АРХспк-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "АРХспк-124",
+              "nrec": "65e8167c1a605a6eb9dbdb8d20258278",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 2,
+          "header": "Ссп-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Ссп-124",
+              "nrec": "31bf71a0824363792a4b3c575ff3734e",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 3,
+          "header": "Суспк-225",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Суспк-225",
+              "nrec": "fdae06cf42263cb81d9cb5c2fe6399c1",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 4,
+          "header": "СДсп-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "СДсп-124",
+              "nrec": "5a80ed31a839f205f82c3136187274e7",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 5,
+          "header": "ИПсп-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ИПсп-124",
+              "nrec": "58c90a82d732cd5c011fa2200fedc276",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 6,
+          "header": "ИРсп-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ИРсп-124",
+              "nrec": "fd34a77b62348aba88c7508a9800b828",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 7,
+          "header": "РЭсп-124 РЭуспк-225",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "РЭсп-124",
+                "nrec": "13177487ef2b2a501592a226de693662",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "РЭуспк-225",
+                "nrec": "edb17e3f86207809da1484839093f9fa",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 5,
+          "column": 8,
+          "header": "ЭОсп-124 ЭОуспк-225",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "ЭОсп-124",
+                "nrec": "b2da14588ee5c1a7723df6185c9c3893",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "ЭОуспк-225",
+                "nrec": "4b15ccd1daaa14006cbc29fed92f6d91",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 5,
+          "column": 9,
+          "header": "Тсп-124 Туспк-225",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "Тсп-124",
+                "nrec": "e2fc62c62c1b859c9c6de44bdc930b02",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "Туспк-225",
+                "nrec": "0df61180f4aa29fbdaa20299e0e94a4a",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 5,
+          "column": 10,
+          "header": "ПБсп-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ПБсп-124",
+              "nrec": "10e03af664f9a907a75c1b56fdebd03a",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 5,
+          "column": 11,
+          "header": "ПБспк-224 ПБуспк-325",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "ПБспк-224",
+                "nrec": "151371c9b4d80b5e41e6ba275e938de9",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "ПБуспк-325",
+                "nrec": "b29fb3b4f2d4dd485d2e7b907bcef51c",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 6,
+          "column": 1,
+          "header": "ТОсп-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТОсп-124",
+              "nrec": "49474aabe3ec8accc63fb6c31596a1d5",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 6,
+          "column": 2,
+          "header": "БУспк-124 БУуспк-225",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "БУспк-124",
+                "nrec": "9757268e7c9f7df87e9982bfb86163bf",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "БУуспк-225",
+                "nrec": "a9dcebf47b3ed8674465a1747914c308",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 6,
+          "column": 3,
+          "header": "ОДспк-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ОДспк-124",
+              "nrec": "dcb1918eb22c8fbf121814b2dad63024",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 6,
+          "column": 4,
+          "header": "ОДспк-324",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ОДспк-324",
+              "nrec": "b195acda6e56b47f556c60b68eecbc42",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 6,
+          "column": 5,
+          "header": "ОДуспк-225",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ОДуспк-225",
+              "nrec": "cdf12428fd4184e71d2923065a491c59",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 6,
+          "column": 6,
+          "header": "ТГспк-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТГспк-124",
+              "nrec": "05380755ff071f94114b38f13de8473b",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 6,
+          "column": 7,
+          "header": "ТГспк-224 ТГуспк-225",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "ТГспк-224",
+                "nrec": "f9921ddaed3ffa072ea0040bca142f60",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "ТГуспк-225",
+                "nrec": "d98f0c0bc6752adaff14a8ec9822eaca",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 6,
+          "column": 8,
+          "header": "ФКсп-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ФКсп-124",
+              "nrec": "091b937dea50375593c00c637edb4b20",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 6,
+          "column": 9,
+          "header": "ФКспк-324 ФКуспк-225",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "ФКспк-324",
+                "nrec": "74a65ac44a58f97f57356e21707977e8",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "ФКуспк-225",
+                "nrec": "e555b848e505317db875f958956e5dd2",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 7,
+          "column": 1,
+          "header": "Ссп-123 Суспк-224",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "Ссп-123",
+                "nrec": "0103441db6a048554fa98687edc5bbc9",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "Суспк-224",
+                "nrec": "2b147140864210ff24685c5d7f86f333",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 7,
+          "column": 2,
+          "header": "СДсп-123 СДуспк-224",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "СДсп-123",
+                "nrec": "f40ca3599a89f114dc1cdf65891680fd",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "СДуспк-224",
+                "nrec": "6153069813b80529ca820c922e64a35d",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 7,
+          "column": 3,
+          "header": "ИПсп-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ИПсп-123",
+              "nrec": "6287bc4b91e4901bea83ce7536af142d",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 7,
+          "column": 4,
+          "header": "ИРсп-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ИРсп-123",
+              "nrec": "4b794dffe064b3f4ca368716991d7176",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 7,
+          "column": 5,
+          "header": "ТЭсп-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТЭсп-123",
+              "nrec": "1ede2de1f013b787fcabbf5f3c109650",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 7,
+          "column": 6,
+          "header": "МРсп-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "МРсп-123",
+              "nrec": "267bebb7d8525100768bbeda77983b39",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 7,
+          "column": 7,
+          "header": "МРспк-223",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "МРспк-223",
+              "nrec": "3ef1ac8a432f3460052156e51b4368c1",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 7,
+          "column": 8,
+          "header": "Тсп-123 Туспк-224",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "Тсп-123",
+                "nrec": "9dfa7b2c523667c62987e0b1e2d8f0ef",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "Туспк-224",
+                "nrec": "8dc93988370b07cb42ca59cc443b14fa",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 8,
+          "column": 1,
+          "header": "ПБсп-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ПБсп-123",
+              "nrec": "74f5cfc8aec4ff9c138a3e4136ae5316",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 8,
+          "column": 2,
+          "header": "ПБспк-223 ПБуспк-324",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "ПБспк-223",
+                "nrec": "7248df40d9d1de66e79b40094bde6c17",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "ПБуспк-324",
+                "nrec": "2ffcf523bb48ed9878d279fb9d1297ae",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 8,
+          "column": 3,
+          "header": "ТОсп-123 ТОуспк-224",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "ТОсп-123",
+                "nrec": "4d05a3fd53f4230b005a97237fce2087",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "ТОуспк-224",
+                "nrec": "80b1c0017fd682d5549c1dfc05a5f348",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 8,
+          "column": 4,
+          "header": "ФКсп-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ФКсп-123",
+              "nrec": "52e0bad7335ede53f08fe5515b9fbca9",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 8,
+          "column": 5,
+          "header": "ФКспк-223 ФКуспк-224",
+          "match": {
+            "status": "multi-group-column",
+            "candidates": [
+              {
+                "name": "ФКспк-223",
+                "nrec": "64cf6244d30b5968951f5f229fafee84",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              },
+              {
+                "name": "ФКуспк-224",
+                "nrec": "cc916539d78e36f10cf27bda28df05b1",
+                "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+                "instituteName": "Колледж инновационных технологий и предпринимательства"
+              }
+            ]
+          }
+        },
+        {
+          "page": 8,
+          "column": 6,
+          "header": "Дспк-123",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Дспк-123",
+              "nrec": "e74509628c37ef1b6378bd699e3f7291",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 8,
+          "column": 7,
+          "header": "ТМсп-122",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТМсп-122",
+              "nrec": "357dc0e39b55b52116552cd0ec6153fe",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        },
+        {
+          "page": 8,
+          "column": 8,
+          "header": "ТМисп-222",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "ТМисп-222",
+              "nrec": "c12ce1b818a6f8c58391321936d2c846",
+              "instituteId": "e2a90a589caddac150dc4132c2ba9de1",
+              "instituteName": "Колледж инновационных технологий и предпринимательства"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "member": 2,
+      "kind": "schedule",
+      "pdfSha256": "cb11ee44daa40166c85b21609edf82f3ed7184d825cf2aa1f1ac2194a676b74d",
+      "pages": 3,
+      "heading": [
+        "РАСПИСАНИЕ ЗАНЯТИЙ НА ОСЕННИЙ СЕМЕСТР 2026/2027 УЧЕБНОГО ГОДА",
+        "ОТДЕЛЕНИЕ СРЕДНЕГО ПРОФЕССИОНАЛЬНОГО ЮРИДИЧЕСКОГО ОБРАЗОВАНИЯ",
+        "⚓^",
+        "1 курс",
+        "СПО",
+        "c 01.09.2026 г. по 28.12.2026 г.",
+        "Юспк-126",
+        "Юспк-226",
+        "Юспк-326",
+        "178245561911"
+      ],
+      "groupColumns": [
+        {
+          "page": 1,
+          "column": 1,
+          "header": "Юспк-126",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Юспк-126",
+              "nrec": "b9c3ab37ab7a20d2d4a1123379592e67",
+              "instituteId": "609b83fedc195773ca9be66470184b98",
+              "instituteName": "Отделение среднего профессионального юридического образования"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 2,
+          "header": "Юспк-226",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Юспк-226",
+              "nrec": "7acc043cd3df9a86c324818a1921c7c0",
+              "instituteId": "609b83fedc195773ca9be66470184b98",
+              "instituteName": "Отделение среднего профессионального юридического образования"
+            }
+          }
+        },
+        {
+          "page": 1,
+          "column": 3,
+          "header": "Юспк-326",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Юспк-326",
+              "nrec": "08438e49ca109a5979583d020ddd6f22",
+              "instituteId": "609b83fedc195773ca9be66470184b98",
+              "instituteName": "Отделение среднего профессионального юридического образования"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 1,
+          "header": "Юспк-125",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Юспк-125",
+              "nrec": "1399eaf50682c18a60956e4c4cca1a1c",
+              "instituteId": "609b83fedc195773ca9be66470184b98",
+              "instituteName": "Отделение среднего профессионального юридического образования"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 2,
+          "header": "Юспк-225",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Юспк-225",
+              "nrec": "3e4137fc4d82b1f1d531b9b6356c9512",
+              "instituteId": "609b83fedc195773ca9be66470184b98",
+              "instituteName": "Отделение среднего профессионального юридического образования"
+            }
+          }
+        },
+        {
+          "page": 2,
+          "column": 3,
+          "header": "Юспк-325",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Юспк-325",
+              "nrec": "e8fa466ef464da9f53b83fc04f2e9372",
+              "instituteId": "609b83fedc195773ca9be66470184b98",
+              "instituteName": "Отделение среднего профессионального юридического образования"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 1,
+          "header": "Юспк-124",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Юспк-124",
+              "nrec": "0d19c5bc9dab2a8a6c0c19cf0f2fb42c",
+              "instituteId": "609b83fedc195773ca9be66470184b98",
+              "instituteName": "Отделение среднего профессионального юридического образования"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 2,
+          "header": "Юспк-224",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Юспк-224",
+              "nrec": "3a8874f5793479a08d3af4a23185e934",
+              "instituteId": "609b83fedc195773ca9be66470184b98",
+              "instituteName": "Отделение среднего профессионального юридического образования"
+            }
+          }
+        },
+        {
+          "page": 3,
+          "column": 3,
+          "header": "Юспк-324",
+          "match": {
+            "status": "unique-catalog-name",
+            "candidate": {
+              "name": "Юспк-324",
+              "nrec": "46682b12c3a55f6decd484a4bca5f07c",
+              "instituteId": "609b83fedc195773ca9be66470184b98",
+              "instituteName": "Отделение среднего профессионального юридического образования"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

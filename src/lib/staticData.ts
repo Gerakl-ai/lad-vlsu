@@ -78,6 +78,16 @@ export interface StaticCoverage {
   groups: Record<string, { capturedAt: string; semester: number | null; scheduleHash: string; validFrom?: string; validThrough?: string }>;
 }
 
+export interface OfficialDocumentLocation {
+  period: string;
+  title: string;
+  url: string;
+  groupName: string;
+  member: number;
+  page: number;
+  column: number;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object";
 }
@@ -86,6 +96,52 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function staticDataUrl(relativePath: string) {
   const base = import.meta.env.BASE_URL || "/";
   return `${base.replace(/\/$/, "")}/data/${relativePath.replace(/^\//, "")}`;
+}
+
+let documentIndexPromise: Promise<unknown> | null = null;
+
+function loadOfficialDocumentIndex(): Promise<unknown> {
+  documentIndexPromise ??= fetchJson(staticDataUrl("document-index.json"))
+    .catch((error) => { documentIndexPromise = null; throw error; });
+  return documentIndexPromise;
+}
+
+export function resetOfficialDocumentIndexCache() {
+  documentIndexPromise = null;
+}
+
+function documentLocationFromIndex(payload: unknown, nrec: string): OfficialDocumentLocation | null {
+  if (!isRecord(payload) || payload.schemaVersion !== 1 || !isRecord(payload.groups)
+    || !isRecord(payload.sources) || typeof payload.period !== "string"
+    || !payload.period.trim() || payload.period.length > 60) return null;
+  const group = payload.groups[nrec];
+  if (!isRecord(group) || typeof group.sourceId !== "string" || typeof group.groupName !== "string"
+    || !Number.isInteger(group.member) || (group.member as number) < 1
+    || !Number.isInteger(group.page) || (group.page as number) < 1
+    || !Number.isInteger(group.column) || (group.column as number) < 1) return null;
+  const source = payload.sources[group.sourceId];
+  if (!isRecord(source) || typeof source.title !== "string" || typeof source.url !== "string"
+    || !source.url.startsWith("https://www.vlsu.ru/fileadmin/class-schedule/")) return null;
+  return {
+    period: payload.period,
+    title: source.title,
+    url: source.url,
+    groupName: group.groupName,
+    member: group.member as number,
+    page: group.page as number,
+    column: group.column as number
+  };
+}
+
+export async function fetchOfficialDocumentLocation(nrec: string): Promise<OfficialDocumentLocation | null> {
+  if (!/^[a-f\d]{32}$/i.test(nrec)) return null;
+  return documentLocationFromIndex(await loadOfficialDocumentIndex(), nrec);
+}
+
+export async function fetchOfficialDocumentGroupIds(): Promise<Set<string>> {
+  const payload = await loadOfficialDocumentIndex();
+  if (!isRecord(payload) || !isRecord(payload.groups)) return new Set();
+  return new Set(Object.keys(payload.groups).filter((nrec) => documentLocationFromIndex(payload, nrec)));
 }
 
 async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {

@@ -13,7 +13,7 @@ import {
   X
 } from "lucide-react";
 import { loadGroups, loadInstitutes, normalizeCachedSchedule } from "../../lib/scheduleApi";
-import { loadStaticCoverage, type StaticCoverage } from "../../lib/staticData";
+import { fetchOfficialDocumentGroupIds, loadStaticCoverage, type StaticCoverage } from "../../lib/staticData";
 import { dateKeyFromDate } from "../../lib/time";
 import {
   readFavoriteGroups,
@@ -53,13 +53,14 @@ function matchesSearch(values: Array<string | undefined>, query: string) {
   return values.some((value) => normalizedSearch(value ?? "").includes(normalized));
 }
 
-function snapshotLabel(coverage: StaticCoverage | null, nrec: string) {
+function snapshotLabel(coverage: StaticCoverage | null, nrec: string, documentGroups: Set<string>) {
   const entry = coverage?.groups[nrec];
   const capturedAt = entry?.capturedAt;
   if (entry?.validThrough && entry.validThrough < dateKeyFromDate()) {
     return `Архив до ${new Date(`${entry.validThrough}T12:00:00`).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
   }
   if (capturedAt) return `Есть данные от ${new Date(capturedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
+  if (documentGroups.has(nrec)) return "Есть официальный документ";
   return coverage ? "Проверим архив при открытии" : null;
 }
 
@@ -72,6 +73,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
   const [favoriteGroups, setFavoriteGroups] = useState<GroupProfile[]>(() => readFavoriteGroups());
   const [shareState, setShareState] = useState<"idle" | "done" | "error">("idle");
   const [coverage, setCoverage] = useState<StaticCoverage | null>(null);
+  const [documentGroups, setDocumentGroups] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     if (!open) return;
@@ -86,6 +88,9 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
     }).catch(() => {
       if (!cancelled) setCoverage(null);
     });
+    void fetchOfficialDocumentGroupIds().then((result) => {
+      if (!cancelled) setDocumentGroups(result);
+    }).catch(() => undefined);
 
     const cached = readInstituteCatalog();
     if (cached?.items.length) {
@@ -215,7 +220,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
         </div>
         {coverage && showCoverageWarning && (
           <p className="group-picker-coverage">
-            Проверенные снимки есть для {coverage.available} из {coverage.catalogGroups} групп. Для остальных попробуем резервный архив; он может быть пустым.
+            Цифровые снимки есть для {coverage.available} из {coverage.catalogGroups} групп. Для остальных проверим архив и ВлГУ; если данных нет, подскажем официальный документ.
           </p>
         )}
 
@@ -227,7 +232,11 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
                 <div className="group-picker-row-wrap" key={`favorite-${group.nrec}`}>
                   <button type="button" className="group-picker-row group-row" onClick={() => onSelect(group)}>
                     <span className="group-badge"><UsersRound size={19} /></span>
-                    <span className="group-picker-copy"><strong>{group.name}</strong><small>{[group.instituteShortName, group.course, normalizeCachedSchedule(readGroupScheduleCache(group)) ? "Сохранено здесь" : snapshotLabel(coverage, group.nrec)].filter(Boolean).join(" · ")}</small></span>
+                    <span className="group-picker-copy">
+                      <strong>{group.name}</strong>
+                      <small>{[group.instituteShortName, group.course].filter(Boolean).join(" · ")}</small>
+                      <span className="group-picker-availability">{normalizeCachedSchedule(readGroupScheduleCache(group)) ? "Сохранено здесь" : snapshotLabel(coverage, group.nrec, documentGroups)}</span>
+                    </span>
                     {selectedGroup?.nrec === group.nrec ? <Check size={20} className="group-picker-check" /> : <ChevronRight size={20} />}
                   </button>
                   <button type="button" className="group-favorite-button active" onClick={(event) => toggleFavorite(event, group)} aria-label={`Убрать ${group.name} из избранного`} title="Убрать из избранного">
@@ -251,12 +260,16 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
             const profile = toGroupProfile(activeInstitute, group);
             const isFavorite = favoriteGroups.some((item) => item.nrec === group.nrec);
             const savedOffline = Boolean(normalizeCachedSchedule(readGroupScheduleCache(profile)));
-            const availability = savedOffline ? "Сохранено здесь" : snapshotLabel(coverage, group.nrec);
+            const availability = savedOffline ? "Сохранено здесь" : snapshotLabel(coverage, group.nrec, documentGroups);
             return (
               <div className="group-picker-row-wrap" key={group.nrec}>
                 <button type="button" className="group-picker-row group-row" onClick={() => chooseGroup(group)}>
                   <span className="group-badge"><UsersRound size={19} /></span>
-                  <span className="group-picker-copy"><strong>{group.name}</strong><small>{[group.course ?? activeInstitute.shortName, studyFormLabel(group.forms), availability].filter(Boolean).join(" · ")}</small></span>
+                  <span className="group-picker-copy">
+                    <strong>{group.name}</strong>
+                    <small>{[group.course ?? activeInstitute.shortName, studyFormLabel(group.forms)].filter(Boolean).join(" · ")}</small>
+                    {availability && <span className="group-picker-availability">{availability}</span>}
+                  </span>
                   {isCurrent ? <Check size={20} className="group-picker-check" /> : <ChevronRight size={20} />}
                 </button>
                 <button type="button" className={`group-favorite-button ${isFavorite ? "active" : ""}`} onClick={(event) => toggleFavorite(event, profile)} aria-label={`${isFavorite ? "Убрать" : "Добавить"} ${group.name} ${isFavorite ? "из" : "в"} избранное`} title={isFavorite ? "Убрать из избранного" : "Добавить в избранное"}>

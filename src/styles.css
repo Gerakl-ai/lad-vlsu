@@ -3381,6 +3381,18 @@ button.day-title > svg {
   line-height: 1.4;
 }
 
+.schedule-unavailable-copy .schedule-source-location {
+  padding-left: 10px;
+  border-left: 2px solid var(--accent);
+}
+
+.schedule-source-location strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--text);
+  font-size: 13px;
+}
+
 .schedule-unavailable-copy a {
   display: inline-flex;
   align-items: center;
@@ -3414,6 +3426,11 @@ button.day-title > svg {
 .schedule-unavailable button:active {
   transform: scale(0.985);
   background: rgba(var(--accent-rgb), 0.2);
+}
+
+.schedule-unavailable button.secondary {
+  background: transparent;
+  color: var(--muted);
 }
 
 .skeleton-hero,
@@ -3774,6 +3791,16 @@ button.day-title > svg {
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.group-picker-availability {
+  display: block;
+  margin-top: 3px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .group-picker-check {
