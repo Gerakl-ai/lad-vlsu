@@ -71,6 +71,37 @@ describe("group storage", () => {
     expect(readGroupScheduleCache(LEGACY_PI124_GROUP)).toBeNull();
   });
 
+  it("does not overwrite a newer device snapshot with an older publication", () => {
+    const recent = {
+      groupNrec: LEGACY_PI124_GROUP.nrec,
+      currentInfo: { currentLesson: "", currentWeekType: 1 as const, name: "ПИ-124", semester: 5 },
+      allLessons: [],
+      fetchedAt: "2026-09-20T12:00:00Z"
+    };
+    writeGroupScheduleCache(recent);
+    writeGroupScheduleCache({ ...recent, fetchedAt: "2026-09-08T12:00:00Z" });
+    expect(readGroupScheduleCache(LEGACY_PI124_GROUP)?.fetchedAt).toBe(recent.fetchedAt);
+    writeGroupScheduleCache({ ...recent, fetchedAt: "2026-09-21T12:00:00Z" });
+    expect(readGroupScheduleCache(LEGACY_PI124_GROUP)?.fetchedAt).toBe("2026-09-21T12:00:00Z");
+  });
+
+  it("replaces a damaged cache entry even when its timestamp is newer", () => {
+    const key = `lad.schedule.v2:${LEGACY_PI124_GROUP.nrec}`;
+    localStorage.setItem(key, JSON.stringify({
+      groupNrec: LEGACY_PI124_GROUP.nrec,
+      fetchedAt: "2099-01-01T00:00:00Z",
+      currentInfo: { name: "broken", currentWeekType: 1 },
+      allLessons: [{ subject: "missing required fields" }]
+    }));
+    writeGroupScheduleCache({
+      groupNrec: LEGACY_PI124_GROUP.nrec,
+      currentInfo: { currentLesson: "", currentWeekType: 1, name: "ПИ-124", semester: 5 },
+      allLessons: [],
+      fetchedAt: "2026-09-28T08:00:00Z"
+    });
+    expect(readGroupScheduleCache(LEGACY_PI124_GROUP)?.fetchedAt).toBe("2026-09-28T08:00:00Z");
+  });
+
   it("never displays a snapshot stored under another group's key", () => {
     const other = { ...LEGACY_PI124_GROUP, id: "other", nrec: "other", name: "ИВТ-101" };
     const schedule: ScheduleState = {

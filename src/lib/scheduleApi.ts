@@ -1,5 +1,6 @@
 import type { CurrentInfo, LessonSlot, LessonVariant, ScheduleDataSource, ScheduleQuality, ScheduleState, WeekMode } from "../types";
 import { writeGroupScheduleCache } from "../features/groups/groupStorage";
+import { preferNewerSchedule } from "./freshness";
 import { vlsuWeekTypeForDate } from "./academicWeek";
 import {
   catalogGroups,
@@ -646,9 +647,19 @@ function normalizeScheduleDays(days: unknown[]) {
   return normalizeSchedule(days as Array<ScheduleDayDto | ExamSessionDto>);
 }
 
-export async function loadSchedule(group: GroupProfile): Promise<ScheduleState> {
+export async function loadSchedule(group: GroupProfile, hasDeviceSnapshot = false): Promise<ScheduleState> {
   try {
     const staticState = await loadStaticSchedule(group);
+    if (hasDeviceSnapshot && import.meta.env.PROD && import.meta.env.BASE_URL !== "/") {
+      try {
+        const archived = await fetchArchivedWorkerSnapshot(group.nrec);
+        const preferred = preferNewerSchedule(staticState, archived);
+        writeGroupScheduleCache(preferred);
+        return preferred;
+      } catch {
+        // The static schedule remains available when the Worker is unavailable.
+      }
+    }
     writeGroupScheduleCache(staticState);
     return staticState;
   } catch {

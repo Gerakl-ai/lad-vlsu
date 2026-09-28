@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { freshnessNotice } from "./freshness";
+import { freshnessNotice, preferNewerSchedule } from "./freshness";
+import type { ScheduleState } from "../types";
 
 const NOW = Date.parse("2026-09-18T12:00:00Z");
 const hoursAgo = (hours: number) => new Date(NOW - hours * 3_600_000).toISOString();
@@ -53,5 +54,26 @@ describe("freshnessNotice", () => {
   it("не считает будущее отрицательным возрастом", () => {
     // Часы устройства могут отставать; это не повод пугать пользователя.
     expect(freshnessNotice(new Date(NOW + 3_600_000).toISOString(), NOW)?.warn).toBe(false);
+  });
+});
+
+describe("preferNewerSchedule", () => {
+  const schedule = (groupNrec: string, fetchedAt: string): ScheduleState => ({
+    groupNrec,
+    currentInfo: { currentLesson: "", currentWeekType: 1, name: groupNrec, semester: 5 },
+    allLessons: [],
+    fetchedAt
+  });
+
+  it("keeps a newer saved copy instead of replacing it with an older static file", () => {
+    const saved = schedule("group", "2026-09-20T12:00:00Z");
+    expect(preferNewerSchedule(saved, schedule("group", "2026-09-08T12:00:00Z"))).toBe(saved);
+  });
+
+  it("accepts newer data and does not compare timestamps across groups", () => {
+    const saved = schedule("group", "2026-09-08T12:00:00Z");
+    const fresh = schedule("group", "2026-09-20T12:00:00Z");
+    expect(preferNewerSchedule(saved, fresh)).toBe(fresh);
+    expect(preferNewerSchedule(saved, schedule("other", "2026-09-01T12:00:00Z")).groupNrec).toBe("other");
   });
 });

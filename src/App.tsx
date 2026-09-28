@@ -66,7 +66,7 @@ import {
 } from "./features/themes/theme";
 import { activeWeekMode, loadSchedule, normalizeCachedSchedule } from "./lib/scheduleApi";
 import { heroCopy } from "./lib/heroCopy";
-import { freshnessNotice } from "./lib/freshness";
+import { freshnessNotice, preferNewerSchedule } from "./lib/freshness";
 import { assetUrl } from "./lib/assetUrl";
 import { backupSignature, markBackupMade, readBackupMade } from "./features/notes/backupState";
 import { RELEASE_CHANNEL } from "./release";
@@ -441,11 +441,12 @@ export function App() {
     }, STARTUP_NETWORK_BUDGET_MS);
 
     try {
-      const loaded = await loadSchedule(group);
+      const loaded = await loadSchedule(group, hasCache);
       if (requestSequence !== refreshSequenceRef.current || selectedGroupRef.current?.nrec !== group.nrec) return;
-      const changed = scheduleContentSignature(currentSchedule) !== scheduleContentSignature(loaded);
-      scheduleRef.current = loaded;
-      setSchedule(loaded);
+      const preferred = preferNewerSchedule(currentSchedule, loaded);
+      const changed = scheduleContentSignature(currentSchedule) !== scheduleContentSignature(preferred);
+      scheduleRef.current = preferred;
+      setSchedule(preferred);
       setStatus(changed && hasCache ? "updated" : "ready");
     } catch {
       if (requestSequence !== refreshSequenceRef.current || selectedGroupRef.current?.nrec !== group.nrec) return;

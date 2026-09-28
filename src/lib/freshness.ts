@@ -10,6 +10,8 @@
  * архив, и приходит не на ту пару.
  */
 
+import type { ScheduleState } from "../types";
+
 export type FreshnessLevel = "fresh" | "aging" | "stale";
 
 export interface FreshnessNotice {
@@ -27,6 +29,15 @@ const DAY = 24 * HOUR;
 export const AGING_AFTER_MS = DAY;
 /** Трое суток — за это время успевают смениться замены и появиться новая неделя. */
 export const STALE_AFTER_MS = 3 * DAY;
+
+export function preferNewerSchedule(existing: ScheduleState | null, incoming: ScheduleState): ScheduleState {
+  if (!existing || existing.groupNrec !== incoming.groupNrec) return incoming;
+  const existingAt = Date.parse(existing.fetchedAt);
+  const incomingAt = Date.parse(incoming.fetchedAt);
+  return Number.isFinite(existingAt) && (!Number.isFinite(incomingAt) || existingAt > incomingAt)
+    ? existing
+    : incoming;
+}
 
 function formatAge(ageMs: number) {
   if (ageMs < HOUR) return "меньше часа";

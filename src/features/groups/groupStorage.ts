@@ -1,4 +1,5 @@
 import type { ScheduleState } from "../../types";
+import { preferNewerSchedule } from "../../lib/freshness";
 import {
   canonicalGroupProfile,
   canonicalInstituteId,
@@ -125,7 +126,16 @@ export function readGroupScheduleCache(group: GroupProfile): ScheduleState | nul
 }
 
 export function writeGroupScheduleCache(state: ScheduleState) {
-  writeJson(scheduleCacheKey(state.groupNrec), state);
+  const existing = readJson<ScheduleState>(scheduleCacheKey(state.groupNrec));
+  const usable = existing?.groupNrec === state.groupNrec
+    && typeof existing.fetchedAt === "string" && Number.isFinite(Date.parse(existing.fetchedAt))
+    && typeof existing.currentInfo?.name === "string"
+    && (existing.currentInfo.currentWeekType === 1 || existing.currentInfo.currentWeekType === 2)
+    && Array.isArray(existing.allLessons)
+    && existing.allLessons.every((lesson) => typeof lesson?.id === "string"
+      && typeof lesson.subject === "string" && typeof lesson.rawText === "string")
+    ? existing : null;
+  writeJson(scheduleCacheKey(state.groupNrec), preferNewerSchedule(usable, state));
 }
 
 export function readInstituteCatalog(): CatalogCache<InstituteOption> | null {
