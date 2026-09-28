@@ -19,7 +19,6 @@ import {
   TriangleAlert,
   BookCheck,
   CalendarDays,
-  CalendarPlus,
   CalendarX2,
   CheckCircle2,
   ChevronDown,
@@ -318,7 +317,6 @@ export function App() {
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
   const [groupPickerOpen, setGroupPickerOpen] = useState(() => !INITIAL_GROUP);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [calendarCreateEvent, setCalendarCreateEvent] = useState(false);
   const [calendarRequestToken, setCalendarRequestToken] = useState(0);
   const [composerRequest, setComposerRequest] = useState<NoteComposerRequest | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -872,7 +870,6 @@ export function App() {
               onToggleNote={smartNotes.toggleNote}
               onOpenNotes={() => navigateToTab("notes")}
               onOpenCalendar={() => setCalendarOpen(true)}
-              onCreateEvent={() => { setCalendarCreateEvent(true); setCalendarOpen(true); }}
               onSelectDate={setSelectedDate}
               onShiftDate={shiftSelectedDay}
               motionDirection={dayMotionDirection}
@@ -956,8 +953,7 @@ export function App() {
               open={calendarOpen}
               weekMode={currentWeek}
               initialDate={selectedDate}
-              createEventOnOpen={calendarCreateEvent}
-              onClose={() => { setCalendarOpen(false); setCalendarCreateEvent(false); }}
+              onClose={() => setCalendarOpen(false)}
               onCreateForDate={openComposerForDate}
               onOpenNote={() => navigateToTab("notes")}
               onSelectDate={showScheduleDate}
@@ -1206,7 +1202,6 @@ function TodayView({
   onToggleNote,
   onOpenNotes,
   onOpenCalendar,
-  onCreateEvent,
   onSelectDate,
   onShiftDate,
   motionDirection,
@@ -1244,7 +1239,6 @@ function TodayView({
   onToggleNote: (noteId: string) => void;
   onOpenNotes: () => void;
   onOpenCalendar: () => void;
-  onCreateEvent: () => void;
   onSelectDate: (date: Date) => void;
   onShiftDate: (offset: -1 | 1) => void;
   motionDirection: "forward" | "backward" | null;
@@ -1359,9 +1353,6 @@ function TodayView({
       </div>
 
       <div className="today-detail-scroll">
-        <button className="today-add-event" type="button" onClick={onCreateEvent}>
-          <CalendarPlus size={18} /> Добавить событие <ChevronRight size={17} />
-        </button>
         {!outsideSchedulePeriod && !lessons.length && nextStudyDay && hasLoadedLessons && (
           <section className="upcoming-study" aria-label="Следующий учебный день">
             <button className="upcoming-day-launch" type="button" onClick={() => onSelectDate(nextStudyDay.date)}>
@@ -1729,7 +1720,10 @@ function WeekView({
           </button>
         </section>
 
-        <WeekMap dayLoads={dayLoads} onSelectDate={onSelectDate} />
+        <details className="week-map-disclosure">
+          <summary><Activity size={15} aria-hidden="true" /> Карта нагрузки <ChevronDown size={17} aria-hidden="true" /></summary>
+          <WeekMap dayLoads={dayLoads} onSelectDate={onSelectDate} />
+        </details>
 
         <div className="mode-switch" role="radiogroup" aria-label="Тип недели">
           {[

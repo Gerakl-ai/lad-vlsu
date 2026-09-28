@@ -26,7 +26,6 @@ interface SmartCalendarSheetProps {
   open: boolean;
   weekMode: WeekMode;
   initialDate?: Date;
-  createEventOnOpen?: boolean;
   onClose: () => void;
   onCreateForDate: (date: Date) => void;
   onOpenNote: (noteId: string) => void;
@@ -189,7 +188,7 @@ async function shareCalendar(events: CalendarEvent[], fileName: string, title: s
   return true;
 }
 
-export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate, createEventOnOpen = false, onClose, onCreateForDate, onOpenNote, onSelectDate }: SmartCalendarSheetProps) {
+export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate, onClose, onCreateForDate, onOpenNote, onSelectDate }: SmartCalendarSheetProps) {
   const personalEvents = usePersonalEvents();
   const [editingEvent, setEditingEvent] = useState<PersonalEvent | "new" | null>(null);
   const swipe = useRef<{ pointerId: number; x: number; y: number } | null>(null);
@@ -224,7 +223,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
     setMonth(new Date(initial.getFullYear(), initial.getMonth(), 1));
     setMonthTransition(null);
     setExportState("idle");
-    setEditingEvent(createEventOnOpen ? "new" : null);
+    setEditingEvent(null);
     const onKeyDown = (event: KeyboardEvent) => event.key === "Escape" && closeRef.current();
     let midnightTimer: number | undefined;
     const scheduleMidnightRefresh = () => {
@@ -242,7 +241,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
       if (midnightTimer !== undefined) window.clearTimeout(midnightTimer);
       if (exportResetTimer.current !== undefined) window.clearTimeout(exportResetTimer.current);
     };
-  }, [createEventOnOpen, initialDate, open]);
+  }, [initialDate, open]);
 
   useEffect(() => {
     if (!monthTransition) return;

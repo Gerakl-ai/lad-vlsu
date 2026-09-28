@@ -49,6 +49,7 @@ fs.mkdirSync(outputDir, { recursive: true });
       assert.equal(await page.getByRole('radio', { name: 'Числитель' }).getAttribute('aria-checked'), 'true');
       await page.getByRole('radio', { name: 'Знаменатель' }).click();
       assert.equal(await page.getByRole('radio', { name: 'Знаменатель' }).getAttribute('aria-checked'), 'true');
+      await page.locator('.week-map-disclosure summary').click();
       await page.locator('.week-rhythm-day').first().click();
       await page.locator('.today-view').waitFor();
       assert.equal(await page.locator('.bottom-nav button[aria-current="page"]').innerText(), 'Сегодня');

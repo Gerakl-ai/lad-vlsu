@@ -309,4 +309,28 @@ describe("schedule snapshot v2", () => {
     expect(fetchMock).toHaveBeenCalledWith(`https://worker.example/app-api/schedule/${nrec}?discover=1`,
       expect.objectContaining({ credentials: "omit" }));
   });
+
+  it("tries the local app endpoint when the archived Worker is unreachable", async () => {
+    vi.stubEnv("PROD", true);
+    vi.stubEnv("BASE_URL", "/vlsu-pi-124-schedule/");
+    vi.stubEnv("VITE_SCHEDULE_FALLBACK_URL", "https://worker.example");
+    const storage = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value)
+    });
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/data/schedule/")) return new Response("Not found", { status: 404 });
+      if (url.startsWith("https://worker.example/")) throw new TypeError("Network error");
+      if (url.startsWith("/app-api/schedule/")) return new Response(JSON.stringify(snapshot), { status: 200 });
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const state = await loadSchedule(LEGACY_PI124_GROUP);
+
+    expect(state.source).toBe("live");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
 });

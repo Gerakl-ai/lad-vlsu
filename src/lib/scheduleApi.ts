@@ -658,10 +658,15 @@ export async function loadSchedule(group: GroupProfile): Promise<ScheduleState> 
         writeGroupScheduleCache(archived);
         return archived;
       } catch (archiveError) {
-        if (!(archiveError instanceof ApiResponseError && archiveError.status === 404)) throw archiveError;
-        const discovered = await fetchArchivedWorkerSnapshot(group.nrec, undefined, true);
-        writeGroupScheduleCache(discovered);
-        return discovered;
+        if (archiveError instanceof ApiResponseError && archiveError.status === 404) {
+          try {
+            const discovered = await fetchArchivedWorkerSnapshot(group.nrec, undefined, true);
+            writeGroupScheduleCache(discovered);
+            return discovered;
+          } catch {
+            // Continue to the remaining sources when the Worker cannot discover this group.
+          }
+        }
       }
     }
     // Снимка для этой группы ещё нет — пробуем прежние источники.
@@ -672,8 +677,7 @@ export async function loadSchedule(group: GroupProfile): Promise<ScheduleState> 
       const snapshot = await fetchGroupScheduleSnapshot(group.nrec);
       writeGroupScheduleCache(snapshot);
       return snapshot;
-    } catch (error) {
-      if (error instanceof ApiResponseError && error.status >= 500) throw error;
+    } catch {
       // Older Pages deployments do not expose the v2 endpoint yet.
     }
   }

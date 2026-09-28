@@ -972,27 +972,34 @@ select,
   display: contents;
 }
 
-.today-add-event {
-  width: 100%;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 14px;
-  color: var(--cyan);
-  border: 1px solid var(--theme-panel-border);
-  border-radius: 8px;
-  background: var(--theme-control);
-  font: inherit;
-  font-weight: 750;
-  text-align: left;
-  cursor: pointer;
-  transition: background .2s ease, transform .2s ease;
+.week-map-disclosure {
+  min-width: 0;
+  border-top: 1px solid var(--theme-panel-border);
+  border-bottom: 1px solid var(--theme-panel-border);
 }
 
-.today-add-event svg:last-child { margin-left: auto; }
-.today-add-event:hover { background: var(--theme-control-active); }
-.today-add-event:active { transform: scale(.985); }
+.week-map-disclosure > summary {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.week-map-disclosure > summary::-webkit-details-marker { display: none; }
+.week-map-disclosure > summary svg:first-child { color: var(--cyan); }
+.week-map-disclosure > summary svg:last-child {
+  margin-left: auto;
+  transition: transform .22s ease;
+}
+.week-map-disclosure[open] > summary svg:last-child { transform: rotate(180deg); }
+.week-map-disclosure > summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+.week-map-disclosure .week-map.week-rhythm { border: 0; }
 
 .today-date-navigator {
   min-width: 0;
@@ -5038,7 +5045,7 @@ button.day-title > svg {
     min-width: 0;
     display: grid;
     min-height: 0;
-    align-self: stretch;
+    align-self: start;
     align-content: start;
     gap: 9px;
     overflow: hidden;
