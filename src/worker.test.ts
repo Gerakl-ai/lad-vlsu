@@ -143,6 +143,58 @@ describe("Cloudflare worker", () => {
     vi.unstubAllGlobals();
   });
 
+  it("recovers an old group from edge cache without VLSU and preserves its capture date", async () => {
+    const edgeCache = createEdgeCache();
+    const tasks: Promise<unknown>[] = [];
+    const oldEnv = { ...createEnv(), EDGE_CACHE: edgeCache };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      return jsonResponseForTest(url.endsWith("/GetGroupCurrentInfo") ? currentInfo : schedule);
+    }));
+    for (const [path, body] of [
+      ["GetGroupCurrentInfo", JSON.stringify(groupNrec)],
+      ["GetGroupSchedule", JSON.stringify({ Nrec: groupNrec, WeekType: 0, WeekDays: "1,2,3,4,5,6" })]
+    ]) {
+      const response = await worker.fetch(new Request(`https://app.example/vlsu-api/student/${path}`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body
+      }), oldEnv, { waitUntil: (task) => { tasks.push(task); } });
+      expect(response.status).toBe(200);
+    }
+    await Promise.all(tasks);
+    const snapshotKv = createSnapshotKv();
+    const upstream = vi.fn(async () => { throw new Error("VLSU must not be contacted"); });
+    vi.stubGlobal("fetch", upstream);
+
+    const response = await worker.fetch(new Request(`https://app.example/app-api/schedule/${groupNrec}?cached=1`, {
+      headers: { Origin: "https://germanpolkin.ru" }
+    }), { ...createEnv(), EDGE_CACHE: edgeCache, SCHEDULE_SNAPSHOT: snapshotKv });
+    const payload = await response.json() as { scheduleFetchedAt: string; schedule: unknown[] };
+    expect(response.status).toBe(200);
+    expect(payload.schedule).toEqual(schedule);
+    expect(Date.parse(payload.scheduleFetchedAt)).toBeLessThanOrEqual(Date.now());
+    expect(snapshotKv.put).toHaveBeenCalledWith(`snapshot:v2:${groupNrec}:5`, expect.any(String));
+    expect(upstream).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
+  it("does not present an undated edge response as a saved schedule", async () => {
+    const edgeCache = {
+      match: vi.fn(async (request: RequestInfo | URL) => {
+        const url = String(request instanceof Request ? request.url : request);
+        return jsonResponseForTest(url.includes("GetGroupCurrentInfo") ? currentInfo : schedule);
+      }),
+      put: vi.fn(async () => {})
+    };
+    const upstream = vi.fn(async () => { throw new Error("VLSU must not be contacted"); });
+    vi.stubGlobal("fetch", upstream);
+    const response = await worker.fetch(new Request(`https://app.example/app-api/schedule/${groupNrec}?cached=1`, {
+      headers: { Origin: "https://germanpolkin.ru" }
+    }), { ...createEnv(), EDGE_CACHE: edgeCache, SCHEDULE_SNAPSHOT: createSnapshotKv() });
+    expect(response.status).toBe(404);
+    expect(upstream).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
   it("does not expose saved groups to an arbitrary cross-origin caller", async () => {
     const response = await worker.fetch(new Request(`https://app.example/app-api/schedule/${groupNrec}?cached=1`, {
       headers: { Origin: "https://untrusted.example" }

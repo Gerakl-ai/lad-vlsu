@@ -450,7 +450,42 @@ async function migrateLegacyGroupSnapshot(kv: KvNamespace | undefined, nrec: str
       scheduleResponse.headers.get("X-Lad-Snapshot-At") ?? new Date().toISOString(),
       currentResponse.headers.get("X-Lad-Snapshot-At") ?? new Date().toISOString()
     );
-    await storeGroupSnapshotV2(kv, snapshot);
+    await storeGroupSnapshotV2(kv, snapshot).catch(() => undefined);
+    return snapshot;
+  } catch {
+    return null;
+  }
+}
+
+async function migrateEdgeGroupSnapshot(
+  cache: Pick<Cache, "match"> | undefined,
+  kv: KvNamespace | undefined,
+  requestUrl: URL,
+  nrec: string
+) {
+  if (!cache) return null;
+  const currentPath = "student/GetGroupCurrentInfo";
+  const schedulePath = "student/GetGroupSchedule";
+  const sourceUrl = (apiPath: string) => new URL(`/vlsu-api/${apiPath}`, requestUrl.origin);
+  const [currentResponse, scheduleResponse] = await Promise.all([
+    cache.match(edgeCacheRequest(sourceUrl(currentPath), currentPath, JSON.stringify(nrec))).catch(() => undefined),
+    cache.match(edgeCacheRequest(sourceUrl(schedulePath), schedulePath,
+      JSON.stringify({ Nrec: nrec, WeekType: 0, WeekDays: "1,2,3,4,5,6" }))).catch(() => undefined)
+  ]);
+  if (!currentResponse || !scheduleResponse) return null;
+
+  try {
+    const capturedAt = (response: Response) => response.headers.get("X-Lad-Snapshot-At") ?? response.headers.get("Date");
+    const scheduleAt = capturedAt(scheduleResponse);
+    const currentAt = capturedAt(currentResponse);
+    if (!scheduleAt || !currentAt || !Number.isFinite(Date.parse(scheduleAt)) || !Number.isFinite(Date.parse(currentAt))) {
+      return null;
+    }
+    const currentInfo = decodeSnapshotPayload(await currentResponse.text());
+    const schedule = decodeSnapshotPayload(await scheduleResponse.text());
+    if (!isCurrentInfoPayload(currentInfo) || !Array.isArray(schedule) || !scheduleQuality(schedule)) return null;
+    const snapshot = await buildGroupSnapshotV2(nrec, currentInfo, schedule, scheduleAt, currentAt);
+    await storeGroupSnapshotV2(kv, snapshot).catch(() => undefined);
     return snapshot;
   } catch {
     return null;
@@ -524,7 +559,8 @@ async function getGroupScheduleSnapshot(request: Request, env: Env, context?: Wo
   const nrec = match[1];
 
   const cached = await readLatestGroupSnapshotV2(env.SCHEDULE_SNAPSHOT, nrec)
-    ?? await migrateLegacyGroupSnapshot(env.SCHEDULE_SNAPSHOT, nrec);
+    ?? await migrateLegacyGroupSnapshot(env.SCHEDULE_SNAPSHOT, nrec)
+    ?? await migrateEdgeGroupSnapshot(env.EDGE_CACHE ?? defaultEdgeCache(), env.SCHEDULE_SNAPSHOT, url, nrec);
   if (cachedOnly) {
     return cached
       ? groupSnapshotResponse(cached, "global-snapshot", id)
