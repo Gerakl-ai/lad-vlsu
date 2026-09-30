@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-09-30T05:33:00.407Z",
-  "groupCount": 965,
+  "capturedAt": "2026-09-30T12:35:22.388Z",
+  "groupCount": 966,
   "instituteCount": 14,
   "institutes": [
     {
@@ -5148,7 +5148,7 @@
       "shortName": "ИЭиТ"
     },
     {
-      "groupCount": 98,
+      "groupCount": 99,
       "groups": [
         {
           "course": "3 курс",
@@ -5469,6 +5469,14 @@
           ],
           "name": "РЭсп-126",
           "nrec": "8b142ade44977211aaaefa17234fc5b9"
+        },
+        {
+          "course": "1 курс",
+          "forms": [
+            "full-time"
+          ],
+          "name": "РЭсп-326",
+          "nrec": "a182d0d604c3a48d88b80ee32c553c10"
         },
         {
           "course": "2 курс",
@@ -7839,7 +7847,7 @@
     "commit": "f77714406ffa0858d6d341939deba261ec599404",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/f77714406ffa0858d6d341939deba261ec599404",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/36673908121"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/36715711759"
   },
   "schemaVersion": 3
 }

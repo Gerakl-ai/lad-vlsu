@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-09-08T09:29:13.535Z",
+  "capturedAt": "2026-09-30T12:35:22.388Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -11,7 +11,12 @@
     "name": "ПИ-124",
     "nrec": "7936a2a43b11b20b01d30f5b00c73166"
   },
-  "provenance": null,
+  "provenance": {
+    "commit": "f77714406ffa0858d6d341939deba261ec599404",
+    "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/f77714406ffa0858d6d341939deba261ec599404",
+    "repository": "Gerakl-ai/vlsu-pi-124-schedule",
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/36715711759"
+  },
   "quality": {
     "examEntries": 0,
     "lessonDays": 6,
@@ -59,7 +64,7 @@
     {
       "n1": "Элективные дисциплины по физической культуре и спорту",
       "n2": "119-3, лк, Галкин А.А., Методы оптимизации",
-      "n3": "111-3, Кураторский час",
+      "n3": "111-3, Шутов А.В., Кураторский час",
       "n4": "",
       "n5": "",
       "n6": "",
@@ -129,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "6b29e5a2c00ec4e020eefa6e617fd5054c0dd1d540e146002a26f8672c020603",
+  "scheduleHash": "9dd47e57ae67d0e2c045a3ceea6fc1517b884f4d03f37aab8f246cd2d28830b0",
   "schemaVersion": 3,
   "semester": 5
 }
