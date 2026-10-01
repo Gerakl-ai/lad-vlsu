@@ -1912,7 +1912,7 @@ function SettingsView({
     try {
       archive = parseNotesArchive(await file.text());
     } catch {
-      setBackupNotice("Не удалось прочитать копию. Выберите JSON-файл, созданный в «Лад».");
+      setBackupNotice("Не удалось прочитать копию. Выбери файл, сохранённый в «Лад».");
       setImportBusy(false);
       if (importInputRef.current) importInputRef.current.value = "";
       return;
@@ -1998,7 +1998,7 @@ function SettingsView({
             <div>
               <span>Расписание без интернета</span>
               <strong>{schedule ? `Сохранено ${formatUpdatedAt(schedule.fetchedAt)}` : "Пока не сохранено"}</strong>
-              <small>{schedule ? "Можно открыть без подключения" : "Появится после загрузки расписания"}</small>
+              <small>{schedule ? "Откроется и без интернета" : "Появится после первой загрузки"}</small>
             </div>
             {schedule ? <CheckCircle2 size={24} /> : <CloudOff size={24} />}
           </div>
@@ -2014,31 +2014,31 @@ function SettingsView({
               <strong>{formatNoteCount(notes.length)}</strong>
             </div>
           </header>
-          <p>Записи хранятся на устройстве. Резервная копия переносит их без аккаунта и облачной синхронизации.</p>
+          <p>Записи хранятся на этом устройстве. Сохрани копию, чтобы перенести их на другой телефон или восстановить позже.</p>
           <details className="privacy-details">
             <summary>Не вижу прежние записи</summary>
             <p>Записи остаются в том приложении и браузере, где ты их создал. При смене адреса они не переносятся автоматически.</p>
             <p>Открой прежнее приложение, выбери «Настройки → Экспорт» и импортируй сохранённый файл здесь. До сохранения копии не удаляй прежнее приложение.</p>
-            <p>Копия содержит сохранённые записи, встроенные фотографии и пользовательские папки. Несохранённые черновики в неё не входят.</p>
+            <p>Копия содержит сохранённые записи, фотографии и свои папки. Несохранённый текст в неё не входит.</p>
           </details>
           <div className="privacy-map" aria-label="Как приложение работает с данными">
             <div>
               <ShieldCheck size={18} />
-              <span><strong>Только на устройстве</strong><small>Записи, фотографии, папки, настройки и кэш расписания.</small></span>
+              <span><strong>Только на устройстве</strong><small>Записи, фотографии и личные настройки.</small></span>
             </div>
             <div>
               <CloudOff size={18} />
-              <span><strong>Без слежения</strong><small>Нет аккаунта, рекламных счётчиков, аналитики и cookies.</small></span>
+              <span><strong>Без слежения</strong><small>Нет аккаунта, рекламы и аналитики.</small></span>
             </div>
             <div>
               <Smartphone size={18} />
-              <span><strong>Работает офлайн</strong><small>Расписание открывается из сохранённого снимка, даже когда ВлГУ недоступен.</small></span>
+              <span><strong>Работает без сети</strong><small>Ранее открытое расписание остаётся доступным.</small></span>
             </div>
           </div>
           <details className="privacy-details">
-            <summary>Данные и статус приложения</summary>
-            <p>Неофициальное приложение для студентов ВлГУ. Расписание берётся из публичного снимка, собранного заранее; заметки и вложения никуда не отправляются и остаются на устройстве.</p>
-            <p>Нет аккаунта, аналитики и облачной обработки записей: разбор заметок выполняется целиком в браузере.</p>
+            <summary>О приложении и данных</summary>
+            <p>«Лад ВлГУ» - независимое приложение для студентов. Сверяй важные изменения с официальным расписанием ВлГУ.</p>
+            <p>Личные записи и фотографии не отправляются на сервер. Для их переноса сохрани копию.</p>
           </details>
           {(notes.length > 0 || personalEvents.length > 0) && !backupMade && (
             <p className="backup-warning" role="status">
@@ -2054,7 +2054,7 @@ function SettingsView({
               try {
                 downloadNotesBackup(notes, folders, personalEvents);
                 setPendingBackupSignature(currentBackupSignature);
-                setBackupNotice("Проверьте, что JSON-файл сохранился в «Файлах» или загрузках, затем подтвердите ниже.");
+                setBackupNotice("Проверь, что файл сохранился в «Файлах» или загрузках, затем подтверди ниже.");
               } catch {
                 setPendingBackupSignature(null);
                 setBackupNotice("Не удалось начать экспорт. Попробуйте ещё раз.");

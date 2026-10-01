@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LEGACY_PI124_GROUP } from "../groups/groupTypes";
-import { loadFolders, loadNotes, normalizeStoredNote, storeDraft, storeFolder, storeNote } from "./noteStorage";
+import { loadFolders, loadNotes, normalizeStoredNote, removeNote, storeDraft, storeFolder, storeNote } from "./noteStorage";
 import type { SmartNote } from "./noteTypes";
 
 const baseNote: SmartNote = {
@@ -62,6 +62,49 @@ describe("note database recovery", () => {
     const pending = storeNote(baseNote);
     request.onerror();
     expect(await pending).toBe(false);
+  });
+
+  it("does not resurrect a deleted note when IndexedDB deletion fails", async () => {
+    const request = setup();
+    const pendingDelete = removeNote(baseNote.id);
+    request.onerror();
+    expect(await pendingDelete).toBe(true);
+    expect(JSON.parse(localStorage.getItem("lad.notes.deleted.v1")!)).toContain(baseNote.id);
+
+    const resultRequest: Record<string, any> = {};
+    const transaction: Record<string, any> = { objectStore: () => ({ getAll: () => resultRequest }) };
+    request.result = { close: vi.fn(), transaction: () => transaction };
+    const pendingLoad = loadNotes();
+    request.onsuccess();
+    await Promise.resolve();
+    resultRequest.result = [baseNote];
+    resultRequest.onsuccess();
+    transaction.oncomplete();
+    expect(await pendingLoad).toEqual([]);
+  });
+
+  it("reports a failed delete when neither store can keep it", async () => {
+    const request = setup();
+    vi.stubGlobal("localStorage", {
+      getItem: () => null,
+      setItem: () => { throw new Error("quota"); }
+    });
+    const pending = removeNote(baseNote.id);
+    request.onerror();
+    expect(await pending).toBe(false);
+  });
+
+  it("allows a deleted note to be restored from a backup", async () => {
+    const request = setup();
+    localStorage.setItem("lad.notes.deleted.v1", JSON.stringify([baseNote.id]));
+    const restored = { ...baseNote, text: "Restored" };
+    const pending = storeNote(restored);
+    request.onerror();
+    expect(await pending).toBe(true);
+    expect(JSON.parse(localStorage.getItem("lad.notes.deleted.v1")!)).toEqual([]);
+    const pendingLoad = loadNotes();
+    request.onerror();
+    expect(await pendingLoad).toEqual([normalizeStoredNote(restored)]);
   });
 
   it("does not confirm a folder when both stores reject it", async () => {

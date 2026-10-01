@@ -9,6 +9,7 @@ const NOTES_STORE = "notes";
 const FOLDERS_STORE = "folders";
 const DRAFTS_STORE = "drafts";
 const NOTES_FALLBACK_KEY = "lad.notes.fallback";
+const NOTES_DELETED_KEY = "lad.notes.deleted.v1";
 const FOLDERS_FALLBACK_KEY = "lad.note-folders.fallback";
 const DRAFTS_FALLBACK_KEY = "lad.note-drafts.fallback";
 const DEFAULT_DATE = "2026-01-01T00:00:00.000Z";
@@ -147,6 +148,7 @@ async function deleteValue(storeName: string, id: string): Promise<void> {
 
 export async function loadNotes(): Promise<SmartNote[]> {
   const fallbackNotes = readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []);
+  const deleted = new Set(readFallback<string[]>(NOTES_DELETED_KEY, []));
   let notes: SmartNote[];
   try {
     const storedNotes = await getAll<SmartNote>(NOTES_STORE);
@@ -159,7 +161,7 @@ export async function loadNotes(): Promise<SmartNote[]> {
   } catch {
     notes = fallbackNotes;
   }
-  const normalized = notes.map(normalizeStoredNote);
+  const normalized = notes.filter((note) => !deleted.has(note.id)).map(normalizeStoredNote);
   writeFallback(NOTES_FALLBACK_KEY, normalized);
   return normalized;
 }
@@ -186,17 +188,27 @@ export function normalizeStoredNote(note: SmartNote): SmartNote {
 export async function storeNote(note: SmartNote): Promise<boolean> {
   const notes = readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []).filter((item) => item.id !== note.id);
   const mirrored = writeFallback(NOTES_FALLBACK_KEY, [...notes, note]);
+  let stored = mirrored;
   try {
     await putValue(NOTES_STORE, note);
-    return true;
-  } catch { return mirrored; }
+    stored = true;
+  } catch { /* The local mirror can still keep this note. */ }
+  if (!stored) return false;
+  const deleted = readFallback<string[]>(NOTES_DELETED_KEY, []);
+  return !deleted.includes(note.id) || writeFallback(NOTES_DELETED_KEY, deleted.filter((id) => id !== note.id));
 }
 
-export async function removeNote(noteId: string): Promise<void> {
-  writeFallback(NOTES_FALLBACK_KEY, readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []).filter((note) => note.id !== noteId));
+export async function removeNote(noteId: string): Promise<boolean> {
+  const deleted = readFallback<string[]>(NOTES_DELETED_KEY, []);
+  const marked = writeFallback(NOTES_DELETED_KEY, [...new Set([...deleted, noteId])]);
+  if (marked) {
+    writeFallback(NOTES_FALLBACK_KEY, readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []).filter((note) => note.id !== noteId));
+  }
   try {
     await deleteValue(NOTES_STORE, noteId);
-  } catch { /* The synchronous mirror is already up to date. */ }
+    if (!marked) writeFallback(NOTES_FALLBACK_KEY, readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []).filter((note) => note.id !== noteId));
+    return true;
+  } catch { return marked; }
 }
 
 function mergeDefaultFolders(stored: NoteFolder[]) {

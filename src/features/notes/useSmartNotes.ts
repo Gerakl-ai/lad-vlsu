@@ -220,9 +220,12 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, group: 
   }, []);
 
   const deleteNote = useCallback(async (noteId: string) => {
+    const removed = notes.find((note) => note.id === noteId);
     setNotes((current) => current.filter((note) => note.id !== noteId));
-    await removeNote(noteId);
-  }, []);
+    if (await removeNote(noteId)) return;
+    if (removed) setNotes((current) => sortNotes([...current, removed]));
+    throw new Error("Не удалось удалить запись на устройстве");
+  }, [notes]);
 
   const createFolder = useCallback(async (name: string) => {
     const normalized = normalizedFolderName(name);
