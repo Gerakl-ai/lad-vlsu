@@ -6,11 +6,14 @@ import { fileURLToPath } from "node:url";
 const ORDER_TITLES = {
   "029": "Очная форма ВО, приказ №029/20",
   "028": "КИТП и ОСПЮО, приказ №028/20",
-  "027": "Очно-заочная форма ВО, приказ №027/20"
+  "027": "Очно-заочная форма ВО, приказ №027/20",
+  "030": "Очная форма ВО, приказ №030/20",
+  "031": "КИТП и ОСПЮО, приказ №031/20",
+  "032": "Очно-заочная форма ВО, приказ №032/20"
 };
 
 function orderId(url) {
-  const match = url.match(/order_N(02[789])_20_/i);
+  const match = url.match(/order_N(\d{3})_20_/i);
   return match?.[1] ?? null;
 }
 
@@ -37,25 +40,32 @@ export function buildDocumentIndex(catalog, inventories) {
     for (const document of inventory.documents ?? []) {
       if (document.kind !== "schedule" || !/^[a-f\d]{64}$/i.test(document.pdfSha256)) continue;
       for (const column of document.groupColumns ?? []) {
-        if (column.match?.status !== "unique-catalog-name") continue;
-        const match = column.match.candidate;
-        const group = known.get(match?.nrec);
-        if (!group || group.name !== match.name || group.name !== column.header
-          || group.instituteId !== match.instituteId
+        const shared = column.match?.status === "multi-group-column";
+        const matches = shared ? column.match.candidates
+          : column.match?.status === "unique-catalog-name" ? [column.match.candidate] : [];
+        if (!Array.isArray(matches) || !matches.length
+          || column.header !== matches.map((match) => match.name).join(" ")
           || !Number.isInteger(document.member) || document.member < 0
           || !Number.isInteger(column.page) || column.page < 1 || column.page > document.pages
           || !Number.isInteger(column.column) || column.column < 1) continue;
-        const location = {
-          groupName: group.name,
-          sourceId: id,
-          pdfSha256: document.pdfSha256,
-          member: document.member,
-          page: column.page,
-          column: column.column
-        };
-        const entries = candidates.get(match.nrec) ?? [];
-        entries.push(location);
-        candidates.set(match.nrec, entries);
+        if (matches.some((match) => {
+          const group = known.get(match?.nrec);
+          return !group || group.name !== match.name || group.instituteId !== match.instituteId;
+        })) continue;
+        for (const match of matches) {
+          const location = {
+            groupName: match.name,
+            sourceId: id,
+            pdfSha256: document.pdfSha256,
+            member: document.member,
+            page: column.page,
+            column: column.column,
+            ...(shared ? { sharedColumn: true, columnHeader: column.header } : {})
+          };
+          const entries = candidates.get(match.nrec) ?? [];
+          entries.push(location);
+          candidates.set(match.nrec, entries);
+        }
       }
     }
   }

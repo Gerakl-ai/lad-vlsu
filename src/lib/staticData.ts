@@ -63,6 +63,16 @@ export interface StaticScheduleSnapshot {
     reviewedAt: string;
   };
   provenance?: unknown;
+  extraction?: {
+    method: "ocr";
+    status: "unreviewed";
+    sourceUrl: string;
+    sourcePdfSha256: string;
+    member: number;
+    page: number;
+    column: number;
+    flaggedCells: number;
+  };
 }
 
 function validDateKey(value: unknown): value is string {
@@ -86,6 +96,8 @@ export interface OfficialDocumentLocation {
   member: number;
   page: number;
   column: number;
+  sharedColumn?: boolean;
+  columnHeader?: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -129,7 +141,9 @@ function documentLocationFromIndex(payload: unknown, nrec: string): OfficialDocu
     groupName: group.groupName,
     member: group.member as number,
     page: group.page as number,
-    column: group.column as number
+    column: group.column as number,
+    ...(group.sharedColumn === true && typeof group.columnHeader === "string"
+      ? { sharedColumn: true, columnHeader: group.columnHeader } : {})
   };
 }
 
@@ -142,6 +156,21 @@ export async function fetchOfficialDocumentGroupIds(): Promise<Set<string>> {
   const payload = await loadOfficialDocumentIndex();
   if (!isRecord(payload) || !isRecord(payload.groups)) return new Set();
   return new Set(Object.keys(payload.groups).filter((nrec) => documentLocationFromIndex(payload, nrec)));
+}
+
+export async function fetchOcrScheduleCoverage(): Promise<Record<string, { validFrom: string; validThrough: string }>> {
+  const payload = await fetchJson(staticDataUrl("ocr-schedule/index.json"));
+  if (!isRecord(payload) || payload.schemaVersion !== 1 || !isRecord(payload.groups)) {
+    throw new Error("Карта расписаний имеет неизвестный формат");
+  }
+  const groups: Record<string, { validFrom: string; validThrough: string }> = {};
+  for (const [nrec, period] of Object.entries(payload.groups)) {
+    if (!/^[a-f\d]{32}$/i.test(nrec) || !isRecord(period)
+      || !validDateKey(period.validFrom) || !validDateKey(period.validThrough)
+      || period.validFrom > period.validThrough) continue;
+    groups[nrec] = { validFrom: period.validFrom, validThrough: period.validThrough };
+  }
+  return groups;
 }
 
 async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
@@ -308,6 +337,17 @@ export function normalizeStaticSnapshot(payload: unknown, expectedNrec: string):
     || ((payload.validFrom !== undefined || payload.validThrough !== undefined)
       && (!validDateKey(payload.validFrom) || !validDateKey(payload.validThrough)
         || payload.validFrom > payload.validThrough))
+    || (payload.extraction !== undefined && (!isRecord(payload.extraction)
+      || payload.extraction.method !== "ocr" || payload.extraction.status !== "unreviewed"
+      || typeof payload.extraction.sourceUrl !== "string"
+      || !payload.extraction.sourceUrl.startsWith("https://www.vlsu.ru/")
+      || typeof payload.extraction.sourcePdfSha256 !== "string"
+      || !/^[a-f\d]{64}$/i.test(payload.extraction.sourcePdfSha256)
+      || ![payload.extraction.member, payload.extraction.page, payload.extraction.column]
+        .every((value) => Number.isInteger(value) && (value as number) > 0)
+      || !Number.isInteger(payload.extraction.flaggedCells)
+      || (payload.extraction.flaggedCells as number) < 0
+      || !validDateKey(payload.validFrom) || !validDateKey(payload.validThrough)))
     || (payload.sourceDocument !== undefined && (!isRecord(payload.sourceDocument)
       || !validDateKey(payload.validFrom) || !validDateKey(payload.validThrough)
       || typeof payload.sourceDocument.title !== "string" || !payload.sourceDocument.title.trim()
@@ -357,7 +397,7 @@ export function scheduleStateFromSnapshot(
     validThrough: snapshot.validThrough,
     sourceDocument: snapshot.sourceDocument,
     weekTypeAsOf: snapshot.capturedAt,
-    source: "static-snapshot",
+    source: snapshot.extraction?.method === "ocr" ? "pdf-ocr" : "static-snapshot",
     snapshotAgeSeconds: Math.max(0, Math.floor((now - capturedAtMs) / 1000)),
     contentHash: snapshot.scheduleHash,
     provenance: normalizeProvenance(snapshot.provenance) ?? undefined,
@@ -365,9 +405,42 @@ export function scheduleStateFromSnapshot(
   };
 }
 
+let universityBundlePromise: Promise<Record<string, unknown>> | null = null;
+
+export function resetUniversityBundleCache() {
+  universityBundlePromise = null;
+}
+
+export async function warmUniversityScheduleBundle(): Promise<Record<string, unknown>> {
+  universityBundlePromise ??= fetchJson(staticDataUrl("university-schedule.json"), AbortSignal.timeout(8000))
+    .catch(() => fetchJson(staticDataUrl("ocr-schedule/bundle.json"), AbortSignal.timeout(8000)))
+    .then((payload) => {
+      if (!isRecord(payload) || payload.schemaVersion !== 1 || !isRecord(payload.groups)) {
+        throw new Error("Пакет расписаний имеет неизвестный формат");
+      }
+      return payload.groups;
+    }).catch((error) => { universityBundlePromise = null; throw error; });
+  return universityBundlePromise;
+}
+
 export async function fetchStaticSnapshot(nrec: string, signal?: AbortSignal) {
-  const payload = await fetchJson(staticDataUrl(`schedule/${nrec}.json`), signal);
-  return normalizeStaticSnapshot(payload, nrec);
+  try {
+    const primary = await fetch(staticDataUrl(`schedule/${nrec}.json`), {
+      headers: { Accept: "application/json" }, signal
+    });
+    if (primary.ok) return normalizeStaticSnapshot(await primary.json(), nrec);
+  } catch (error) {
+    if (signal?.aborted) throw error;
+  }
+  try {
+    const provisional = await fetchJson(staticDataUrl(`ocr-schedule/${nrec}.json`), signal);
+    return normalizeStaticSnapshot(provisional, nrec);
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    const bundle = await warmUniversityScheduleBundle();
+    if (signal?.aborted) throw signal.reason ?? new DOMException("Aborted", "AbortError");
+    return normalizeStaticSnapshot(bundle[nrec], nrec);
+  }
 }
 
 /* ------------------------------------------------------------------ *

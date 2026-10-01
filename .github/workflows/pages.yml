@@ -66,6 +66,12 @@ jobs:
             echo "::warning::Ветки data ещё нет — сайт соберётся без снимков расписания."
           fi
 
+      - name: Собрать общий офлайн-пакет
+        run: |
+          if [ -f dist/data/catalog.json ]; then
+            node scripts/snapshot/buildUniversityBundle.mjs --data-dir dist/data --fallback-dir dist/data/ocr-schedule --publish-dir dist/data
+          fi
+
       - name: Сделать SPA-маршруты рабочими
         # Pages отдаёт 404.html для неизвестных путей. Копия index.html делает
         # прямые ссылки вида /g/ПИ-124 рабочими без серверной маршрутизации.

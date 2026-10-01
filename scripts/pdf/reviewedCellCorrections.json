@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 1,
+  "corrections": [
+    {
+      "id": "iite-revision030-pi124-day1-z1-v1",
+      "sourcePdfSha256": "fc531fa4ea8c50a009ca66b50a30caad8cc04e1a181378a73c06346a24d69857",
+      "sourceId": "030", "member": 5, "page": 3, "dayIndex": 1, "pair": 1,
+      "modes": ["z"], "bounds": [881.68,371.12,975.24,413.64],
+      "expectedRawText": "111-3, 16, Старовойтов E.A., Базы данных (с 10 по 16 нед)",
+      "replacementLines": ["111-3, лб, Старовойтов Е.А., Базы данных (с 10 по 16 нед)"],
+      "review": { "method": "visual-source-cell", "reviewer": "Codex", "date": "2026-10-01", "note": "Rechecked rendered yellow cell in revision 030, not carried over from 029." }
+    },
+    {
+      "id": "iite-revision030-pi124-day1-z2-v1",
+      "sourcePdfSha256": "fc531fa4ea8c50a009ca66b50a30caad8cc04e1a181378a73c06346a24d69857",
+      "sourceId": "030", "member": 5, "page": 3, "dayIndex": 1, "pair": 2,
+      "modes": ["z"], "bounds": [881.68,456.17,975.24,498.69],
+      "expectedRawText": "111-3, 16, Старовойтов E.A., Базы данных (с 10 нед)",
+      "replacementLines": ["111-3, лб, Старовойтов Е.А., Базы данных (с 10 нед)"],
+      "review": { "method": "visual-source-cell", "reviewer": "Codex", "date": "2026-10-01", "note": "Rechecked rendered yellow cell in revision 030." }
+    },
+    {
+      "id": "iite-revision030-pi124-day2-z1-v1",
+      "sourcePdfSha256": "fc531fa4ea8c50a009ca66b50a30caad8cc04e1a181378a73c06346a24d69857",
+      "sourceId": "030", "member": 5, "page": 3, "dayIndex": 2, "pair": 1,
+      "modes": ["z"], "bounds": [975.24,967.17,1071.63,1009.7],
+      "expectedRawText": "111-3, 16, Аджамиех C.M., Основы архитектуры и интеграции информационных систем",
+      "replacementLines": ["111-3, лб, Аджамиех С.М., Основы архитектуры и интеграции информационных систем"],
+      "review": { "method": "visual-source-cell", "reviewer": "Codex", "date": "2026-10-01", "note": "Second subgroup cell visually checked in revision 030." }
+    },
+    {
+      "id": "iite-revision030-pi124-day2-z3-v1",
+      "sourcePdfSha256": "fc531fa4ea8c50a009ca66b50a30caad8cc04e1a181378a73c06346a24d69857",
+      "sourceId": "030", "member": 5, "page": 3, "dayIndex": 2, "pair": 3,
+      "modes": ["z"], "bounds": [881.68,1137.27,975.24,1179.79],
+      "expectedRawText": "109-3, 16, Градусов Д.А., Тестирование информационных систем (с 10 нед)",
+      "replacementLines": ["109-3, лб, Градусов Д.А., Тестирование информационных систем (с 10 нед)"],
+      "review": { "method": "visual-source-cell", "reviewer": "Codex", "date": "2026-10-01", "note": "Laboratory kind checked in revision 030." }
+    },
+    {
+      "id": "iite-revision030-pi124-day2-z4-v1",
+      "sourcePdfSha256": "fc531fa4ea8c50a009ca66b50a30caad8cc04e1a181378a73c06346a24d69857",
+      "sourceId": "030", "member": 5, "page": 3, "dayIndex": 2, "pair": 4,
+      "modes": ["z"], "bounds": [881.68,1222.32,975.24,1264.84],
+      "expectedRawText": "109-3, 16, Градусов Д.А., Тестирование информационных систем (с 10 по 16 нед)",
+      "replacementLines": ["109-3, лб, Градусов Д.А., Тестирование информационных систем (с 10 по 16 нед)"],
+      "review": { "method": "visual-source-cell", "reviewer": "Codex", "date": "2026-10-01", "note": "Laboratory kind and week range checked in revision 030." }
+    },
+    {
+      "id": "iite-revision030-pi124-day3-n3-curator-v1",
+      "sourcePdfSha256": "fc531fa4ea8c50a009ca66b50a30caad8cc04e1a181378a73c06346a24d69857",
+      "sourceId": "030", "member": 5, "page": 3, "dayIndex": 3, "pair": 3,
+      "modes": ["n"], "bounds": [881.68,1690.8,1071.63,1733.33],
+      "expectedRawText": "111-3, Шутов A.B., Кураторский час",
+      "replacementLines": ["111-3, Шутов А.В., Кураторский час"],
+      "review": { "method": "visual-source-cell", "reviewer": "Codex", "date": "2026-10-01", "note": "Instructor is printed in the new revision; no lesson kind was invented." }
+    },
+    {
+      "id": "iase-evening-4course-tuesday-n7-v1",
+      "sourcePdfSha256": "6ffd2a85cee4983bdac9d65de84083f037378248f6b62f56aa507c554b56a1da",
+      "sourceId": "027",
+      "member": 3,
+      "page": 7,
+      "dayIndex": 2,
+      "pair": 7,
+      "modes": ["n"],
+      "bounds": [121.9, 754.55, 1652.8, 797.07],
+      "expectedRawText": "Строительная механика (по 6 нед) 524-2, лк, Маврина С.А. Строительные машины и оборудование (с 7 по 10 нед) 524-2, лк, Опарин Е.М. 524-2, пр, Опарин Е.М. (с 11 по 14 нед)",
+      "replacementLines": [
+        "524-2, лк, Маврина С.А., Строительная механика (по 6 нед)",
+        "524-2, лк, Опарин Е.М., Строительные машины и оборудование (с 7 по 10 нед)",
+        "524-2, пр, Опарин Е.М., Строительные машины и оборудование (с 11 по 14 нед)"
+      ],
+      "review": { "method": "visual-source-cell", "reviewer": "Codex", "date": "2026-10-01", "note": "Subject on the following teacher/type row inherits the immediately preceding printed subject." }
+    },
+    {
+      "id": "iase-evening-4course-thursday-n7-v1",
+      "sourcePdfSha256": "6ffd2a85cee4983bdac9d65de84083f037378248f6b62f56aa507c554b56a1da",
+      "sourceId": "027",
+      "member": 3,
+      "page": 7,
+      "dayIndex": 4,
+      "pair": 7,
+      "modes": ["n"],
+      "bounds": [121.9, 1266.26, 1652.8, 1308.78],
+      "expectedRawText": "Механика грунтов (по 10 нед) 524-2, лк, Гандельсман И.А. 524-2, пр, Гандельсман И.А. (с 11 по 16 нед)",
+      "replacementLines": [
+        "524-2, лк, Гандельсман И.А., Механика грунтов (по 10 нед)",
+        "524-2, пр, Гандельсман И.А., Механика грунтов (с 11 по 16 нед)"
+      ],
+      "review": { "method": "visual-source-cell", "reviewer": "Codex", "date": "2026-10-01", "note": "Subject on the following teacher/type row inherits the immediately preceding printed subject." }
+    }
+,{
+  "id": "iite-pi124-day1-z1-lab-v1",
+  "sourcePdfSha256": "a9cc2c23cfc6f2bfaada9c27349b6d3782157fbbb1bbf0cd2a41dbe0ccd03cd7",
+  "sourceId": "029",
+  "member": 5,
+  "page": 3,
+  "dayIndex": 1,
+  "pair": 1,
+  "modes": [
+    "z"
+  ],
+  "bounds": [
+    881.68,
+    371.12,
+    975.24,
+    413.64
+  ],
+  "expectedRawText": "111-3, 16, Старовойтов E.A., Базы данных (с 10 по 16 нед)",
+  "replacementLines": [
+    "111-3, лб, Старовойтов Е.А., Базы данных (с 10 по 16 нед)"
+  ],
+  "review": {
+    "method": "visual-source-cell",
+    "reviewer": "Codex",
+    "date": "2026-10-01",
+    "note": "Laboratory kind and Cyrillic initials checked against rendered source cell."
+  }
+},
+{
+  "id": "iite-pi124-day1-z2-lab-v1",
+  "sourcePdfSha256": "a9cc2c23cfc6f2bfaada9c27349b6d3782157fbbb1bbf0cd2a41dbe0ccd03cd7",
+  "sourceId": "029",
+  "member": 5,
+  "page": 3,
+  "dayIndex": 1,
+  "pair": 2,
+  "modes": [
+    "z"
+  ],
+  "bounds": [
+    881.68,
+    456.17,
+    975.24,
+    498.69
+  ],
+  "expectedRawText": "111-3, 16, Старовойтов E.A., Базы данных (с 10 нед)",
+  "replacementLines": [
+    "111-3, лб, Старовойтов Е.А., Базы данных (с 10 нед)"
+  ],
+  "review": {
+    "method": "visual-source-cell",
+    "reviewer": "Codex",
+    "date": "2026-10-01",
+    "note": "Laboratory kind and Cyrillic initials checked against rendered source cell."
+  }
+},
+{
+  "id": "iite-pi124-day2-z1-lab-v1",
+  "sourcePdfSha256": "a9cc2c23cfc6f2bfaada9c27349b6d3782157fbbb1bbf0cd2a41dbe0ccd03cd7",
+  "sourceId": "029",
+  "member": 5,
+  "page": 3,
+  "dayIndex": 2,
+  "pair": 1,
+  "modes": [
+    "z"
+  ],
+  "bounds": [
+    975.24,
+    967.17,
+    1071.63,
+    1009.7
+  ],
+  "expectedRawText": "111-3, 16, Аджамиех C.M., Основы архитектуры и интеграции информационных систем",
+  "replacementLines": [
+    "111-3, лб, Аджамиех С.М., Основы архитектуры и интеграции информационных систем"
+  ],
+  "review": {
+    "method": "visual-source-cell",
+    "reviewer": "Codex",
+    "date": "2026-10-01",
+    "note": "Laboratory kind and Cyrillic initials checked against rendered source cell."
+  }
+},
+{
+  "id": "iite-pi124-day2-z3-lab-v1",
+  "sourcePdfSha256": "a9cc2c23cfc6f2bfaada9c27349b6d3782157fbbb1bbf0cd2a41dbe0ccd03cd7",
+  "sourceId": "029",
+  "member": 5,
+  "page": 3,
+  "dayIndex": 2,
+  "pair": 3,
+  "modes": [
+    "z"
+  ],
+  "bounds": [
+    881.68,
+    1137.27,
+    975.24,
+    1179.79
+  ],
+  "expectedRawText": "109-3, 16, Градусов Д.А., Тестирование информационных систем (с 10 нед)",
+  "replacementLines": [
+    "109-3, лб, Градусов Д.А., Тестирование информационных систем (с 10 нед)"
+  ],
+  "review": {
+    "method": "visual-source-cell",
+    "reviewer": "Codex",
+    "date": "2026-10-01",
+    "note": "Laboratory kind and Cyrillic initials checked against rendered source cell."
+  }
+},
+{
+  "id": "iite-pi124-day2-z4-lab-v1",
+  "sourcePdfSha256": "a9cc2c23cfc6f2bfaada9c27349b6d3782157fbbb1bbf0cd2a41dbe0ccd03cd7",
+  "sourceId": "029",
+  "member": 5,
+  "page": 3,
+  "dayIndex": 2,
+  "pair": 4,
+  "modes": [
+    "z"
+  ],
+  "bounds": [
+    881.68,
+    1222.32,
+    975.24,
+    1264.84
+  ],
+  "expectedRawText": "109-3, 16, Градусов Д.А., Тестирование информационных систем (с 10 по 16 нед)",
+  "replacementLines": [
+    "109-3, лб, Градусов Д.А., Тестирование информационных систем (с 10 по 16 нед)"
+  ],
+  "review": {
+    "method": "visual-source-cell",
+    "reviewer": "Codex",
+    "date": "2026-10-01",
+    "note": "Laboratory kind and Cyrillic initials checked against rendered source cell."
+  }
+}
+  ]
+}

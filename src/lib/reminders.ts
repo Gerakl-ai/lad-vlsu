@@ -27,7 +27,7 @@ export function getNotificationCapability(settings: ReminderSettings): Notificat
     return {
       status: "unsupported",
       title: "Не поддерживается",
-      detail: "Уведомления работают только на HTTPS или localhost.",
+      detail: "Открой приложение через защищённую ссылку.",
       canRequestPermission: false,
       canSendNow: false,
       isStandalone,
@@ -42,7 +42,7 @@ export function getNotificationCapability(settings: ReminderSettings): Notificat
     return {
       status: "unsupported",
       title: "Не поддерживается",
-      detail: "В этом браузере нет Notification API.",
+      detail: "Этот браузер не умеет показывать уведомления приложения.",
       canRequestPermission: false,
       canSendNow: false,
       isStandalone,
@@ -72,7 +72,7 @@ export function getNotificationCapability(settings: ReminderSettings): Notificat
     return {
       status: "install-required",
       title: "Нужно установить на экран Домой",
-      detail: "На iPhone уведомления для веб-приложений доступны только у установленной PWA.",
+      detail: "Добавь приложение на экран Домой, затем открой его оттуда.",
       canRequestPermission: false,
       canSendNow: false,
       isStandalone,
@@ -102,8 +102,8 @@ export function getNotificationCapability(settings: ReminderSettings): Notificat
     status: "available",
     title: "Доступно",
     detail: hasServiceWorker
-      ? "Тестовые уведомления и напоминания работают, пока приложение запущено. Для гарантированной доставки в фоне нужен Web Push с сервером."
-      : "Можно отправлять только уведомления активной вкладки; service worker недоступен.",
+      ? "Напоминания работают, пока приложение открыто. После закрытия они могут не прийти."
+      : "Уведомления доступны, пока приложение открыто.",
     canRequestPermission: false,
     canSendNow: true,
     isStandalone,

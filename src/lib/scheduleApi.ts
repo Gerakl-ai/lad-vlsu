@@ -316,6 +316,15 @@ function parseLessonVariant(rawText: string): LessonVariant {
   const normalized = rawText.replace(/\s+/g, " ").trim();
   const parts = normalized.split(",").map((part) => part.trim());
 
+  if (parts.length >= 3 && /^(?:лк|лб|пр|лекция|лабораторная|практика)\.?$/i.test(parts[0])) {
+    return {
+      kind: parts[0],
+      teacher: parts[1] || undefined,
+      subject: parts.slice(2).filter(Boolean).join(", ") || normalized,
+      rawText: normalized
+    };
+  }
+
   if (parts.length >= 4) {
     const subject = parts.slice(3).filter(Boolean).join(", ");
     return {

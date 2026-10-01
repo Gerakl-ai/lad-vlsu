@@ -89,6 +89,9 @@ jobs:
             exit "$result"
           fi
 
+      - name: Собрать общий офлайн-пакет
+        run: node scripts/snapshot/buildUniversityBundle.mjs --data-dir snapshot-data/data --fallback-dir public/data/ocr-schedule
+
       - name: Зафиксировать изменения
         run: |
           cd snapshot-data

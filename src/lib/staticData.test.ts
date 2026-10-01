@@ -7,6 +7,10 @@ import {
   catalogInstitutes,
   fetchOfficialDocumentGroupIds,
   fetchOfficialDocumentLocation,
+  fetchOcrScheduleCoverage,
+  fetchStaticSnapshot,
+  resetUniversityBundleCache,
+  warmUniversityScheduleBundle,
   normalizeStaticCatalog,
   normalizeStaticSnapshot,
   normalizeStaticCoverage,
@@ -19,6 +23,21 @@ import {
 } from "./staticData";
 
 describe("официальный документ группы", () => {
+  it("показывает доступность только для датированных структурированных снимков", async () => {
+    const nrec = "a".repeat(32);
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({
+      schemaVersion: 1,
+      groups: {
+        [nrec]: { validFrom: "2026-09-01", validThrough: "2026-12-30" },
+        ["b".repeat(32)]: { validFrom: "2026-12-30", validThrough: "2026-09-01" }
+      }
+    }), { status: 200 })));
+    expect(await fetchOcrScheduleCoverage()).toEqual({
+      [nrec]: { validFrom: "2026-09-01", validThrough: "2026-12-30" }
+    });
+    vi.unstubAllGlobals();
+  });
+
   it("находит координаты и принимает только ссылку ВлГУ", async () => {
     resetOfficialDocumentIndexCache();
     const nrec = "a".repeat(32);
@@ -39,6 +58,7 @@ describe("официальный документ группы", () => {
     vi.unstubAllGlobals();
     resetOfficialDocumentIndexCache();
   });
+
 });
 
 const HASH = "a".repeat(64);
@@ -89,6 +109,7 @@ const snapshotPayload = {
 };
 
 beforeEach(() => {
+  resetUniversityBundleCache();
   resetStaticCatalogCache();
 });
 
@@ -125,6 +146,21 @@ describe("normalizeStaticCatalog", () => {
 });
 
 describe("normalizeStaticSnapshot", () => {
+  it("uses the cached provisional schedule when the primary file is offline", async () => {
+    const provisional = { ...snapshotPayload,
+      validFrom: "2026-09-01", validThrough: "2026-12-30",
+      extraction: { method: "ocr", status: "unreviewed", sourceUrl: "https://www.vlsu.ru/schedule.zip",
+        sourcePdfSha256: HASH, member: 1, page: 1, column: 1, flaggedCells: 0 }
+    };
+    const fetchMock = vi.fn(async (url: string) => url.includes("/schedule/")
+      ? new Response("", { status: 504 })
+      : new Response(JSON.stringify(provisional), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    expect((await fetchStaticSnapshot(snapshotPayload.group.nrec)).extraction?.method).toBe("ocr");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    vi.unstubAllGlobals();
+  });
+
   it("принимает корректный снимок", () => {
     expect(normalizeStaticSnapshot(snapshotPayload, snapshotPayload.group.nrec).semester).toBe(5);
   });
@@ -163,6 +199,53 @@ describe("normalizeStaticSnapshot", () => {
       validFrom: "2026-09-01", validThrough: "2026-02-31" }, snapshotPayload.group.nrec)).toThrow();
     expect(normalizeStaticSnapshot({ ...snapshotPayload, sourceDocument,
       validFrom: "2026-09-01", validThrough: "2026-12-30" }, snapshotPayload.group.nrec).sourceDocument).toEqual(sourceDocument);
+  });
+});
+
+describe("university offline bundle", () => {
+  it("uses a bundled unvisited group when both individual files are unavailable", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => url.endsWith("bundle.json")
+      ? new Response(JSON.stringify({ schemaVersion: 1, groups: { [snapshotPayload.group.nrec]: snapshotPayload } }))
+      : new Response("", { status: 504 })));
+    expect((await fetchStaticSnapshot(snapshotPayload.group.nrec)).scheduleHash).toBe(HASH);
+    vi.unstubAllGlobals();
+  });
+
+  it("never substitutes another group when the requested one is missing", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => url.endsWith("bundle.json")
+      ? new Response(JSON.stringify({ schemaVersion: 1, groups: { ["d".repeat(32)]: snapshotPayload } }))
+      : new Response("", { status: 504 })));
+    await expect(fetchStaticSnapshot(snapshotPayload.group.nrec)).rejects.toThrow();
+    vi.unstubAllGlobals();
+  });
+
+  it("rejects a wrong group identity even under the requested key", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => url.endsWith("bundle.json")
+      ? new Response(JSON.stringify({ schemaVersion: 1, groups: { [snapshotPayload.group.nrec]: { ...snapshotPayload, group: { ...snapshotPayload.group, nrec: "d".repeat(32) } } } }))
+      : new Response("", { status: 504 })));
+    await expect(fetchStaticSnapshot(snapshotPayload.group.nrec)).rejects.toThrow();
+    vi.unstubAllGlobals();
+  });
+
+  it("retries a failed warmup and shares a successful download", async () => {
+    const fetchMock = vi.fn().mockRejectedValueOnce(new Error("Offline"))
+      .mockRejectedValueOnce(new Error("Offline"))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ schemaVersion: 1, groups: {} })));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(warmUniversityScheduleBundle()).rejects.toThrow("Offline");
+    await Promise.all([warmUniversityScheduleBundle(), warmUniversityScheduleBundle()]);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    vi.unstubAllGlobals();
+  });
+
+  it("prefers the university package without downloading the legacy package", async () => {
+    const fetchMock = vi.fn(async (_url: string) => new Response(JSON.stringify({ schemaVersion: 1,
+      groups: { [snapshotPayload.group.nrec]: snapshotPayload } })));
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await warmUniversityScheduleBundle()).toHaveProperty(snapshotPayload.group.nrec);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toContain("university-schedule.json");
+    vi.unstubAllGlobals();
   });
 });
 

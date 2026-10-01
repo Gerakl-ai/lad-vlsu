@@ -13,7 +13,8 @@ import {
   X
 } from "lucide-react";
 import { loadGroups, loadInstitutes, normalizeCachedSchedule } from "../../lib/scheduleApi";
-import { fetchOfficialDocumentGroupIds, loadStaticCoverage, type StaticCoverage } from "../../lib/staticData";
+import { catalogGroups, catalogInstitutes, fetchOcrScheduleCoverage, loadStaticCatalog, loadStaticCoverage, type StaticCoverage } from "../../lib/staticData";
+import { searchUniversityGroups } from "./groupSearch";
 import { dateKeyFromDate } from "../../lib/time";
 import {
   readFavoriteGroups,
@@ -26,7 +27,6 @@ import {
 } from "./groupStorage";
 import { groupLinkUrl } from "./groupLinks";
 import {
-  LEGACY_PI124_GROUP,
   studyFormLabel,
   toGroupProfile,
   type GroupOption,
@@ -53,27 +53,33 @@ function matchesSearch(values: Array<string | undefined>, query: string) {
   return values.some((value) => normalizedSearch(value ?? "").includes(normalized));
 }
 
-function snapshotLabel(coverage: StaticCoverage | null, nrec: string, documentGroups: Set<string>) {
+function snapshotLabel(coverage: StaticCoverage | null, nrec: string, ocrGroups: Record<string, { validFrom: string; validThrough: string }>) {
   const entry = coverage?.groups[nrec];
   const capturedAt = entry?.capturedAt;
   if (entry?.validThrough && entry.validThrough < dateKeyFromDate()) {
     return `Архив до ${new Date(`${entry.validThrough}T12:00:00`).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
   }
   if (capturedAt) return `Есть данные от ${new Date(capturedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
-  if (documentGroups.has(nrec)) return "Есть официальный документ";
-  return coverage ? "Проверим архив при открытии" : null;
+  const ocr = ocrGroups[nrec];
+  if (ocr?.validThrough && ocr.validThrough < dateKeyFromDate()) {
+    return `Архив до ${new Date(`${ocr.validThrough}T12:00:00`).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
+  }
+  if (ocr) return "Есть расписание";
+  return coverage ? "Проверим при открытии" : null;
 }
 
 export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: GroupPickerSheetProps) {
   const [institutes, setInstitutes] = useState<InstituteOption[]>([]);
   const [groups, setGroups] = useState<GroupOption[]>([]);
+  const [universityGroups, setUniversityGroups] = useState<GroupProfile[]>([]);
   const [activeInstitute, setActiveInstitute] = useState<InstituteOption | null>(null);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<CatalogStatus>("idle");
+  const [catalogAttempt, setCatalogAttempt] = useState(0);
   const [favoriteGroups, setFavoriteGroups] = useState<GroupProfile[]>(() => readFavoriteGroups());
   const [shareState, setShareState] = useState<"idle" | "done" | "error">("idle");
   const [coverage, setCoverage] = useState<StaticCoverage | null>(null);
-  const [documentGroups, setDocumentGroups] = useState<Set<string>>(() => new Set());
+  const [ocrGroups, setOcrGroups] = useState<Record<string, { validFrom: string; validThrough: string }>>({});
 
   useEffect(() => {
     if (!open) return;
@@ -88,11 +94,24 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
     }).catch(() => {
       if (!cancelled) setCoverage(null);
     });
-    void fetchOfficialDocumentGroupIds().then((result) => {
-      if (!cancelled) setDocumentGroups(result);
+    void fetchOcrScheduleCoverage().then((result) => {
+      if (!cancelled) setOcrGroups(result);
     }).catch(() => undefined);
 
     const cached = readInstituteCatalog();
+    setUniversityGroups((cached?.items ?? []).flatMap((institute) =>
+      (readGroupCatalog(institute.id)?.items ?? []).map((group) => toGroupProfile(institute, group))));
+    void loadStaticCatalog().then((catalog) => {
+      if (cancelled) return;
+      const allInstitutes = catalogInstitutes(catalog);
+      const profiles = allInstitutes.flatMap((institute) => {
+        const items = catalogGroups(catalog, institute.id);
+        writeGroupCatalog(institute.id, items);
+        return items.map((group) => toGroupProfile(institute, group));
+      });
+      writeInstituteCatalog(allInstitutes);
+      setUniversityGroups(profiles);
+    }).catch(() => undefined);
     if (cached?.items.length) {
       setInstitutes(cached.items);
       setStatus("ready");
@@ -114,7 +133,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
     return () => {
       cancelled = true;
     };
-  }, [open]);
+  }, [open, catalogAttempt]);
 
   useEffect(() => {
     if (!open || !activeInstitute) return;
@@ -147,6 +166,8 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
     () => groups.filter((group) => matchesSearch([group.name, group.course], query)),
     [groups, query]
   );
+  const globalResults = useMemo(() => activeInstitute ? [] : searchUniversityGroups(universityGroups, query),
+    [universityGroups, query, activeInstitute]);
 
   if (!open) return null;
 
@@ -161,8 +182,9 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
   };
 
   const canClose = Boolean(selectedGroup);
-  const rows = activeInstitute ? filteredGroups : filteredInstitutes;
-  const showCoverageWarning = Boolean(coverage && coverage.available < coverage.catalogGroups);
+  const resultCount = activeInstitute ? filteredGroups.length : filteredInstitutes.length + globalResults.length;
+  const availableGroups = new Set([...Object.keys(coverage?.groups ?? {}), ...Object.keys(ocrGroups)]).size;
+  const showCoverageWarning = Boolean(coverage && availableGroups < coverage.catalogGroups);
 
   const toggleFavorite = (event: React.MouseEvent, group: GroupProfile) => {
     event.stopPropagation();
@@ -207,7 +229,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={activeInstitute ? "Название группы или курс" : "Название или сокращение института"}
+            placeholder={activeInstitute ? "Название группы или курс" : "Группа или институт, например ПИ-124"}
             autoComplete="off"
             autoCapitalize="characters"
           />
@@ -215,16 +237,32 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
         </label>
 
         <div className="group-picker-context">
-          <span>{activeInstitute ? activeInstitute.name : "Институты ВлГУ"}</span>
-          <strong>{rows.length}</strong>
+          <span>{activeInstitute ? activeInstitute.name : query ? "Поиск по всему ВлГУ" : "Институты ВлГУ"}</span>
+          <strong>{resultCount}</strong>
         </div>
         {coverage && showCoverageWarning && (
           <p className="group-picker-coverage">
-            Цифровые снимки есть для {coverage.available} из {coverage.catalogGroups} групп. Для остальных проверим архив и ВлГУ; если данных нет, подскажем официальный документ.
+            Расписание доступно для {availableGroups} из {coverage.catalogGroups} групп. Для остальных попробуем получить данные ВлГУ при открытии.
           </p>
         )}
 
         <div className="group-picker-list" data-screen-swipe="ignore">
+          {!activeInstitute && globalResults.length > 0 && (
+            <section className="university-group-results" aria-label="Группы всех институтов">
+              <strong className="favorite-groups-title">Группы</strong>
+              {globalResults.map((group) => (
+                <button key={group.nrec} type="button" className="group-picker-row group-row" onClick={() => onSelect(group)}>
+                  <span className="institute-badge" data-visual={group.visualKey}>{group.instituteShortName}</span>
+                  <span className="group-picker-copy">
+                    <strong>{group.name}</strong>
+                    <small>{[group.instituteShortName, group.course, studyFormLabel(group.forms)].filter(Boolean).join(" · ")}</small>
+                    <span className="group-picker-availability">{normalizeCachedSchedule(readGroupScheduleCache(group)) ? "Сохранено здесь" : snapshotLabel(coverage, group.nrec, ocrGroups)}</span>
+                  </span>
+                  {selectedGroup?.nrec === group.nrec ? <Check size={20} className="group-picker-check" /> : <ChevronRight size={20} />}
+                </button>
+              ))}
+            </section>
+          )}
           {!activeInstitute && !query && favoriteGroups.length > 0 && (
             <section className="favorite-groups" aria-label="Избранные группы">
               <strong className="favorite-groups-title"><Star size={13} fill="currentColor" /> Избранные</strong>
@@ -235,7 +273,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
                     <span className="group-picker-copy">
                       <strong>{group.name}</strong>
                       <small>{[group.instituteShortName, group.course].filter(Boolean).join(" · ")}</small>
-                      <span className="group-picker-availability">{normalizeCachedSchedule(readGroupScheduleCache(group)) ? "Сохранено здесь" : snapshotLabel(coverage, group.nrec, documentGroups)}</span>
+                      <span className="group-picker-availability">{normalizeCachedSchedule(readGroupScheduleCache(group)) ? "Сохранено здесь" : snapshotLabel(coverage, group.nrec, ocrGroups)}</span>
                     </span>
                     {selectedGroup?.nrec === group.nrec ? <Check size={20} className="group-picker-check" /> : <ChevronRight size={20} />}
                   </button>
@@ -260,7 +298,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
             const profile = toGroupProfile(activeInstitute, group);
             const isFavorite = favoriteGroups.some((item) => item.nrec === group.nrec);
             const savedOffline = Boolean(normalizeCachedSchedule(readGroupScheduleCache(profile)));
-            const availability = savedOffline ? "Сохранено здесь" : snapshotLabel(coverage, group.nrec, documentGroups);
+            const availability = savedOffline ? "Сохранено здесь" : snapshotLabel(coverage, group.nrec, ocrGroups);
             return (
               <div className="group-picker-row-wrap" key={group.nrec}>
                 <button type="button" className="group-picker-row group-row" onClick={() => chooseGroup(group)}>
@@ -279,13 +317,13 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
             );
           })}
 
-          {!rows.length && status !== "loading" && (
+          {!resultCount && status !== "loading" && (
             <div className="group-picker-empty">
               <WifiOff size={24} />
               <strong>{query ? "Ничего не найдено" : "Каталог пока недоступен"}</strong>
               <p>{query ? "Проверьте название или вернитесь к выбору института." : "ВлГУ не ответил. Сохранённые варианты останутся доступны офлайн."}</p>
-              {!selectedGroup && !activeInstitute && (
-                <button type="button" onClick={() => onSelect(LEGACY_PI124_GROUP)}>Открыть ПИ-124</button>
+              {!query && !activeInstitute && (
+                <button type="button" onClick={() => setCatalogAttempt((attempt) => attempt + 1)}>Повторить загрузку каталога</button>
               )}
             </div>
           )}

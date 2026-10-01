@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { applyTheme, readTheme } from "./features/themes/theme";
+import { assetUrl } from "./lib/assetUrl";
+import { manageAppUpdates } from "./lib/appUpdate";
 import "./styles.css";
 import "./theme.css";
 import "./features/notes/notes.css";
@@ -90,21 +92,29 @@ createRoot(document.getElementById("root")!).render(
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   const registerServiceWorker = () => {
-    const hadController = Boolean(navigator.serviceWorker.controller);
-    let refreshing = false;
-    if (hadController) {
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (refreshing) return;
-        refreshing = true;
-        window.location.reload();
-      });
-    }
     // Воркер лежит рядом с приложением: на проектном сайте Pages это подкаталог,
     // а не корень. Абсолютный путь дал бы 404 и область видимости всего домена.
     const base = import.meta.env.BASE_URL || "/";
     const workerUrl = `${base}sw.js`;
     navigator.serviceWorker.register(workerUrl, { updateViaCache: "none" })
-      .then((registration) => registration.update())
+      .then(async (registration) => {
+        manageAppUpdates(registration, () => window.location.reload());
+        await registration.update();
+        if (!navigator.onLine) return;
+        await navigator.serviceWorker.ready;
+        if (!navigator.serviceWorker.controller) {
+          await new Promise<void>((resolve) => {
+            navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true });
+          });
+        }
+        void Promise.all(["hero-obsidian-campus.jpg", "hero-porcelain-campus.jpg"].map(async (name) => {
+          const url = assetUrl(`images/${name}`);
+          if (await caches.match(url)) return;
+          // Drain the response so an unread image stream cannot hold the old worker alive.
+          const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+          await response.arrayBuffer();
+        })).catch(() => undefined);
+      })
       .catch(() => {
         // PWA registration is progressive enhancement; the app still works online.
       });

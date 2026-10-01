@@ -27,7 +27,6 @@ import {
   Clock3,
   CloudOff,
   Download,
-  ExternalLink,
   Grid2X2,
   HardDrive,
   Info,
@@ -69,9 +68,9 @@ import { heroCopy } from "./lib/heroCopy";
 import { freshnessNotice, preferNewerSchedule } from "./lib/freshness";
 import { assetUrl } from "./lib/assetUrl";
 import { backupSignature, markBackupMade, readBackupMade } from "./features/notes/backupState";
-import { RELEASE_CHANNEL } from "./release";
 import { lessonView, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
-import { fetchCrawlStatus, fetchOfficialDocumentLocation, type CrawlStatus, type OfficialDocumentLocation } from "./lib/staticData";
+import { resetUniversityBundleCache, warmUniversityScheduleBundle } from "./lib/staticData";
+import { isSelectedScheduleUpdate } from "./lib/scheduleUpdate";
 import { readReminderSettings, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import { resolveScreenSwipe } from "./lib/screenGestures";
@@ -344,6 +343,15 @@ export function App() {
   const lastAvailableGroupRef = useRef<GroupProfile | null>(INITIAL_FALLBACK_GROUP);
   const refreshInFlightGroupRef = useRef<string | null>(null);
   const refreshSequenceRef = useRef(0);
+  const pendingStaticRefreshRef = useRef<string | null>(null);
+  const dataUpdateScrollRef = useRef<Array<{ element: HTMLElement; top: number; left: number }> | null>(null);
+  useLayoutEffect(() => {
+    const positions = dataUpdateScrollRef.current;
+    dataUpdateScrollRef.current = null;
+    positions?.forEach(({ element, top, left }) => {
+      if (element.isConnected) element.scrollTo({ top, left, behavior: "instant" });
+    });
+  }, [schedule]);
   const screenGestureRef = useRef<ActiveScreenGesture | null>(null);
   const suppressGestureClickUntilRef = useRef(0);
   const groupLinkHandledRef = useRef(false);
@@ -424,7 +432,7 @@ export function App() {
   const nextStudyDay = schedule ? findNextStudyDay(schedule.allLessons, selectedWeekMode, selectedDate) : null;
   const isSessionSchedule = Boolean(schedule?.allLessons.length && hasDatedLessons(schedule.allLessons));
 
-  const refreshSchedule = useCallback(async () => {
+  const refreshSchedule = useCallback(async (): Promise<void> => {
     const group = selectedGroupRef.current;
     if (!group) return;
     if (refreshInFlightGroupRef.current === group.nrec) return;
@@ -445,6 +453,11 @@ export function App() {
       if (requestSequence !== refreshSequenceRef.current || selectedGroupRef.current?.nrec !== group.nrec) return;
       const preferred = preferNewerSchedule(currentSchedule, loaded);
       const changed = scheduleContentSignature(currentSchedule) !== scheduleContentSignature(preferred);
+      if (hasCache && currentSchedule !== preferred) {
+        dataUpdateScrollRef.current = [...document.querySelectorAll<HTMLElement>(
+          ".content-scroll, .today-detail-scroll, .week-list, .notes-list, .settings-panels"
+        )].map((element) => ({ element, top: element.scrollTop, left: element.scrollLeft }));
+      }
       scheduleRef.current = preferred;
       setSchedule(preferred);
       setStatus(changed && hasCache ? "updated" : "ready");
@@ -460,6 +473,10 @@ export function App() {
       settled = true;
       window.clearTimeout(startupBudget);
       if (refreshInFlightGroupRef.current === group.nrec) refreshInFlightGroupRef.current = null;
+      if (pendingStaticRefreshRef.current === group.nrec && selectedGroupRef.current?.nrec === group.nrec) {
+        pendingStaticRefreshRef.current = null;
+        window.setTimeout(() => void refreshSchedule(), 0);
+      }
     }
   }, []);
 
@@ -470,6 +487,7 @@ export function App() {
     const cached = readGroupScheduleCache(group);
     const normalizedCache = cached ? normalizeCachedSchedule(cached) : null;
     selectedGroupRef.current = group;
+    pendingStaticRefreshRef.current = null;
     refreshSequenceRef.current += 1;
     scheduleRef.current = normalizedCache;
     writeSelectedGroup(group);
@@ -499,6 +517,20 @@ export function App() {
   useEffect(() => {
     document.title = selectedGroup ? `${selectedGroup.name} · Лад ВлГУ` : "Лад ВлГУ";
   }, [selectedGroup]);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const handleDataUpdate = (event: MessageEvent) => {
+      const group = selectedGroupRef.current;
+      if (!group || !navigator.serviceWorker.controller || event.source !== navigator.serviceWorker.controller
+        || !isSelectedScheduleUpdate(event.data, group.nrec)) return;
+      resetUniversityBundleCache();
+      if (refreshInFlightGroupRef.current === group.nrec) pendingStaticRefreshRef.current = group.nrec;
+      else void refreshSchedule();
+    };
+    navigator.serviceWorker.addEventListener("message", handleDataUpdate);
+    return () => navigator.serviceWorker.removeEventListener("message", handleDataUpdate);
+  }, [refreshSchedule]);
 
   useEffect(() => {
     if (groupLinkHandledRef.current || !INITIAL_GROUP_LINK) return;
@@ -791,6 +823,25 @@ export function App() {
   const nextLabel = next ? `${next.start}, ${next.subject}` : isSelectedToday ? "Сегодня новых пар нет" : "В этот день новых пар нет";
   const displayLessons = todayLessons;
   const isLoading = status === "loading" && !schedule;
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const prepare = () => {
+      if (!navigator.serviceWorker.controller || timer) return;
+      timer = setTimeout(() => {
+        timer = undefined;
+        if (navigator.onLine) void warmUniversityScheduleBundle().catch(() => undefined);
+      }, 3000);
+    };
+    prepare();
+    navigator.serviceWorker.addEventListener("controllerchange", prepare);
+    window.addEventListener("online", prepare);
+    return () => {
+      clearTimeout(timer);
+      navigator.serviceWorker.removeEventListener("controllerchange", prepare);
+      window.removeEventListener("online", prepare);
+    };
+  }, []);
   const isScheduleUnavailable = status === "error-without-cache" && !schedule;
   const hasLoadedLessons = Boolean(schedule?.allLessons.length);
   const lightHero = themeId === "custom"
@@ -837,7 +888,7 @@ export function App() {
           {isLoading && (activeTab === "today" || activeTab === "week") && <SkeletonView />}
 
           {isScheduleUnavailable && (activeTab === "today" || activeTab === "week") && (
-            <ScheduleUnavailableView groupNrec={selectedGroup?.nrec} onRetry={() => refreshSchedule()} onGroupOpen={() => setGroupPickerOpen(true)} onRestore={lastAvailableGroupRef.current ? () => selectGroup(lastAvailableGroupRef.current!) : undefined} />
+            <ScheduleUnavailableView groupNrec={selectedGroup?.nrec} selectedDateKey={selectedDateKey} onRetry={() => refreshSchedule()} onGroupOpen={() => setGroupPickerOpen(true)} onRestore={lastAvailableGroupRef.current ? () => selectGroup(lastAvailableGroupRef.current!) : undefined} />
           )}
 
           {!isLoading && !isScheduleUnavailable && activeTab === "today" && (
@@ -1037,142 +1088,6 @@ function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, on
   );
 }
 
-/**
- * «Откуда данные» — то, что делает прозрачность проверяемой, а не заявленной.
- *
- * Расписание собирается обходом в GitHub Actions, и каждое обновление ложится
- * публичным коммитом. Панель показывает источник, время снимка, его отпечаток и
- * даёт открыть конкретный коммит: любой желающий — студент, преподаватель,
- * ИТ-служба ВлГУ — может сверить, что приложение показывает именно то, что было
- * забрано из API.
- *
- * Состояние обхода подгружается только при раскрытии: на экране расписания оно
- * никому не нужно, а лишний запрос при каждом запуске — нет.
- */
-function DataProvenancePanel({ schedule, sourceLabel }: { schedule: ScheduleState | null; sourceLabel: string }) {
-  const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState<CrawlStatus | null>(null);
-  const [statusState, setStatusState] = useState<"idle" | "loading" | "missing">("idle");
-
-  useEffect(() => {
-    if (!open) return;
-    setStatusState("loading");
-    const controller = new AbortController();
-    let active = true;
-    const timeout = window.setTimeout(() => controller.abort(), 8000);
-    fetchCrawlStatus(controller.signal)
-      .then((value) => {
-        if (!active) return;
-        setStatus(value);
-        setStatusState("idle");
-      })
-      .catch(() => { if (active) setStatusState("missing"); })
-      .finally(() => window.clearTimeout(timeout));
-    return () => { active = false; window.clearTimeout(timeout); controller.abort(); };
-  }, [open]);
-
-  const provenance = schedule?.provenance ?? null;
-  const capturedAt = schedule?.fetchedAt ? formatUpdatedAt(schedule.fetchedAt) : null;
-
-  return (
-    <section className="settings-panel provenance-panel">
-      <button type="button" className="provenance-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
-        <span className="provenance-icon"><ShieldCheck size={20} /></span>
-        <span>
-          <strong>Откуда данные</strong>
-          <small>{capturedAt ? `${sourceLabel} · ${capturedAt}` : sourceLabel}</small>
-        </span>
-        <ChevronRight size={20} className={open ? "provenance-chevron open" : "provenance-chevron"} />
-      </button>
-
-      {open && (
-        <div className="provenance-body">
-          <dl className="provenance-facts">
-            <div>
-              {/* Видимый номер версии: без него не отличить «не работает» от
-                  «показывается старая версия из кэша». */}
-              <dt>Версия</dt>
-              <dd className="provenance-hash">{RELEASE_CHANNEL}</dd>
-            </div>
-            <div>
-              <dt>Источник</dt>
-              <dd>{sourceLabel}</dd>
-            </div>
-            {capturedAt && (
-              <div>
-                <dt>Снимок снят</dt>
-                <dd>{capturedAt}</dd>
-              </div>
-            )}
-            {schedule?.sourceDocument && (
-              <div>
-                <dt>Проверенный документ</dt>
-                <dd><a href={schedule.sourceDocument.url} target="_blank" rel="noreferrer noopener">{schedule.sourceDocument.title}</a></dd>
-              </div>
-            )}
-            {schedule?.validFrom && schedule.validThrough && (
-              <div>
-                <dt>Период расписания</dt>
-                <dd>{formatScheduleDate(schedule.validFrom)} - {formatScheduleDate(schedule.validThrough)}</dd>
-              </div>
-            )}
-            {schedule?.contentHash && (
-              <div>
-                <dt>Отпечаток</dt>
-                <dd className="provenance-hash">{schedule.contentHash.slice(0, 16)}</dd>
-              </div>
-            )}
-          </dl>
-
-          {provenance ? (
-            <div className="provenance-links">
-              <a href={provenance.commitUrl} target="_blank" rel="noreferrer noopener">
-                Код сборщика этого снимка
-              </a>
-              {provenance.runUrl && (
-                <a href={provenance.runUrl} target="_blank" rel="noreferrer noopener">
-                  Журнал получения этого снимка
-                </a>
-              )}
-            </div>
-          ) : (
-            <p className="provenance-note">
-              {schedule ? "Происхождение этого снимка не зафиксировано. Актуальность данных нужно сверить с ВлГУ." : "Расписание ещё не получено."}
-            </p>
-          )}
-
-          {status && (
-            <div className="provenance-crawl">
-              <strong>Последний обход</strong>
-              <p>{formatUpdatedAt(status.finishedAt ?? status.startedAt)}</p>
-              <p>
-                {status.institutes} институтов, {status.groupsInCatalog} групп в каталоге.
-                {status.scheduleSkipped > 0
-                  ? ` Полный обход отложен: API вернул пустые ответы для ${status.probeEmpty} из ${status.probeAttempted} проверенных групп. Проверенных снимков на CDN: ${status.coverageAvailable}.`
-                  : status.scheduleAttempted > 0
-                  ? ` Расписаний получено ${status.scheduleOk} из ${status.scheduleAttempted}.`
-                  : " Расписания в этом обходе не запрашивались."}
-              </p>
-              {status.scheduleFailed > 0 && (
-                <p className="provenance-failures">
-                  Не удалось обновить расписание {status.scheduleFailed} групп. Прежние снимки сохранены там, где они уже были; для остальных групп данных пока нет.
-                </p>
-              )}
-              {status.provenance?.runUrl && <div className="provenance-links"><a href={status.provenance.runUrl} target="_blank" rel="noreferrer noopener">Журнал последнего обхода</a></div>}
-              <p className="provenance-note">Результат обхода не подтверждает происхождение и актуальность ранее сохранённых снимков.</p>
-            </div>
-          )}
-
-          {statusState === "loading" && <p className="provenance-note" role="status">Загрузка отчёта…</p>}
-          {statusState === "missing" && (
-            <p className="provenance-note">Не удалось загрузить отчёт об обходе. Это не меняет сохранённое расписание.</p>
-          )}
-        </div>
-      )}
-    </section>
-  );
-}
-
 function TodayView({
   subgroup,
   onSubgroup,
@@ -1318,7 +1233,7 @@ function TodayView({
           <section className="schedule-period-empty" role="status">
             <CalendarDays size={27} aria-hidden="true" />
             <h2>На эту дату расписание не подтверждено</h2>
-            <p>Проверенный документ действует с {scheduleValidFrom ? formatScheduleDate(scheduleValidFrom) : "начала семестра"} по {scheduleValidThrough ? formatScheduleDate(scheduleValidThrough) : "конец семестра"}. Выбери дату в его пределах или другую группу.</p>
+            <p>Расписание действует с {scheduleValidFrom ? formatScheduleDate(scheduleValidFrom) : "начала семестра"} по {scheduleValidThrough ? formatScheduleDate(scheduleValidThrough) : "конец семестра"}. Выбери дату в его пределах или другую группу.</p>
             <button type="button" onClick={onOpenCalendar}>Выбрать дату <ChevronRight size={17} /></button>
           </section>
         ) : <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
@@ -1798,7 +1713,7 @@ function WeekView({
                   );
                 })
               ) : !dayEvents.length ? (
-                <p className="quiet-copy">{outsidePeriod ? "Проверенный документ не действует на эту дату." : "В расписании на этот день занятий нет."}</p>
+                <p className="quiet-copy">{outsidePeriod ? "Расписание не действует на эту дату." : "В расписании на этот день занятий нет."}</p>
               ) : null}
               {dayEvents.map((event) => (
                 <button className="week-personal-event" type="button" key={event.id} onClick={() => onSelectDate(day.date)} aria-label={`Открыть день: ${event.title}`}>
@@ -1989,18 +1904,6 @@ function SettingsView({
   );
   const backupMade = readBackupMade(currentBackupSignature);
   const [importBusy, setImportBusy] = useState(false);
-  const scheduleSource = schedule?.source === "live"
-    ? "ВлГУ · проверено"
-    : schedule?.source === "static-snapshot"
-    ? "Снимок ВлГУ"
-    : schedule?.source === "global-snapshot"
-      ? "Резервный снимок"
-      : schedule?.source === "edge-cache"
-        ? "Edge-кэш"
-        : schedule
-          ? "Кэш устройства"
-          : "Нет данных";
-
   async function importBackup(file?: File) {
     if (!file || importBusy) return;
     setImportBusy(true);
@@ -2032,7 +1935,7 @@ function SettingsView({
           <BellRing size={34} />
           <h2>Напоминания перед парами</h2>
           <p>
-            Локальные напоминания планируются в приложении. Для гарантированной фоновой доставки на iOS нужен установленный PWA и серверная Web Push-подписка.
+            Напоминания работают, пока приложение открыто. Если закрыть его, уведомления о парах могут не прийти.
           </p>
         </div>
       </section>
@@ -2092,23 +1995,15 @@ function SettingsView({
 
           <div className="setting-row subtle">
             <div>
-              <span>Offline-кэш</span>
-              <strong>{schedule ? `Есть данные от ${formatUpdatedAt(schedule.fetchedAt)}` : "Пока пусто"}</strong>
-              <small>{scheduleSource}{schedule?.contentHash ? ` · ${schedule.contentHash.slice(0, 8)}` : ""}</small>
+              <span>Расписание без интернета</span>
+              <strong>{schedule ? `Сохранено ${formatUpdatedAt(schedule.fetchedAt)}` : "Пока не сохранено"}</strong>
+              <small>{schedule ? "Можно открыть без подключения" : "Появится после загрузки расписания"}</small>
             </div>
             {schedule ? <CheckCircle2 size={24} /> : <CloudOff size={24} />}
           </div>
 
-          <div className="tech-list" aria-label="Техническая готовность уведомлений">
-            <span>{capability.isStandalone ? "PWA-режим" : "Обычный браузер"}</span>
-            <span>{capability.hasServiceWorker ? "Service Worker" : "Без Service Worker"}</span>
-            <span>{capability.hasPushManager ? "Push API есть" : "Push API нет"}</span>
-          </div>
-
           {notice && <p className="notice">{notice}</p>}
         </section>
-
-        <DataProvenancePanel schedule={schedule} sourceLabel={scheduleSource} />
 
         <section className="settings-panel personal-data-panel">
           <header className="personal-data-head">
@@ -2121,8 +2016,8 @@ function SettingsView({
           <p>Записи хранятся на устройстве. Резервная копия переносит их без аккаунта и облачной синхронизации.</p>
           <details className="privacy-details">
             <summary>Не вижу прежние записи</summary>
-            <p>Сейчас открыт адрес {window.location.hostname}. У каждого домена и браузера отдельное хранилище. Записи со старого адреса автоматически сюда не переносятся.</p>
-            <p>Откройте прежнее приложение, выберите «Настройки → Экспорт» и импортируйте полученный файл здесь. До сохранения копии не удаляйте старое приложение и не очищайте данные сайта.</p>
+            <p>Записи остаются в том приложении и браузере, где ты их создал. При смене адреса они не переносятся автоматически.</p>
+            <p>Открой прежнее приложение, выбери «Настройки → Экспорт» и импортируй сохранённый файл здесь. До сохранения копии не удаляй прежнее приложение.</p>
             <p>Копия содержит сохранённые записи, встроенные фотографии и пользовательские папки. Несохранённые черновики в неё не входят.</p>
           </details>
           <div className="privacy-map" aria-label="Как приложение работает с данными">
@@ -2249,34 +2144,14 @@ function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange:
   );
 }
 
-function ScheduleUnavailableView({ groupNrec, onRetry, onGroupOpen, onRestore }: { groupNrec?: string; onRetry: () => void; onGroupOpen: () => void; onRestore?: () => void }) {
-  const [document, setDocument] = useState<OfficialDocumentLocation | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    setDocument(null);
-    if (groupNrec) void fetchOfficialDocumentLocation(groupNrec)
-      .then((value) => { if (active) setDocument(value); })
-      .catch(() => undefined);
-    return () => { active = false; };
-  }, [groupNrec]);
-
+function ScheduleUnavailableView({ onRetry, onGroupOpen, onRestore }: { groupNrec?: string; selectedDateKey: string; onRetry: () => void; onGroupOpen: () => void; onRestore?: () => void }) {
   return (
     <section className="schedule-unavailable" role="status" aria-live="polite">
       <span className="schedule-unavailable-icon" aria-hidden="true"><CalendarX2 size={27} /></span>
       <span className="schedule-unavailable-copy">
         <small>Данных для группы пока нет</small>
         <strong>Расписание не получено</strong>
-        <p>Проверенного цифрового снимка этой группы пока нет. Повторите загрузку позже или откройте исходный документ ВлГУ.</p>
-        {document && (
-          <p className="schedule-source-location">
-            <strong>{document.groupName} · {document.period}</strong>
-            {document.title}. PDF №{document.member} в архиве, страница {document.page}, столбец {document.column}.
-          </p>
-        )}
-        <a href={document?.url ?? "https://www.vlsu.ru/studentu/raspisanie-zanjatii/"} target="_blank" rel="noopener noreferrer">
-          {document ? "Открыть архив ВлГУ" : "Официальная страница ВлГУ"} <ExternalLink size={14} aria-hidden="true" />
-        </a>
+        <p>Для этой группы пока нет доступного расписания. Попробуй обновить данные или выбери другую группу.</p>
       </span>
       {onRestore && <button type="button" onClick={onRestore}>Вернуться к прошлой группе</button>}
       <button type="button" onClick={onRetry}>

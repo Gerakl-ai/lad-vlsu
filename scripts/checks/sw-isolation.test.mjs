@@ -18,6 +18,7 @@ it('activation preserves unrelated apps and other scopes on the same origin', as
       registration: {}
     },
     caches: {
+      open: async () => ({ keys: async () => [], match: async () => undefined }),
       keys: async () => [prefix + 'old', prefix + 'new', 'portfolio-cache', 'lad-vlsu-v67', 'lad-vlsu-scope:%2Fother%2F:old'],
       delete: async (key) => { removed.push(key); return true; }
     }

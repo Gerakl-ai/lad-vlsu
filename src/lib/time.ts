@@ -1,6 +1,7 @@
 import type { LessonSlot, LessonVariant, WeekMode } from "../types";
 import { autumnTeachingWeekNumber, vlsuWeekModeForDate } from "./academicWeek";
 import { lessonAppliesToWeek, parseLessonText } from "./scheduleApi";
+import { appliesToTeachingWeek } from "./teachingWeeks";
 
 // Расчёт учебной недели живёт в academicWeek.ts, чтобы его могли использовать
 // и разбор расписания, и чтение статических снимков без цикла импортов.
@@ -122,14 +123,8 @@ export function lessonTimingState(lesson: LessonSlot, date = new Date()) {
   return "future";
 }
 
-const TEACHING_WEEK_RANGE = /\(\s*с\s*(\d{1,2})\s*(?:по\s*(\d{1,2})\s*)?нед(?:\.|ели|елю|ель)?\s*\)/iu;
-
 function variantAppliesToTeachingWeek(variant: LessonVariant, weekNumber: number) {
-  const match = variant.rawText.match(TEACHING_WEEK_RANGE);
-  if (!match) return true;
-  const first = Number(match[1]);
-  const last = match[2] ? Number(match[2]) : Number.POSITIVE_INFINITY;
-  return weekNumber >= first && weekNumber <= last;
+  return appliesToTeachingWeek(variant.rawText, weekNumber);
 }
 
 function lessonForTeachingWeek(lesson: LessonSlot, date: Date): LessonSlot | null {

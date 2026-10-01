@@ -123,4 +123,16 @@ describe("autumn teaching week restrictions", () => {
     expect(selectDayLessons([dated], 3, "all", date("2026-09-23"))).toHaveLength(1);
     expect(selectDayLessons([dated], 3, "all", date("2027-02-03"))).toHaveLength(0);
   });
+
+  it("switches subject variants at the printed week boundary", () => {
+    const mixed = lesson("111-3, лк, Иванов И.И., Механика (по 8 нед)\n111-3, лк, Петров П.П., Машины (с 9 нед)");
+    expect(selectDayLessons([mixed], 3, "all", date("2026-10-21"))[0].subject).toBe("Механика (по 8 нед)");
+    expect(selectDayLessons([mixed], 3, "all", date("2026-10-28"))[0].subject).toBe("Машины (с 9 нед)");
+  });
+
+  it("shows a listed teaching week without filling the intervening weeks", () => {
+    const restricted = lesson("111-3, лб, Иванов И.И., Дисциплина (2 нед, 6 нед, 10 нед, 14 нед)");
+    expect(selectDayLessons([restricted], 3, "all", date("2026-09-09"))).toHaveLength(1);
+    expect(selectDayLessons([restricted], 3, "all", date("2026-09-23"))).toHaveLength(0);
+  });
 });

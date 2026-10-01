@@ -13,7 +13,7 @@ export const API_BASE = "https://abiturient-api.vlsu.ru/api";
 
 // Только ASCII: HTTP-заголовок не принимает кириллицу.
 export const USER_AGENT =
-  "LadVLSU-SnapshotBot/1.0 (+https://github.com/Gerakl-ai/vlsu-pi-124-schedule; open student schedule project)";
+  "LadVLSU-SnapshotBot/1.0 (+https://github.com/Gerakl-ai/lad-vlsu; open student schedule project)";
 
 /** Формы обучения в терминах API ВлГУ. */
 export const STUDY_FORMS = [

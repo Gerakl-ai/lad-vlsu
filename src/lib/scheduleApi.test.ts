@@ -94,6 +94,16 @@ describe("parseLessonText", () => {
     expect(parsed.subject).toBe("Элективные дисциплины по физической культуре и спорту");
     expect(parsed.room).toBeUndefined();
   });
+
+  it.each(["лк", "лб", "пр"])("preserves the teacher when room is omitted: %s", (kind) => {
+    const parsed = parseLessonText(`${kind}, Гундорова М.А., Финансы и кредит`);
+    expect(parsed).toMatchObject({ kind, teacher: "Гундорова М.А.", subject: "Финансы и кредит" });
+    expect(parsed.room).toBeUndefined();
+  });
+
+  it("preserves commas in subjects when room is omitted", () => {
+    expect(parseLessonText("лк, Гундорова М.А., Финансы, кредит и банки").subject).toBe("Финансы, кредит и банки");
+  });
 });
 
 describe("normalizeSchedule", () => {
@@ -275,6 +285,7 @@ describe("schedule snapshot v2", () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("/data/schedule/")) return new Response("Not found", { status: 404 });
+      if (url.includes("/data/ocr-schedule/")) return new Response("Not found", { status: 404 });
       if (url.includes("?cached=1")) {
         return new Response(JSON.stringify({ ...snapshot, source: "global-snapshot" }), { status: 200 });
       }
@@ -283,6 +294,43 @@ describe("schedule snapshot v2", () => {
     vi.stubGlobal("fetch", fetchMock);
     const state = await loadSchedule(LEGACY_PI124_GROUP);
     expect(state.source).toBe("global-snapshot");
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("ocr-schedule/bundle.json"), expect.any(Object));
+  });
+
+  it("opens provisional OCR lessons through the ordinary schedule model", async () => {
+    vi.stubEnv("PROD", true);
+    vi.stubEnv("BASE_URL", "/vlsu-pi-124-schedule/");
+    const storage = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value)
+    });
+    const provisional = {
+      schemaVersion: 3,
+      group: { nrec, name: "ПИ-124", instituteShortName: "ИИТЭ" },
+      semester: 5,
+      schedule: [{ type: "Lessons", name: "Понедельник", n1: "111-3, лк, Шутов А.В., Базы данных" }],
+      scheduleHash: "b".repeat(64),
+      capturedAt: "2026-09-03T00:00:00Z",
+      validFrom: "2026-09-01", validThrough: "2026-12-30",
+      quality: { valid: true, scheduleEntries: 1, lessonDays: 1, examEntries: 0, warnings: ["ocr-unreviewed"] },
+      extraction: { method: "ocr", status: "unreviewed", sourceUrl: "https://www.vlsu.ru/source.zip",
+        sourcePdfSha256: "a".repeat(64), member: 1, page: 1, column: 1, flaggedCells: 0 }
+    };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/data/schedule/")) return new Response("Not found", { status: 404 });
+      if (url.includes("/data/ocr-schedule/")) return new Response(JSON.stringify(provisional), { status: 200 });
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const state = await loadSchedule(LEGACY_PI124_GROUP);
+
+    expect(state.source).toBe("pdf-ocr");
+    expect(state.allLessons.some((lesson) => lesson.subject === "Базы данных")).toBe(true);
+    expect(state.allLessons.every((lesson) => lesson.validThrough === "2026-12-30")).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
@@ -331,6 +379,7 @@ describe("schedule snapshot v2", () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("/data/schedule/")) return new Response("Not found", { status: 404 });
+      if (url.includes("/data/ocr-schedule/")) return new Response("Not found", { status: 404 });
       if (url.includes("?cached=1")) return new Response("{}", { status: 404 });
       if (url.includes("?discover=1")) return new Response(JSON.stringify(snapshot), { status: 200 });
       throw new Error(`Unexpected request: ${url}`);
@@ -338,7 +387,7 @@ describe("schedule snapshot v2", () => {
     vi.stubGlobal("fetch", fetchMock);
     const state = await loadSchedule(LEGACY_PI124_GROUP);
     expect(state.source).toBe("live");
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(6);
     expect(fetchMock).toHaveBeenCalledWith(`https://worker.example/app-api/schedule/${nrec}?discover=1`,
       expect.objectContaining({ credentials: "omit" }));
   });
@@ -355,6 +404,7 @@ describe("schedule snapshot v2", () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("/data/schedule/")) return new Response("Not found", { status: 404 });
+      if (url.includes("/data/ocr-schedule/")) return new Response("Not found", { status: 404 });
       if (url.startsWith("https://worker.example/")) throw new TypeError("Network error");
       if (url.startsWith("/app-api/schedule/")) return new Response(JSON.stringify(snapshot), { status: 200 });
       throw new Error(`Unexpected request: ${url}`);
@@ -364,6 +414,6 @@ describe("schedule snapshot v2", () => {
     const state = await loadSchedule(LEGACY_PI124_GROUP);
 
     expect(state.source).toBe("live");
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(6);
   });
 });

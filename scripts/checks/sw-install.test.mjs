@@ -65,3 +65,27 @@ it('does not require optional images or icons to install the offline shell', asy
   expect(requested).not.toContain('/app/images/hero-obsidian-campus.jpg');
   expect(requested).not.toContain('/app/icons/icon-192.png');
 });
+
+it('waits for the app to authorize activation when an older worker is active', async () => {
+  const listeners = {};
+  let skipped = false;
+  let pending;
+  runInNewContext(source, {
+    URL, Response, Headers, AbortController, setTimeout, clearTimeout,
+    self: {
+      location: new URL('https://example.org/app/sw.js'), registration: { active: {} },
+      addEventListener: (name, fn) => { listeners[name] = fn; },
+      skipWaiting: async () => { skipped = true; }
+    },
+    caches: { open: async () => ({ put: async () => {} }) },
+    fetch: async (resource) => new Response('<meta name="lad-release" content="new-build">', {
+      headers: { 'Content-Type': resource.endsWith('.js') ? 'text/javascript' : resource.endsWith('.css') ? 'text/css' : 'text/html' }
+    })
+  });
+  listeners.install({ waitUntil: (promise) => { pending = promise; } });
+  await pending;
+  expect(skipped).toBe(false);
+  listeners.message({ data: { type: 'activate-update' }, waitUntil: (promise) => { pending = promise; } });
+  await pending;
+  expect(skipped).toBe(true);
+});

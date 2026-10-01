@@ -12,6 +12,7 @@ const BUILD_ASSETS = /* __BUILD_ASSETS__ */ null;
 const BASE = self.location.pathname.replace(/[^/]*$/, "");
 const CACHE_PREFIX = `lad-vlsu-scope:${encodeURIComponent(BASE)}:`;
 const CACHE_NAME = `${CACHE_PREFIX}${RELEASE}`;
+const DATA_CACHE_NAME = `lad-vlsu-data:${encodeURIComponent(BASE)}:v1`;
 
 function path(value) {
   return BASE + String(value).replace(/^\//, "");
@@ -37,7 +38,43 @@ function validBuildAsset(response, pathname) {
   const contentType = response.headers.get("Content-Type") || "";
   if (pathname.endsWith(".js")) return /javascript|ecmascript/i.test(contentType);
   if (pathname.endsWith(".css")) return /text\/css/i.test(contentType);
+  if (pathname.endsWith(".json")) return /application\/json/i.test(contentType);
   return !/text\/html/i.test(contentType);
+}
+
+async function validStaticData(response, pathname) {
+  if (!validBuildAsset(response, pathname)) return false;
+  try {
+    const data = await response.clone().json();
+    if (!data || typeof data !== "object" || !Number.isInteger(data.schemaVersion)) return false;
+    const snapshot = (item, nrec) => item?.group?.nrec === nrec && item.quality?.valid === true
+      && /^[a-f\d]{64}$/i.test(item.scheduleHash || "") && Array.isArray(item.schedule)
+      && item.schedule.some((day) => day?.type === "ExamSession"
+        || day?.type === "Lessons" && Object.entries(day).some(([key, value]) =>
+          /^[nz][1-7]$/.test(key) && typeof value === "string" && value.trim()));
+    const id = pathname.match(/\/(?:ocr-schedule|schedule)\/([a-f\d]{32})\.json$/i)?.[1];
+    if (id) return snapshot(data, id);
+    if (pathname.endsWith("/ocr-schedule/bundle.json") || pathname.endsWith("/university-schedule.json")) {
+      return data.schemaVersion === 1 && data.groups && typeof data.groups === "object"
+        && Object.keys(data.groups).length > 0
+        && Object.entries(data.groups).every(([nrec, item]) => /^[a-f\d]{32}$/i.test(nrec) && snapshot(item, nrec));
+    }
+    return true;
+  } catch { return false; }
+}
+
+async function migrateStaticData(keys) {
+  const target = await caches.open(DATA_CACHE_NAME);
+  for (const key of keys.filter((name) => name.startsWith(CACHE_PREFIX))) {
+    const old = await caches.open(key);
+    for (const request of await old.keys()) {
+      const url = new URL(request.url);
+      if (!url.pathname.startsWith(path("data/")) || !url.pathname.endsWith(".json")
+        || await target.match(url.pathname)) continue;
+      const response = await old.match(request);
+      if (await validStaticData(response, url.pathname)) await target.put(url.pathname, response);
+    }
+  }
 }
 
 async function discoverBuildAssets() {
@@ -108,7 +145,7 @@ self.addEventListener("install", (event) => {
         }
         await cache.put(resource, response);
       }));
-      await self.skipWaiting();
+      if (!self.registration?.active) await self.skipWaiting();
     })
   );
 });
@@ -116,9 +153,11 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     Promise.all([
-      caches.keys().then((keys) =>
-        Promise.all(keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME).map((key) => caches.delete(key)))
-      ),
+      caches.keys().then(async (keys) => {
+        await migrateStaticData(keys);
+        await Promise.all(keys.filter((key) => (key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+          || key.startsWith(`lad-vlsu-documents:${encodeURIComponent(BASE)}:`)).map((key) => caches.delete(key)));
+      }),
       self.registration.navigationPreload?.enable?.() ?? Promise.resolve()
     ]).then(() => self.clients.claim())
   );
@@ -134,6 +173,35 @@ self.addEventListener("fetch", (event) => {
   // их кэширование по требованию описано в docs/DATA-PIPELINE.md.
   if (url.origin !== self.location.origin) return;
   if (!url.pathname.startsWith(BASE)) return;
+
+  if (url.pathname.startsWith(path("data/")) && url.pathname.endsWith(".json")) {
+    event.respondWith(caches.open(DATA_CACHE_NAME).then(async (cache) => {
+      const cached = await cache.match(url.pathname);
+      // Clone before returning the cached body to the page, which may consume it immediately.
+      const cachedText = cached?.clone().text().catch(() => null);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      const fresh = fetch(request, { cache: "no-store", signal: controller.signal }).then(async (response) => {
+        if (!await validStaticData(response, url.pathname)) {
+          return cached || new Response("", { status: 502, statusText: "Invalid schedule data" });
+        }
+        const changed = cached && await cachedText !== await response.clone().text();
+        await cache.put(url.pathname, response.clone());
+        if (changed) {
+          const clients = await self.clients.matchAll({ type: "window" });
+          clients.forEach((client) => client.postMessage({ type: "static-schedule-updated", pathname: url.pathname }));
+        }
+        return response;
+      }).catch(() => cached || new Response("", { status: 504, statusText: "Offline" }))
+        .finally(() => clearTimeout(timeout));
+      if (cached) {
+        event.waitUntil(fresh);
+        return cached;
+      }
+      return fresh;
+    }));
+    return;
+  }
 
   if (request.mode === "navigate") {
     event.respondWith(
@@ -185,6 +253,10 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("message", (event) => {
+  if (event.data?.type === "activate-update") {
+    event.waitUntil(self.skipWaiting());
+    return;
+  }
   if (event.data?.type !== "schedule-notification") return;
   const { title, body, tag } = event.data.payload;
   event.waitUntil(
