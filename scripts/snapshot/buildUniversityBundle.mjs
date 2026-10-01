@@ -37,6 +37,40 @@ export function buildUniversityBundle(catalog, candidates) {
   };
 }
 
+export function buildCoverageGapReport(catalog, bundle) {
+  const institutes = catalog.institutes.map((institute) => {
+    const groups = institute.groups ?? [];
+    const missing = groups.filter((group) => !bundle.groups[group.nrec]).map((group) => ({
+      nrec: group.nrec,
+      name: group.name,
+      course: group.course ?? null,
+      forms: group.forms ?? []
+    }));
+    const missingByForm = {};
+    for (const group of missing) for (const form of group.forms) {
+      missingByForm[form] = (missingByForm[form] ?? 0) + 1;
+    }
+    return {
+      id: institute.id,
+      name: institute.name,
+      shortName: institute.shortName,
+      total: groups.length,
+      available: groups.length - missing.length,
+      missingCount: missing.length,
+      missingByForm,
+      missing
+    };
+  });
+  return {
+    schemaVersion: 1,
+    catalogCapturedAt: catalog.capturedAt,
+    total: institutes.reduce((sum, institute) => sum + institute.total, 0),
+    available: institutes.reduce((sum, institute) => sum + institute.available, 0),
+    missing: institutes.reduce((sum, institute) => sum + institute.missingCount, 0),
+    institutes
+  };
+}
+
 async function readSnapshots(directory) {
   const files = await readdir(directory).catch((error) => {
     if (error.code === 'ENOENT') return [];
@@ -73,9 +107,11 @@ async function main() {
       ...(snapshot.validFrom && snapshot.validThrough ? { validFrom: snapshot.validFrom, validThrough: snapshot.validThrough } : {})
     }]))
   };
+  const gaps = buildCoverageGapReport(catalog, bundle);
   await Promise.all([
     writeFile(path.join(publishDir, 'catalog.json'), `${JSON.stringify(catalog)}\n`, 'utf8'),
     writeFile(path.join(publishDir, 'coverage.json'), `${JSON.stringify(coverage)}\n`, 'utf8'),
+    writeFile(path.join(publishDir, 'gaps.json'), `${JSON.stringify(gaps)}\n`, 'utf8'),
     writeFile(path.join(publishDir, 'university-schedule.json'), `${JSON.stringify(bundle)}\n`, 'utf8'),
     ...Object.entries(bundle.groups).map(([id, snapshot]) => writeFile(path.join(publishDir, 'schedule', `${id}.json`), `${JSON.stringify(snapshot)}\n`, 'utf8'))
   ]);

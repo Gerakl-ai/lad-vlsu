@@ -3425,6 +3425,25 @@ button.day-title > svg {
   color: var(--muted);
 }
 
+.schedule-unavailable > a {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.schedule-unavailable > a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .skeleton-hero,
 .skeleton-list {
   overflow: hidden;

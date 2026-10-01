@@ -27,6 +27,7 @@ import {
   Clock3,
   CloudOff,
   Download,
+  ExternalLink,
   Grid2X2,
   HardDrive,
   Info,
@@ -2151,7 +2152,7 @@ function ScheduleUnavailableView({ onRetry, onGroupOpen, onRestore }: { groupNre
       <span className="schedule-unavailable-copy">
         <small>Данных для группы пока нет</small>
         <strong>Расписание не получено</strong>
-        <p>Для этой группы пока нет доступного расписания. Попробуй обновить данные или выбери другую группу.</p>
+        <p>Для этой группы пока нет доступного расписания. Попробуй обновить данные или проверь официальный источник.</p>
       </span>
       {onRestore && <button type="button" onClick={onRestore}>Вернуться к прошлой группе</button>}
       <button type="button" onClick={onRetry}>
@@ -2159,6 +2160,9 @@ function ScheduleUnavailableView({ onRetry, onGroupOpen, onRestore }: { groupNre
         Повторить
       </button>
       <button type="button" className="secondary" onClick={onGroupOpen}>Выбрать другую группу</button>
+      <a href="https://www.vlsu.ru/studentu/raspisanie-zanjatii/" target="_blank" rel="noopener noreferrer">
+        <ExternalLink size={17} /> Расписание на сайте ВлГУ
+      </a>
     </section>
   );
 }

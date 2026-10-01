@@ -65,7 +65,7 @@ function snapshotLabel(coverage: StaticCoverage | null, nrec: string, ocrGroups:
     return `Архив до ${new Date(`${ocr.validThrough}T12:00:00`).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
   }
   if (ocr) return "Есть расписание";
-  return coverage ? "Проверим при открытии" : null;
+  return coverage ? "Нет сохранённого расписания" : null;
 }
 
 export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: GroupPickerSheetProps) {
