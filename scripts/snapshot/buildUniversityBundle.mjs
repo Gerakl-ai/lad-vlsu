@@ -71,6 +71,45 @@ export function buildCoverageGapReport(catalog, bundle) {
   };
 }
 
+function qualityCategory(snapshot) {
+  if (!snapshot) return 'missing';
+  const warnings = snapshot.quality?.warnings;
+  if (snapshot.extraction?.status === 'unreviewed'
+    || (Array.isArray(warnings) && warnings.includes('ocr-unreviewed'))) return 'preliminary';
+  if (snapshot.sourceDocument?.reviewedAt
+    && Number.isFinite(Date.parse(snapshot.sourceDocument.reviewedAt))) return 'reviewedDocument';
+  return 'otherAvailable';
+}
+
+export function buildDataQualityReport(catalog, bundle) {
+  const categories = ['preliminary', 'reviewedDocument', 'otherAvailable', 'missing'];
+  const groups = {};
+  const institutes = catalog.institutes.map((institute) => {
+    const counts = Object.fromEntries(categories.map((category) => [category, 0]));
+    for (const group of institute.groups ?? []) {
+      const snapshot = bundle.groups[group.nrec];
+      const category = qualityCategory(snapshot);
+      counts[category] += 1;
+      groups[group.nrec] = {
+        name: group.name,
+        instituteId: institute.id,
+        category,
+        ...(snapshot ? { capturedAt: snapshot.capturedAt } : {})
+      };
+    }
+    return { id: institute.id, name: institute.name, total: (institute.groups ?? []).length, ...counts };
+  });
+  return {
+    schemaVersion: 1,
+    catalogCapturedAt: catalog.capturedAt,
+    total: institutes.reduce((sum, institute) => sum + institute.total, 0),
+    ...Object.fromEntries(categories.map((category) => [category,
+      institutes.reduce((sum, institute) => sum + institute[category], 0)])),
+    institutes,
+    groups
+  };
+}
+
 async function readSnapshots(directory) {
   const files = await readdir(directory).catch((error) => {
     if (error.code === 'ENOENT') return [];
@@ -108,10 +147,12 @@ async function main() {
     }]))
   };
   const gaps = buildCoverageGapReport(catalog, bundle);
+  const qualityReport = buildDataQualityReport(catalog, bundle);
   await Promise.all([
     writeFile(path.join(publishDir, 'catalog.json'), `${JSON.stringify(catalog)}\n`, 'utf8'),
     writeFile(path.join(publishDir, 'coverage.json'), `${JSON.stringify(coverage)}\n`, 'utf8'),
     writeFile(path.join(publishDir, 'gaps.json'), `${JSON.stringify(gaps)}\n`, 'utf8'),
+    writeFile(path.join(publishDir, 'quality.json'), `${JSON.stringify(qualityReport)}\n`, 'utf8'),
     writeFile(path.join(publishDir, 'university-schedule.json'), `${JSON.stringify(bundle)}\n`, 'utf8'),
     ...Object.entries(bundle.groups).map(([id, snapshot]) => writeFile(path.join(publishDir, 'schedule', `${id}.json`), `${JSON.stringify(snapshot)}\n`, 'utf8'))
   ]);

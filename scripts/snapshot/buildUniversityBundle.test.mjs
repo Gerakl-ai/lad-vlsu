@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { readFile } from 'node:fs/promises';
-import { buildCoverageGapReport, buildUniversityBundle } from './buildUniversityBundle.mjs';
+import { buildCoverageGapReport, buildDataQualityReport, buildUniversityBundle } from './buildUniversityBundle.mjs';
 import { sha256 } from './buildSnapshot.mjs';
 
 const nrec = 'a'.repeat(32);
@@ -40,6 +40,35 @@ it('publishes a per-institute and per-form gap report without counting available
     missingByForm: { extramural: 1, 'part-time': 1 } });
   expect(gaps.institutes[0].missing).toEqual([{ nrec: absent, name: 'ЗИСТд-126',
     course: '1 курс', forms: ['extramural', 'part-time'] }]);
+});
+it('distinguishes preliminary, reviewed and other available snapshots without claiming verification', () => {
+  const preliminaryId = 'b'.repeat(32);
+  const reviewedId = 'c'.repeat(32);
+  const missingId = 'd'.repeat(32);
+  const testCatalog = { schemaVersion: 3, capturedAt: '2026-10-02T00:00:00Z', institutes: [{
+    id: 'iite', name: 'ИИТЭ', groups: [
+      { nrec, name: 'ПИ-124' },
+      { nrec: preliminaryId, name: 'ПИ-125' },
+      { nrec: reviewedId, name: 'ПИ-126' },
+      { nrec: missingId, name: 'ПИ-127' }
+    ]
+  }] };
+  const cloneFor = (id, name) => ({ ...original, group: { ...original.group, nrec: id, name } });
+  const { bundle } = buildUniversityBundle(testCatalog, [
+    original,
+    { ...cloneFor(preliminaryId, 'ПИ-125'), extraction: { status: 'unreviewed' } },
+    { ...cloneFor(reviewedId, 'ПИ-126'), sourceDocument: { reviewedAt: '2026-10-01T00:00:00Z' } }
+  ]);
+  const report = buildDataQualityReport(testCatalog, bundle);
+  expect(report).toMatchObject({ total: 4, preliminary: 1, reviewedDocument: 1,
+    otherAvailable: 1, missing: 1 });
+  expect(report.groups[preliminaryId]).toMatchObject({ category: 'preliminary', instituteId: 'iite' });
+  expect(report.groups[missingId]).toEqual({ name: 'ПИ-127', instituteId: 'iite', category: 'missing' });
+  expect(report.institutes[0]).toMatchObject({ total: 4, preliminary: 1, reviewedDocument: 1,
+    otherAvailable: 1, missing: 1 });
+  expect(buildDataQualityReport(testCatalog, { groups: {
+    [nrec]: { ...original, quality: { valid: true, warnings: null }, sourceDocument: { reviewedAt: 'broken' } }
+  } }).groups[nrec].category).toBe('otherAvailable');
 });
 it('rejects ambiguous same-date content instead of silently picking a source', () => {
   const different = [{ ...schedule[0], n1: '111-3, лк, Пример П.П., Другой предмет' }];
