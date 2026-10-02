@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LessonSlot, WeekMode } from "../../types";
 import type { GroupProfile } from "../groups/groupTypes";
 import { buildSubjectOptions, classifyNote, explicitPersonalSpace, noteTitle } from "./noteClassifier";
@@ -8,12 +8,13 @@ import type { NoteDropPlacement } from "./noteOrdering";
 import {
   DEFAULT_NOTE_FOLDERS,
   loadFolders,
-  loadNotes,
+  loadNotesWithStatus,
   normalizeStoredNote,
   removeFolder,
   removeNote,
   storeFolder,
-  storeNote
+  storeNote,
+  type NotesLoadStatus
 } from "./noteStorage";
 import type { LessonNoteContext, NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
 
@@ -58,6 +59,8 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, group: 
   const [notes, setNotes] = useState<SmartNote[]>([]);
   const [folders, setFolders] = useState<NoteFolder[]>(DEFAULT_NOTE_FOLDERS);
   const [ready, setReady] = useState(false);
+  const [storageStatus, setStorageStatus] = useState<NotesLoadStatus>("database");
+  const retryInFlightRef = useRef(false);
   const subjects = useMemo(() => buildSubjectOptions(lessons, weekMode), [lessons, weekMode]);
   const folderSpaces = useMemo(() => folders.map((folder) => folder.name), [folders]);
   const spaces = useMemo(
@@ -67,16 +70,51 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, group: 
 
   useEffect(() => {
     let active = true;
-    Promise.all([loadNotes(), loadFolders()]).then(([storedNotes, storedFolders]) => {
+    Promise.all([loadNotesWithStatus(), loadFolders()]).then(([loaded, storedFolders]) => {
       if (!active) return;
-      setNotes(sortNotes(storedNotes));
+      setNotes(sortNotes(loaded.notes));
       setFolders(storedFolders);
+      setStorageStatus(loaded.status);
       setReady(true);
     });
     return () => {
       active = false;
     };
   }, []);
+
+  const retryStorage = useCallback(async () => {
+    if (retryInFlightRef.current) return;
+    retryInFlightRef.current = true;
+    try {
+      const [loaded, storedFolders] = await Promise.all([loadNotesWithStatus(), loadFolders()]);
+      setStorageStatus(loaded.status);
+      if (loaded.status === "unavailable") return;
+      setNotes((current) => {
+        const merged = new Map(loaded.notes.map((note) => [note.id, note]));
+        current.forEach((note) => {
+          const saved = merged.get(note.id);
+          if (!saved || Date.parse(note.updatedAt) > Date.parse(saved.updatedAt)) merged.set(note.id, note);
+        });
+        return sortNotes([...merged.values()]);
+      });
+      setFolders(storedFolders);
+    } finally {
+      retryInFlightRef.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (storageStatus === "database" || !ready) return;
+    const retry = () => {
+      if (document.visibilityState === "visible") void retryStorage();
+    };
+    const timer = window.setInterval(retry, 12_000);
+    document.addEventListener("visibilitychange", retry);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", retry);
+    };
+  }, [ready, retryStorage, storageStatus]);
 
   useEffect(() => {
     if (!ready) return;
@@ -295,6 +333,8 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, group: 
     notes,
     folders,
     ready,
+    storageStatus,
+    retryStorage,
     subjects,
     spaces,
     createNote,

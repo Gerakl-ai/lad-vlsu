@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LEGACY_PI124_GROUP } from "../groups/groupTypes";
-import { loadFolders, loadNotes, normalizeStoredNote, removeNote, storeDraft, storeFolder, storeNote } from "./noteStorage";
+import { loadFolders, loadNotes, loadNotesWithStatus, normalizeStoredNote, removeNote, storeDraft, storeFolder, storeNote } from "./noteStorage";
 import type { SmartNote } from "./noteTypes";
 
 const baseNote: SmartNote = {
@@ -44,6 +44,34 @@ describe("note database recovery", () => {
     });
     return request;
   }
+
+  it("does not call an inaccessible legacy database empty or erase its mirror", async () => {
+    const request = setup();
+    const storage = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value)
+    });
+    const pending = loadNotesWithStatus();
+    request.onerror();
+    expect(await pending).toEqual({ notes: [], status: "unavailable" });
+    expect(localStorage.getItem("lad.notes.fallback")).toBeNull();
+  });
+
+  it("checks deletions after a pending database read completes", async () => {
+    const request = setup();
+    const resultRequest: Record<string, any> = {};
+    const transaction: Record<string, any> = { objectStore: () => ({ getAll: () => resultRequest }) };
+    request.result = { close: vi.fn(), transaction: () => transaction };
+    const pending = loadNotesWithStatus();
+    request.onsuccess();
+    await Promise.resolve();
+    localStorage.setItem("lad.notes.deleted.v1", JSON.stringify([baseNote.id]));
+    resultRequest.result = [baseNote];
+    resultRequest.onsuccess();
+    transaction.oncomplete();
+    expect(await pending).toEqual({ notes: [], status: "database" });
+  });
 
   it.each([true, false])("reports draft durability when the mirror works=%s", async (mirrorWorks) => {
     const request = setup();

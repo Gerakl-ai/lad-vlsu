@@ -14,6 +14,7 @@ import {
   Music2,
   PanelsTopLeft,
   Radio,
+  RefreshCw,
   Search,
   Sparkles,
   SquarePen,
@@ -25,6 +26,7 @@ import type { LessonSlot, WeekMode } from "../../types";
 import { FolderSheet } from "./FolderSheet";
 import { deadlineForCalendarDate } from "./noteDeadline";
 import { NoteCard } from "./NoteCard";
+import type { NotesLoadStatus } from "./noteStorage";
 import type { NoteDropPlacement } from "./noteOrdering";
 import type { LessonNoteContext, NoteClassification, NoteComposerRequest, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
 
@@ -68,6 +70,7 @@ interface NotesViewProps {
   folders: NoteFolder[];
   lessons: LessonSlot[];
   ready: boolean;
+  storageStatus: NotesLoadStatus;
   weekMode: WeekMode;
   calendarRequestToken: number;
   composerRequest?: NoteComposerRequest | null;
@@ -83,6 +86,7 @@ interface NotesViewProps {
   onCalendarRequestHandled: () => void;
   onComposerRequestHandled: () => void;
   onOpenSettings: () => void;
+  onRetryStorage: () => Promise<void>;
 }
 
 interface SmartFilter {
@@ -120,6 +124,7 @@ export function NotesView({
   folders,
   lessons = [],
   ready,
+  storageStatus,
   weekMode = "all",
   calendarRequestToken,
   composerRequest,
@@ -134,7 +139,8 @@ export function NotesView({
   onUpdate,
   onCalendarRequestHandled,
   onComposerRequestHandled,
-  onOpenSettings
+  onOpenSettings,
+  onRetryStorage
 }: NotesViewProps) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [query, setQuery] = useState("");
@@ -487,6 +493,13 @@ export function NotesView({
 
       {!ready ? (
         <section className="notes-loading" aria-label="Загрузка записей"><span /><span /><span /></section>
+      ) : storageStatus === "unavailable" && notes.length === 0 ? (
+        <section className="notes-storage-warning" role="status">
+          <RefreshCw size={25} aria-hidden="true" />
+          <h3>Не удалось открыть записи</h3>
+          <p>Не удалось проверить данные на этом устройстве. Попробуйте ещё раз, не удаляя приложение.</p>
+          <button type="button" onClick={() => void onRetryStorage()}><RefreshCw size={17} /> Повторить</button>
+        </section>
       ) : visibleNotes.length ? (
         <section className={`notes-list ${reorderState ? "is-reordering" : ""}`} aria-label={`Записи: ${selectedFilter.label}`}>
           <header><span>{selectedFilter.label}</span><strong>{visibleNotes.length}</strong></header>

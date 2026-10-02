@@ -146,10 +146,12 @@ async function deleteValue(storeName: string, id: string): Promise<void> {
   await runStoreRequest(storeName, "readwrite", (store) => store.delete(id));
 }
 
-export async function loadNotes(): Promise<SmartNote[]> {
+export type NotesLoadStatus = "database" | "fallback" | "unavailable";
+
+export async function loadNotesWithStatus(): Promise<{ notes: SmartNote[]; status: NotesLoadStatus }> {
   const fallbackNotes = readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []);
-  const deleted = new Set(readFallback<string[]>(NOTES_DELETED_KEY, []));
   let notes: SmartNote[];
+  let status: NotesLoadStatus = "database";
   try {
     const storedNotes = await getAll<SmartNote>(NOTES_STORE);
     const merged = new Map(fallbackNotes.map((note) => [note.id, note]));
@@ -160,10 +162,16 @@ export async function loadNotes(): Promise<SmartNote[]> {
     notes = [...merged.values()];
   } catch {
     notes = fallbackNotes;
+    status = fallbackNotes.length ? "fallback" : "unavailable";
   }
+  const deleted = new Set(readFallback<string[]>(NOTES_DELETED_KEY, []));
   const normalized = notes.filter((note) => !deleted.has(note.id)).map(normalizeStoredNote);
-  writeFallback(NOTES_FALLBACK_KEY, normalized);
-  return normalized;
+  if (status !== "unavailable") writeFallback(NOTES_FALLBACK_KEY, normalized);
+  return { notes: normalized, status };
+}
+
+export async function loadNotes(): Promise<SmartNote[]> {
+  return (await loadNotesWithStatus()).notes;
 }
 
 export function normalizeStoredNote(note: SmartNote): SmartNote {

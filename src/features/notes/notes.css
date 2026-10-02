@@ -902,6 +902,40 @@
   border-radius: 8px;
 }
 
+.notes-storage-warning {
+  display: grid;
+  justify-items: start;
+  align-content: center;
+  gap: 10px;
+  min-height: 220px;
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--theme-panel-border);
+  border-radius: 8px;
+  background: var(--theme-panel);
+  color: var(--text);
+}
+
+.notes-storage-warning > svg { color: var(--cyan); }
+.notes-storage-warning h3 { margin: 0; font-size: 19px; line-height: 1.2; }
+.notes-storage-warning p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.notes-storage-warning button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid var(--theme-panel-border);
+  border-radius: 8px;
+  background: var(--theme-control);
+  color: var(--text);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+.notes-storage-warning button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.notes-storage-warning button:active { transform: scale(.98); }
+
 .notes-empty::after {
   content: "";
   position: absolute;
@@ -2660,7 +2694,8 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 
   .notes-list,
   .notes-loading,
-  .notes-empty {
+  .notes-empty,
+  .notes-storage-warning {
     grid-column: 2;
     grid-row: 1;
     width: 100%;

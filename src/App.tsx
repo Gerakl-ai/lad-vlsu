@@ -913,6 +913,8 @@ export function App() {
                 folders={smartNotes.folders}
                 lessons={schedule?.allLessons ?? []}
                 ready={smartNotes.ready}
+                storageStatus={smartNotes.storageStatus}
+                onRetryStorage={smartNotes.retryStorage}
                 weekMode={currentWeek}
                 calendarRequestToken={calendarRequestToken}
                 composerRequest={composerRequest}
