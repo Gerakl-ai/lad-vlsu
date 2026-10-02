@@ -17,6 +17,17 @@ const DAY_NAME_TO_INDEX: Record<string, number> = {
   "Воскресенье": 7
 };
 
+const WEEK_DAY_LABELS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"];
+
+export interface NextStudyDay {
+  date: Date;
+  dayIndex: number;
+  dayName: string;
+  isToday: boolean;
+  firstLesson: LessonSlot;
+  lessons: LessonSlot[];
+}
+
 export function currentDayIndex(date = new Date()) {
   const day = date.getDay();
   return day === 0 ? 7 : day;
@@ -159,6 +170,39 @@ export function findCurrentAndNext(lessons: LessonSlot[], weekMode: WeekMode, da
   const current = todayLessons.find((lesson) => minutesFromTime(lesson.start) <= now && now < minutesFromTime(lesson.end));
   const next = todayLessons.find((lesson) => minutesFromTime(lesson.start) > now);
   return { todayLessons, current, next };
+}
+
+export function findNextStudyDay(lessons: LessonSlot[], weekMode: WeekMode, date: Date, now = new Date()): NextStudyDay | null {
+  const isDated = hasDatedLessons(lessons);
+  const selectedIsToday = dateKeyFromDate(date) === dateKeyFromDate(now);
+  const currentMinutes = selectedIsToday ? nowMinutes(now) : -1;
+  // A class that meets only every other week can next occur 14 days from today.
+  const maxOffset = isDated ? 90 : 15;
+
+  for (let offset = 0; offset < maxOffset; offset += 1) {
+    const targetDate = addDays(date, offset);
+    const dayIndex = currentDayIndex(targetDate);
+    if (!isDated && dayIndex === 7) continue;
+    const targetWeekMode = weekModeForDate(targetDate, weekMode, date);
+    const dayLessons = selectDayLessons(lessons, dayIndex, targetWeekMode, targetDate);
+    if (!dayLessons.length) continue;
+
+    const firstLesson = offset === 0
+      ? dayLessons.find((lesson) => minutesFromTime(lesson.start) > currentMinutes)
+      : dayLessons[0];
+    if (!firstLesson) continue;
+
+    return {
+      date: targetDate,
+      dayIndex,
+      dayName: firstLesson.dateLabel ?? WEEK_DAY_LABELS[dayIndex - 1],
+      firstLesson,
+      isToday: offset === 0 && selectedIsToday,
+      lessons: dayLessons
+    };
+  }
+
+  return null;
 }
 
 export function dayIndexFromName(dayName: string) {

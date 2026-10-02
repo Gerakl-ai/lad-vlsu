@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { relativeDayLabel, selectDayLessons, selectedWeekModeForDate, vlsuWeekModeForDate, weekModeForDate, weekModeFromSnapshot } from "./time";
+import { findNextStudyDay, relativeDayLabel, selectDayLessons, selectedWeekModeForDate, vlsuWeekModeForDate, weekModeForDate, weekModeFromSnapshot } from "./time";
 import { autumnTeachingWeekNumber } from "./academicWeek";
 import { parseLessonText } from "./scheduleApi";
 import type { LessonSlot } from "../types";
@@ -65,6 +65,57 @@ describe("selectedWeekModeForDate", () => {
   it("keeps an explicit numerator or denominator selection stable", () => {
     expect(selectedWeekModeForDate(nextWeek, "numerator", "numerator", now)).toBe("numerator");
     expect(selectedWeekModeForDate(nextWeek, "numerator", "denominator", now)).toBe("denominator");
+  });
+});
+
+describe("findNextStudyDay", () => {
+  const lesson = (dayIndex: number, weekMode: LessonSlot["weekMode"] = "all"): LessonSlot => ({
+    id: `${dayIndex}-${weekMode}`,
+    dayIndex,
+    dayName: dayIndex === 1 ? "Понедельник" : "Вторник",
+    pairIndex: 1,
+    start: "08:30",
+    end: "10:00",
+    subject: "Тестовая пара",
+    rawText: "Тестовая пара",
+    weekMode
+  });
+
+  it("skips a finished class today even when the selected date is midnight", () => {
+    const result = findNextStudyDay(
+      [lesson(2), lesson(1)], "numerator",
+      new Date("2026-09-15T00:00:00"), new Date("2026-09-15T14:00:00")
+    );
+    expect(result?.date.getDate()).toBe(21);
+    expect(result?.firstLesson.dayIndex).toBe(1);
+    expect(result?.isToday).toBe(false);
+  });
+
+  it("finds the next Monday after the final Tuesday class", () => {
+    const result = findNextStudyDay(
+      [lesson(1)], "numerator",
+      new Date("2026-09-15T00:00:00"), new Date("2026-09-15T14:00:00")
+    );
+    expect(result?.date.getDate()).toBe(21);
+  });
+
+  it("finds a fortnightly class on the same weekday two weeks later", () => {
+    const result = findNextStudyDay(
+      [lesson(2, "numerator")], "numerator",
+      new Date("2026-09-15T00:00:00"), new Date("2026-09-15T14:00:00")
+    );
+    expect(result?.date.getDate()).toBe(29);
+    expect(result?.firstLesson.weekMode).toBe("numerator");
+  });
+
+  it("shows the selected future day's first class regardless of today's clock", () => {
+    const result = findNextStudyDay(
+      [lesson(1)], "numerator",
+      new Date("2026-09-21T00:00:00"), new Date("2026-09-15T14:00:00")
+    );
+    expect(result?.date.getDate()).toBe(21);
+    expect(result?.firstLesson.start).toBe("08:30");
+    expect(result?.isToday).toBe(false);
   });
 });
 

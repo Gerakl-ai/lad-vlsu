@@ -83,6 +83,8 @@ import {
   dateForWeekDay,
   dateKeyFromDate,
   relativeDayLabel,
+  findNextStudyDay,
+  type NextStudyDay,
   findCurrentAndNext,
   formatUpdatedAt,
   formatWeekMode,
@@ -92,11 +94,9 @@ import {
   minutesFromTime,
   minutesUntilEnd,
   minutesUntilStart,
-  nowMinutes,
   selectDayLessons,
   selectedWeekModeForDate,
   vlsuWeekModeForDate,
-  weekModeForDate,
   weekModeFromSnapshot
 } from "./lib/time";
 
@@ -168,15 +168,6 @@ function MotionScene() {
 
 import type { HeroMode } from "./lib/heroCopy";
 
-interface NextStudyDay {
-  date: Date;
-  dayIndex: number;
-  dayName: string;
-  isToday: boolean;
-  firstLesson: LessonSlot;
-  lessons: LessonSlot[];
-}
-
 function parseCurrentInfoLesson(text: string) {
   const match = text.match(/"(.+?)"\s*\((.+?)\)/);
   if (!match) return { subject: "Расписание загружено", room: "Группа" };
@@ -217,45 +208,6 @@ function formatDuration(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const leftMinutes = minutes % 60;
   return leftMinutes ? `${hours} ч ${leftMinutes} мин` : `${hours} ч`;
-}
-
-function findNextStudyDay(lessons: LessonSlot[], weekMode: WeekMode, date: Date): NextStudyDay | null {
-  const isDated = hasDatedLessons(lessons);
-  const currentMinutes = nowMinutes(date);
-  const maxOffset = isDated ? 90 : 6;
-
-  for (let offset = 0; offset < maxOffset; offset += 1) {
-    const targetDate = addDays(date, offset);
-    const dayIndex = currentDayIndex(targetDate);
-    if (!isDated && dayIndex === 7) continue;
-    const targetWeekMode = weekModeForDate(targetDate, weekMode, date);
-    const dayLessons = selectDayLessons(lessons, dayIndex, targetWeekMode, targetDate);
-    if (!dayLessons.length) continue;
-
-    if (offset === 0) {
-      const upcoming = dayLessons.find((lesson) => minutesFromTime(lesson.start) > currentMinutes);
-      if (!upcoming) continue;
-      return {
-        date: targetDate,
-        dayIndex,
-        dayName: upcoming.dateLabel ?? WEEK_DAYS[dayIndex - 1],
-        firstLesson: upcoming,
-        isToday: true,
-        lessons: dayLessons
-      };
-    }
-
-    return {
-      date: targetDate,
-      dayIndex,
-      dayName: dayLessons[0].dateLabel ?? WEEK_DAYS[dayIndex - 1],
-      firstLesson: dayLessons[0],
-      isToday: false,
-      lessons: dayLessons
-    };
-  }
-
-  return null;
 }
 
 function syncStatusText(status: ApiStatus, refreshedAt?: string) {
@@ -432,7 +384,7 @@ export function App() {
       : 0;
   const progress = current ? lessonProgress(current, nowDate) : dayCompleted || freeStudyDay ? 100 : 0;
   const remaining = heroLesson && current ? minutesUntilEnd(heroLesson, nowDate) : 0;
-  const nextStudyDay = schedule ? findNextStudyDay(schedule.allLessons, selectedWeekMode, selectedDate) : null;
+  const nextStudyDay = schedule ? findNextStudyDay(schedule.allLessons, selectedWeekMode, selectedDate, nowDate) : null;
   const isSessionSchedule = Boolean(schedule?.allLessons.length && hasDatedLessons(schedule.allLessons));
 
   const refreshSchedule = useCallback(async (): Promise<void> => {
