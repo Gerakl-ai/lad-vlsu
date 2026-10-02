@@ -95,3 +95,20 @@ export function freshnessNotice(fetchedAt: string | undefined, now = Date.now())
     detail: `это ${age} назад — стоит свериться с ВлГУ`
   };
 }
+
+export function scheduleNotice(schedule: ScheduleState | null | undefined, now = Date.now()): FreshnessNotice | null {
+  const ageNotice = freshnessNotice(schedule?.fetchedAt, now);
+  const warnings = schedule?.quality?.warnings;
+  const unreviewed = schedule?.source === "pdf-ocr"
+    || (Array.isArray(warnings) && warnings.includes("ocr-unreviewed"));
+  if (!unreviewed) return ageNotice;
+
+  return {
+    level: ageNotice?.level === "stale" ? "stale" : "aging",
+    warn: true,
+    title: "Предварительное расписание",
+    detail: ageNotice?.warn
+      ? `${ageNotice.title}. Пары и аудитории ещё уточняются`
+      : "Пары и аудитории ещё уточняются"
+  };
+}

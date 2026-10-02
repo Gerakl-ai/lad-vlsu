@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { freshnessNotice, preferNewerSchedule } from "./freshness";
+import { freshnessNotice, preferNewerSchedule, scheduleNotice } from "./freshness";
 import type { ScheduleState } from "../types";
 
 const NOW = Date.parse("2026-09-18T12:00:00Z");
@@ -75,5 +75,37 @@ describe("preferNewerSchedule", () => {
     const fresh = schedule("group", "2026-09-20T12:00:00Z");
     expect(preferNewerSchedule(saved, fresh)).toBe(fresh);
     expect(preferNewerSchedule(saved, schedule("other", "2026-09-01T12:00:00Z")).groupNrec).toBe("other");
+  });
+});
+
+describe("scheduleNotice", () => {
+  const schedule: ScheduleState = {
+    groupNrec: "group",
+    currentInfo: { currentLesson: "", currentWeekType: 1, name: "group", semester: 5 },
+    allLessons: [],
+    fetchedAt: hoursAgo(2),
+    quality: { valid: true, scheduleEntries: 1, lessonDays: 1, examEntries: 0, warnings: ["ocr-unreviewed"] }
+  };
+
+  it("warns about unreviewed data even after device-cache hydration changes the source", () => {
+    const notice = scheduleNotice({ ...schedule, source: "device-cache" }, NOW);
+    expect(notice?.warn).toBe(true);
+    expect(notice?.title).toBe("Предварительное расписание");
+    expect(notice?.detail).not.toMatch(/pdf|ocr|кэш/i);
+  });
+
+  it("keeps the age visible without stacking two notices", () => {
+    const notice = scheduleNotice({ ...schedule, fetchedAt: daysAgo(10) }, NOW);
+    expect(notice?.level).toBe("stale");
+    expect(notice?.detail).toContain("8 сентября");
+  });
+
+  it("does not warn for fresh reviewed data", () => {
+    expect(scheduleNotice({ ...schedule, quality: { ...schedule.quality!, warnings: [] } }, NOW)?.warn).toBe(false);
+  });
+
+  it("does not crash when an older device cache has incomplete quality metadata", () => {
+    const legacy = { ...schedule, source: "device-cache" as const, quality: { valid: true } } as ScheduleState;
+    expect(scheduleNotice(legacy, NOW)?.warn).toBe(false);
   });
 });

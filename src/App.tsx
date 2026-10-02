@@ -67,7 +67,7 @@ import {
 } from "./features/themes/theme";
 import { activeWeekMode, loadSchedule, normalizeCachedSchedule } from "./lib/scheduleApi";
 import { heroCopy } from "./lib/heroCopy";
-import { freshnessNotice, preferNewerSchedule } from "./lib/freshness";
+import { scheduleNotice, preferNewerSchedule } from "./lib/freshness";
 import { assetUrl } from "./lib/assetUrl";
 import { backupSignature, markBackupMade, readBackupMade } from "./features/notes/backupState";
 import { lessonView, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
@@ -360,7 +360,7 @@ export function App() {
   const groupLinkHandledRef = useRef(false);
 
   const nowDate = useMemo(() => new Date(nowTick), [nowTick]);
-  const freshness = useMemo(() => freshnessNotice(schedule?.fetchedAt, nowTick), [schedule?.fetchedAt, nowTick]);
+  const freshness = useMemo(() => scheduleNotice(schedule, nowTick), [schedule, nowTick]);
   const reportedWeek = schedule
     ? weekModeFromSnapshot(activeWeekMode(schedule.currentInfo.currentWeekType), schedule.weekTypeAsOf ?? schedule.fetchedAt, nowDate)
     : "numerator";
