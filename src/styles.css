@@ -1647,6 +1647,29 @@ select,
   transition: transform 0.18s ease, border-color 0.18s ease, filter 0.18s ease;
 }
 
+.today-add-event {
+  width: 100%;
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--theme-panel-border);
+  border-radius: 8px;
+  background: var(--theme-control);
+  color: var(--cyan);
+  text-align: left;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.today-add-event span { min-width: 0; font-size: 15px; font-weight: 800; }
+.today-add-event > svg:last-child { justify-self: end; }
+.today-add-event:hover { border-color: rgba(var(--accent-rgb), .55); }
+.today-add-event:active { transform: scale(.99); }
+.today-add-event:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
 .focus-note-card:hover {
   border-color: rgba(var(--accent-rgb), 0.48);
 }

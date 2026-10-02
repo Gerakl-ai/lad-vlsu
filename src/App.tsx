@@ -19,6 +19,7 @@ import {
   TriangleAlert,
   BookCheck,
   CalendarDays,
+  CalendarPlus,
   CalendarX2,
   CheckCircle2,
   ChevronDown,
@@ -317,6 +318,7 @@ export function App() {
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
   const [groupPickerOpen, setGroupPickerOpen] = useState(() => !INITIAL_GROUP);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarCreateOnOpen, setCalendarCreateOnOpen] = useState(false);
   const [calendarRequestToken, setCalendarRequestToken] = useState(0);
   const [composerRequest, setComposerRequest] = useState<NoteComposerRequest | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -922,7 +924,8 @@ export function App() {
               focusNote={focusNote}
               onToggleNote={smartNotes.toggleNote}
               onOpenNotes={() => navigateToTab("notes")}
-              onOpenCalendar={() => setCalendarOpen(true)}
+              onOpenCalendar={() => { setCalendarCreateOnOpen(false); setCalendarOpen(true); }}
+              onAddEvent={() => { setCalendarCreateOnOpen(true); setCalendarOpen(true); }}
               onSelectDate={setSelectedDate}
               onShiftDate={shiftSelectedDay}
               motionDirection={dayMotionDirection}
@@ -942,7 +945,7 @@ export function App() {
               notes={openNotes}
               groupNrec={selectedGroup?.nrec}
               onToggleNote={smartNotes.toggleNote}
-              onOpenCalendar={() => setCalendarOpen(true)}
+              onOpenCalendar={() => { setCalendarCreateOnOpen(false); setCalendarOpen(true); }}
               onSelectDate={showScheduleDate}
               onCreateLessonNote={openLessonComposer}
               validFrom={schedule?.validFrom}
@@ -1004,9 +1007,10 @@ export function App() {
               lessons={schedule?.allLessons ?? []}
               notes={smartNotes.notes}
               open={calendarOpen}
+              initialCreateEvent={calendarCreateOnOpen}
               weekMode={currentWeek}
               initialDate={selectedDate}
-              onClose={() => setCalendarOpen(false)}
+              onClose={() => { setCalendarOpen(false); setCalendarCreateOnOpen(false); }}
               onCreateForDate={openComposerForDate}
               onOpenNote={() => navigateToTab("notes")}
               onSelectDate={showScheduleDate}
@@ -1119,6 +1123,7 @@ function TodayView({
   onToggleNote,
   onOpenNotes,
   onOpenCalendar,
+  onAddEvent,
   onSelectDate,
   onShiftDate,
   motionDirection,
@@ -1156,6 +1161,7 @@ function TodayView({
   onToggleNote: (noteId: string) => void;
   onOpenNotes: () => void;
   onOpenCalendar: () => void;
+  onAddEvent: () => void;
   onSelectDate: (date: Date) => void;
   onShiftDate: (offset: -1 | 1) => void;
   motionDirection: "forward" | "backward" | null;
@@ -1270,6 +1276,11 @@ function TodayView({
       </div>
 
       <div className="today-detail-scroll">
+        <button className="today-add-event" type="button" onClick={onAddEvent}>
+          <CalendarPlus size={20} aria-hidden="true" />
+          <span>Добавить событие</span>
+          <ChevronRight size={19} aria-hidden="true" />
+        </button>
         {!outsideSchedulePeriod && !lessons.length && nextStudyDay && hasLoadedLessons && (
           <section className="upcoming-study" aria-label="Следующий учебный день">
             <button className="upcoming-day-launch" type="button" onClick={() => onSelectDate(nextStudyDay.date)}>
