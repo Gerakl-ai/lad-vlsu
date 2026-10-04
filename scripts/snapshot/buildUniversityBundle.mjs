@@ -81,30 +81,72 @@ function qualityCategory(snapshot) {
   return 'otherAvailable';
 }
 
-export function buildDataQualityReport(catalog, bundle) {
+function periodWindow(snapshot, asOf) {
+  if (!snapshot) return null;
+  let from = snapshot.validFrom;
+  let through = snapshot.validThrough;
+  let basis = 'declared';
+  const validDate = (value) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value ?? '')) return false;
+    const parsed = new Date(`${value}T00:00:00Z`);
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+  };
+  if (from || through) {
+    if (!validDate(from) || !validDate(through) || from > through) {
+      return { status: 'unknown', basis: 'unknown' };
+    }
+  } else {
+    const semester = snapshot.semester;
+    const captured = new Date(snapshot.capturedAt);
+    const weekly = snapshot.schedule?.some((day) => day?.type === 'Lessons');
+    const exam = snapshot.schedule?.some((day) => day?.type === 'ExamSession');
+    if (!weekly || exam || !Number.isInteger(semester) || semester < 1 || semester > 12
+      || Number.isNaN(captured.getTime())) return { status: 'unknown', basis: 'unknown' };
+    const year = captured.getUTCFullYear();
+    const month = captured.getUTCMonth() + 1;
+    const autumn = semester % 2 === 1;
+    const termYear = autumn ? (month < 8 ? year - 1 : year) : (month >= 8 ? year + 1 : year);
+    from = `${termYear}-${autumn ? '09-01' : '02-01'}`;
+    through = `${termYear}-${autumn ? '12-31' : '06-30'}`;
+    basis = 'estimated';
+  }
+  const today = asOf.toISOString().slice(0, 10);
+  return { status: today < from ? 'before' : today > through ? 'after' : 'within',
+    basis, validFrom: from, validThrough: through };
+}
+
+export function buildDataQualityReport(catalog, bundle, asOf = new Date()) {
   const categories = ['preliminary', 'reviewedDocument', 'otherAvailable', 'missing'];
+  const periods = ['within', 'before', 'after', 'unknown'];
   const groups = {};
   const institutes = catalog.institutes.map((institute) => {
     const counts = Object.fromEntries(categories.map((category) => [category, 0]));
+    const periodCounts = Object.fromEntries(periods.map((period) => [period, 0]));
     for (const group of institute.groups ?? []) {
       const snapshot = bundle.groups[group.nrec];
       const category = qualityCategory(snapshot);
       counts[category] += 1;
+      const period = periodWindow(snapshot, asOf);
+      if (period) periodCounts[period.status] += 1;
       groups[group.nrec] = {
         name: group.name,
         instituteId: institute.id,
         category,
-        ...(snapshot ? { capturedAt: snapshot.capturedAt } : {})
+        ...(snapshot ? { capturedAt: snapshot.capturedAt, period } : {})
       };
     }
-    return { id: institute.id, name: institute.name, total: (institute.groups ?? []).length, ...counts };
+    return { id: institute.id, name: institute.name, total: (institute.groups ?? []).length,
+      ...counts, periodWindows: periodCounts };
   });
   return {
     schemaVersion: 1,
     catalogCapturedAt: catalog.capturedAt,
+    assessedAt: asOf.toISOString(),
     total: institutes.reduce((sum, institute) => sum + institute.total, 0),
     ...Object.fromEntries(categories.map((category) => [category,
       institutes.reduce((sum, institute) => sum + institute[category], 0)])),
+    periodWindows: Object.fromEntries(periods.map((period) => [period,
+      institutes.reduce((sum, institute) => sum + institute.periodWindows[period], 0)])),
     institutes,
     groups
   };

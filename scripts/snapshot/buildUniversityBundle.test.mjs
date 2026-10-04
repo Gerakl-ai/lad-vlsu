@@ -70,6 +70,38 @@ it('distinguishes preliminary, reviewed and other available snapshots without cl
     [nrec]: { ...original, quality: { valid: true, warnings: null }, sourceDocument: { reviewedAt: 'broken' } }
   } }).groups[nrec].category).toBe('otherAvailable');
 });
+it('reports declared and estimated semester windows separately from content quality', () => {
+  const declaredId = 'b'.repeat(32);
+  const examId = 'c'.repeat(32);
+  const periodCatalog = { schemaVersion: 3, institutes: [{ id: 'iite', name: 'ИИТЭ', groups: [
+    { nrec, name: 'ПИ-124' }, { nrec: declaredId, name: 'ПИ-125' }, { nrec: examId, name: 'ПИ-126' }
+  ] }] };
+  const snapshots = { groups: {
+    [nrec]: original,
+    [declaredId]: { ...original, validFrom: '2026-10-01', validThrough: '2026-10-31' },
+    [examId]: { ...original, schedule: [{ type: 'ExamSession', date: '2026-10-10' }] }
+  } };
+  const report = buildDataQualityReport(periodCatalog, snapshots, new Date('2027-01-05T12:00:00Z'));
+  expect(report.periodWindows).toEqual({ within: 0, before: 0, after: 2, unknown: 1 });
+  expect(report.groups[nrec].period).toEqual({ status: 'after', basis: 'estimated',
+    validFrom: '2026-09-01', validThrough: '2026-12-31' });
+  expect(report.groups[declaredId].period).toEqual({ status: 'after', basis: 'declared',
+    validFrom: '2026-10-01', validThrough: '2026-10-31' });
+  expect(report.groups[examId].period).toEqual({ status: 'unknown', basis: 'unknown' });
+  expect(buildDataQualityReport(periodCatalog, snapshots, new Date('2026-10-01T12:00:00Z'))
+    .periodWindows).toEqual({ within: 2, before: 0, after: 0, unknown: 1 });
+  expect(buildDataQualityReport(periodCatalog, snapshots, new Date('2026-08-31T12:00:00Z'))
+    .periodWindows).toEqual({ within: 0, before: 2, after: 0, unknown: 1 });
+  expect(buildDataQualityReport(periodCatalog, { groups: {
+    [nrec]: { ...original, validFrom: '2026-02-31', validThrough: '2026-06-30' }
+  } }, new Date('2026-03-01T12:00:00Z')).groups[nrec].period)
+    .toEqual({ status: 'unknown', basis: 'unknown' });
+  expect(buildDataQualityReport(periodCatalog, { groups: {
+    [nrec]: { ...original, semester: 6, capturedAt: '2027-01-10T00:00:00Z' }
+  } }, new Date('2027-05-01T12:00:00Z')).groups[nrec].period)
+    .toEqual({ status: 'within', basis: 'estimated',
+      validFrom: '2027-02-01', validThrough: '2027-06-30' });
+});
 it('rejects ambiguous same-date content instead of silently picking a source', () => {
   const different = [{ ...schedule[0], n1: '111-3, лк, Пример П.П., Другой предмет' }];
   expect(() => buildUniversityBundle(catalog, [original, { ...original, schedule: different,
