@@ -281,6 +281,7 @@ describe("scheduleStateFromSnapshot", () => {
     expect(state.currentInfo.name).toBe("ПИ-124, ИИТЭ");
     expect(state.allLessons).toHaveLength(2);
     expect(state.allLessons.map((lesson) => lesson.weekMode)).toEqual(["numerator", "denominator"]);
+    expect(state).toMatchObject({ validFrom: "2026-09-01", validThrough: "2026-12-31", periodEstimated: true });
   });
 
   it("берёт тип недели снаружи, а не из снимка", () => {
@@ -298,6 +299,7 @@ describe("scheduleStateFromSnapshot", () => {
     const state = scheduleStateFromSnapshot(snapshot, (days) => normalizeSchedule(days as never), 1);
     expect(state.allLessons[0].validFrom).toBe("2026-09-01");
     expect(state.allLessons[0].validThrough).toBe("2026-12-30");
+    expect(state.periodEstimated).toBeUndefined();
   });
 });
 

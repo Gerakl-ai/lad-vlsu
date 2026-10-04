@@ -1,6 +1,7 @@
 import type { CurrentInfo, LessonSlot, LessonVariant, ScheduleDataSource, ScheduleQuality, ScheduleState, WeekMode } from "../types";
 import { writeGroupScheduleCache } from "../features/groups/groupStorage";
 import { preferNewerSchedule } from "./freshness";
+import { withEstimatedSemesterPeriod } from "./schedulePeriod";
 import { vlsuWeekTypeForDate } from "./academicWeek";
 import {
   catalogGroups,
@@ -533,7 +534,7 @@ export function normalizeGroupScheduleSnapshot(payload: unknown, expectedNrec: s
   }
 
   const quality = payload.quality as unknown as ScheduleQuality;
-  return {
+  return withEstimatedSemesterPeriod({
     schemaVersion: 2,
     groupNrec: expectedNrec,
     currentInfo,
@@ -545,7 +546,7 @@ export function normalizeGroupScheduleSnapshot(payload: unknown, expectedNrec: s
     contentHash: payload.contentHash,
     requestId: payload.requestId,
     quality
-  };
+  });
 }
 
 function isCachedLesson(value: unknown): value is LessonSlot {
@@ -577,7 +578,7 @@ export function normalizeCachedSchedule(state: unknown): ScheduleState | null {
   }
 
   const cached = state as unknown as ScheduleState;
-  return {
+  return withEstimatedSemesterPeriod({
     ...cached,
     source: "device-cache",
     weekTypeAsOf: cached.weekTypeAsOf ?? cached.fetchedAt,
@@ -586,7 +587,7 @@ export function normalizeCachedSchedule(state: unknown): ScheduleState | null {
       ...lesson,
       ...parseLessonText(lesson.rawText)
     }))
-  };
+  });
 }
 
 async function fetchSchedule(nrec: string, metadata?: RequestMetadata) {
@@ -720,8 +721,9 @@ export async function loadSchedule(group: GroupProfile, hasDeviceSnapshot = fals
     fetchedAt: scheduleMetadata.snapshotAt ?? now,
     weekTypeAsOf: currentInfoMetadata.snapshotAt ?? now
   };
-  writeGroupScheduleCache(state);
-  return state;
+  const boundedState = withEstimatedSemesterPeriod(state);
+  writeGroupScheduleCache(boundedState);
+  return boundedState;
 }
 
 export function activeWeekMode(currentWeekType: 1 | 2): WeekMode {

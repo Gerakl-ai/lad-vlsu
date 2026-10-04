@@ -885,6 +885,7 @@ export function App() {
               outsideSchedulePeriod={outsideSchedulePeriod}
               scheduleValidFrom={schedule?.validFrom}
               scheduleValidThrough={schedule?.validThrough}
+              schedulePeriodEstimated={schedule?.periodEstimated}
             />
           )}
 
@@ -1084,7 +1085,8 @@ function TodayView({
   onCreateLessonNote,
   outsideSchedulePeriod,
   scheduleValidFrom,
-  scheduleValidThrough
+  scheduleValidThrough,
+  schedulePeriodEstimated
 }: {
   subgroup: SubgroupChoice;
   onSubgroup: (choice: SubgroupChoice) => void;
@@ -1123,6 +1125,7 @@ function TodayView({
   outsideSchedulePeriod: boolean;
   scheduleValidFrom?: string;
   scheduleValidThrough?: string;
+  schedulePeriodEstimated?: boolean;
 }) {
   const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
   const personalEvents = usePersonalEvents();
@@ -1194,7 +1197,9 @@ function TodayView({
           <section className="schedule-period-empty" role="status">
             <CalendarDays size={27} aria-hidden="true" />
             <h2>На эту дату расписание не подтверждено</h2>
-            <p>Расписание действует с {scheduleValidFrom ? formatScheduleDate(scheduleValidFrom) : "начала семестра"} по {scheduleValidThrough ? formatScheduleDate(scheduleValidThrough) : "конец семестра"}. Выбери дату в его пределах или другую группу.</p>
+            <p>{schedulePeriodEstimated
+              ? "Есть только расписание этого семестра. Для выбранной даты пары пока не подтверждены."
+              : `Расписание действует с ${scheduleValidFrom ? formatScheduleDate(scheduleValidFrom) : "начала семестра"} по ${scheduleValidThrough ? formatScheduleDate(scheduleValidThrough) : "конец семестра"}. Выбери дату в его пределах или другую группу.`}</p>
             <button type="button" onClick={onOpenCalendar}>Выбрать дату <ChevronRight size={17} /></button>
           </section>
         ) : <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
@@ -1278,7 +1283,7 @@ function TodayView({
           </section>
         )}
 
-        <Timeline
+        {!outsideSchedulePeriod && <Timeline
           lessons={lessons}
           current={current}
           next={next}
@@ -1293,7 +1298,7 @@ function TodayView({
           subgroup={subgroup}
           onSubgroup={onSubgroup}
           selectedWeekMode={weekMode}
-        />
+        />}
       </div>
     </div>
   );

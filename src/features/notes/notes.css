@@ -3215,3 +3215,56 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 .theme-advanced-toggle { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 12px; border: 1px solid var(--theme-panel-border); border-radius: 8px; background: var(--theme-control); color: var(--text); font: inherit; font-size: 14px; }
 .theme-presets summary { min-height: 44px; padding: 14px 2px; color: var(--muted); font-size: 14px; cursor: pointer; }
 .theme-presets summary { min-height: 44px; cursor: pointer; padding: 12px 0; }
+
+@media (min-width: 1100px) {
+  .notes-view { grid-template-columns: minmax(340px, .72fr) minmax(0, 1.28fr); align-items: start; }
+  .notes-dashboard {
+    display: grid;
+    grid-column: 1;
+    gap: 16px;
+    min-width: 0;
+    align-content: start;
+    position: sticky;
+    top: 0;
+  }
+  .notes-list,
+  .notes-empty,
+  .notes-loading,
+  .notes-storage-warning { grid-column: 2; min-width: 0; }
+  .notes-heading h2 { font-size: 30px; }
+  .quick-capture strong { font-size: 18px; }
+  .quick-capture small { font-size: 13px; }
+  .calendar-launch-copy strong { font-size: 19px; }
+}
+
+@media (min-width: 1100px) and (min-height: 650px) {
+  .composer-layer { align-items: center; padding: 24px; }
+  .note-composer {
+    width: min(100%, 760px);
+    height: min(800px, calc(100dvh - 48px));
+    min-height: 0;
+    margin: auto;
+    padding: 12px 16px 16px;
+  }
+
+  .calendar-layer { align-items: center; padding: 24px; }
+  .smart-calendar:not(:has(.personal-event-form)) {
+    width: min(100%, 920px);
+    height: min(700px, calc(100dvh - 48px));
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    gap: 6px 20px;
+    margin: auto;
+    padding: 14px 18px;
+  }
+  .smart-calendar:not(:has(.personal-event-form)) > .sheet-handle { display: none; }
+  .smart-calendar:not(:has(.personal-event-form)) > .calendar-header { grid-column: 1 / -1; grid-row: 1; }
+  .smart-calendar:not(:has(.personal-event-form)) > .calendar-month-nav { grid-column: 1; grid-row: 2; }
+  .smart-calendar:not(:has(.personal-event-form)) > .calendar-weekdays { grid-column: 1; grid-row: 3; }
+  .smart-calendar:not(:has(.personal-event-form)) > .calendar-grid-track { grid-column: 1; grid-row: 4; min-height: 0; }
+  .smart-calendar:not(:has(.personal-event-form)) > .calendar-agenda { grid-column: 2; grid-row: 2 / 5; min-height: 0; margin-top: 0; display: flex; flex-direction: column; }
+  .smart-calendar:not(:has(.personal-event-form)) .calendar-event-list { max-height: none; min-height: 0; flex: 1; }
+  .smart-calendar:not(:has(.personal-event-form)) > .calendar-actions { grid-column: 1 / -1; grid-row: 5; }
+  .smart-calendar:has(.personal-event-form) { width: min(100%, 700px); margin: auto; }
+}

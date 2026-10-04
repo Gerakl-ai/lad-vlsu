@@ -190,6 +190,7 @@ describe("normalizeSchedule", () => {
     expect(cached?.allLessons[0].variants).toHaveLength(2);
     expect(cached?.weekTypeAsOf).toBe("2026-07-17T00:00:00.000Z");
     expect(cached?.source).toBe("device-cache");
+    expect(cached).toMatchObject({ validFrom: "2026-02-01", validThrough: "2026-06-30", periodEstimated: true });
   });
 
   it("rejects a partial legacy cache instead of crashing application startup", () => {
@@ -238,7 +239,10 @@ describe("schedule snapshot v2", () => {
       schemaVersion: 2,
       source: "live",
       contentHash: "a".repeat(64),
-      requestId: "request-1"
+      requestId: "request-1",
+      validFrom: "2026-09-01",
+      validThrough: "2026-12-31",
+      periodEstimated: true
     });
   });
 

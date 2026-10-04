@@ -68,6 +68,8 @@ export interface ScheduleState {
   fetchedAt: string;
   validFrom?: string;
   validThrough?: string;
+  /** Safety boundary for undated weekly data; not an official document period. */
+  periodEstimated?: boolean;
   sourceDocument?: {
     title: string;
     url: string;

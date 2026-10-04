@@ -5683,21 +5683,44 @@ button.day-title > svg {
 }
 
 /* Desktop uses the available width; phone and landscape layouts stay independent. */
-@media (min-width: 1100px) and (min-height: 650px) {
+@media (min-width: 1100px) {
+  .app-shell { padding: 0; }
+
   .phone-frame {
-    width: min(100%, 1200px);
-    height: calc(var(--app-viewport-height) - 48px);
+    width: min(100%, 1560px);
+    height: var(--app-viewport-height);
     min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border-top: 0;
+    border-bottom: 0;
+    border-radius: 0;
   }
 
   .content-scroll {
-    padding: 20px 28px 28px;
+    order: 2;
+    padding: 20px 32px 32px;
+    overflow-y: auto;
+    overflow-x: hidden;
     scrollbar-width: thin;
   }
 
-  .topbar { padding: 20px 28px 12px; }
+  .topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 12px;
+    padding: 18px 32px 12px;
+    border-right: 0;
+    contain: none;
+  }
+  .header-actions { display: flex; width: auto; }
+  .sync-line { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(0,1fr) max-content; }
+  .sync-line > span:first-child { display: block; }
+  .brand-chevron { display: grid; }
   .brand h1 { font-size: 26px; }
   .sync-line { font-size: 12px; }
+
+  .view-stack { height: auto; overflow: visible; }
 
   .today-view,
   .week-view,
@@ -5723,21 +5746,61 @@ button.day-title > svg {
   .notes-list,
   .notes-empty { min-width: 0; }
 
-  .today-detail-scroll { display: grid; gap: 14px; }
+  .today-detail-scroll { display: grid; height: auto; overflow: visible; gap: 14px; }
 
   .hero-card h2 { font-size: 28px; line-height: 1.16; }
   .hero-card.compact-title h2 { font-size: 25px; }
   .hero-card.dense-title h2 { font-size: 23px; }
   .lesson-title { font-size: 18px; }
+  .day-title h3 { font-size: 20px; }
+  .day-title-main small { font-size: 12px; }
+  .mini-lesson strong { font-size: 16px; line-height: 1.35; }
+  .mini-lesson small { font-size: 13px; }
+  .mini-lesson-time time { font-size: 14px; }
+  .mini-lesson-time time:last-child { font-size: 12px; }
+  .upcoming-day-launch strong { font-size: 20px; }
+  .upcoming-lesson strong { font-size: 16px; }
+  .upcoming-lesson small { font-size: 13px; }
   .settings-view { max-width: 940px; margin-inline: auto; }
 
   .bottom-nav {
-    align-self: center;
-    width: 600px;
-    flex-shrink: 0;
+    --nav-bar-height: 48px;
+    --nav-total-height: 60px;
+    --nav-dock-bottom: 6px;
+    order: 1;
+    width: 100%;
+    height: var(--nav-total-height);
+    min-height: var(--nav-total-height);
+    flex: 0 0 var(--nav-total-height);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: var(--nav-bar-height);
+    padding: 6px 32px;
+    gap: 8px;
+    border-right: 0;
+    background: color-mix(in srgb, var(--theme-panel-solid) 82%, var(--bg));
+    box-shadow: inset 0 1px 0 var(--theme-panel-border), inset 0 -1px 0 var(--theme-panel-border);
+    backdrop-filter: none;
+    contain: none;
   }
 
-  .bottom-nav button { font-size: 12px; }
+  .bottom-nav::before { inset: 5px 32px; border-radius: 8px; box-shadow: none; }
+  .bottom-nav::after { display: none; }
+  .bottom-nav .nav-selection {
+    display: block;
+    left: 34px;
+    top: 8px;
+    width: calc((100% - 64px - 24px) / 4);
+    height: 44px;
+    border-radius: 7px;
+    box-shadow: none;
+  }
+  .bottom-nav[data-active-index="1"] .nav-selection { transform: translate3d(calc(100% + 8px),0,0); }
+  .bottom-nav[data-active-index="2"] .nav-selection { transform: translate3d(calc(200% + 16px),0,0); }
+  .bottom-nav[data-active-index="3"] .nav-selection { transform: translate3d(calc(300% + 24px),0,0); }
+  .bottom-nav button { display: flex; flex-direction: row; justify-content: center; gap: 8px; font-size: 14px; text-align: center; }
+  .bottom-nav .nav-icon { width: 24px; height: 24px; }
+  .bottom-nav .nav-icon svg { width: 21px; height: 21px; }
 }
 
 .upcoming-study {

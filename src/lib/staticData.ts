@@ -12,6 +12,7 @@ import type { CurrentInfo, LessonSlot, ScheduleState } from "../types";
 import type { GroupOption, InstituteOption, StudyFormKey } from "../features/groups/groupTypes";
 import { STUDY_FORM_KEYS } from "../features/groups/groupTypes";
 import { instituteShortName, instituteVisualKey } from "../features/groups/instituteVisuals";
+import { withEstimatedSemesterPeriod } from "./schedulePeriod";
 
 export const STATIC_SCHEMA_VERSION = 3;
 
@@ -383,7 +384,7 @@ export function scheduleStateFromSnapshot(
 ): ScheduleState {
   const capturedAtMs = Date.parse(snapshot.capturedAt);
   const lessons = normalizeSchedule(snapshot.schedule);
-  return {
+  return withEstimatedSemesterPeriod({
     schemaVersion: STATIC_SCHEMA_VERSION,
     groupNrec: snapshot.group.nrec,
     currentInfo: currentInfoFromSnapshot(snapshot, weekType),
@@ -402,7 +403,7 @@ export function scheduleStateFromSnapshot(
     contentHash: snapshot.scheduleHash,
     provenance: normalizeProvenance(snapshot.provenance) ?? undefined,
     quality: snapshot.quality
-  };
+  });
 }
 
 let universityBundlePromise: Promise<Record<string, unknown>> | null = null;
