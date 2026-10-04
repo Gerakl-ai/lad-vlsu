@@ -969,6 +969,10 @@
   color: #101827;
 }
 
+:root[data-theme-mode="light"] .notes-empty p {
+  color: var(--muted);
+}
+
 .notes-empty > div {
   position: relative;
   z-index: 1;
@@ -3235,6 +3239,7 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   .quick-capture strong { font-size: 18px; }
   .quick-capture small { font-size: 13px; }
   .calendar-launch-copy strong { font-size: 19px; }
+  .notes-empty p { font-size: 14px; }
 }
 
 @media (min-width: 1100px) and (min-height: 650px) {

@@ -5715,7 +5715,7 @@ button.day-title > svg {
   }
   .header-actions { display: flex; width: auto; }
   .sync-line { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(0,1fr) max-content; }
-  .sync-line > span:first-child { display: block; }
+  .sync-line > span:first-child { display: block; max-width: none; }
   .brand-chevron { display: grid; }
   .brand h1 { font-size: 26px; }
   .sync-line { font-size: 12px; }
