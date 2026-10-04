@@ -14,6 +14,23 @@ it('retains the newer valid snapshot regardless of input order, without altering
     expect(buildUniversityBundle(catalog, snapshots).bundle.groups[nrec]).toEqual(newer);
   }
 });
+it('does not let a newer unreviewed OCR replace an available API schedule for the same semester', () => {
+  const unreviewed = { ...original, capturedAt: '2026-10-02T00:00:00Z',
+    extraction: { method: 'ocr', status: 'unreviewed' },
+    quality: { valid: true, warnings: ['ocr-unreviewed'] } };
+  for (const candidates of [[original, unreviewed], [unreviewed, original]]) {
+    expect(buildUniversityBundle(catalog, candidates, new Date('2026-10-05T12:00:00Z'))
+      .bundle.groups[nrec]).toEqual(original);
+  }
+});
+it('can use the current semester preliminary document when the API snapshot belongs to an older semester', () => {
+  const currentSemester = { ...original, semester: 7, capturedAt: '2027-09-03T00:00:00Z',
+    scheduleHash: sha256({ semester: 7, schedule }),
+    extraction: { method: 'ocr', status: 'unreviewed' },
+    quality: { valid: true, warnings: ['ocr-unreviewed'] } };
+  expect(buildUniversityBundle(catalog, [original, currentSemester], new Date('2027-10-05T12:00:00Z'))
+    .bundle.groups[nrec]).toEqual(currentSemester);
+});
 it.each([{ schedule: [] }, { scheduleHash: 'b'.repeat(64) }, { capturedAt: 'broken' },
   { group: { ...original.group, instituteId: 'other' } }, { quality: { valid: false } }])('preserves a valid fallback when a newer candidate is invalid: %j', (fields) => {
   const result = buildUniversityBundle(catalog, [original, { ...original, capturedAt: '2026-10-01T00:00:00Z', ...fields }]);

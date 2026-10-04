@@ -3,7 +3,27 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { scheduleQuality, sha256 } from './buildSnapshot.mjs';
 
-export function buildUniversityBundle(catalog, candidates) {
+function preferCandidate(current, candidate, asOf) {
+  const currentPeriod = periodWindow(current, asOf)?.status;
+  const candidatePeriod = periodWindow(candidate, asOf)?.status;
+  if (currentPeriod === 'within' && ['before', 'after'].includes(candidatePeriod)) return false;
+  if (candidatePeriod === 'within' && ['before', 'after'].includes(currentPeriod)) return true;
+  if (currentPeriod === 'within' && candidatePeriod === 'within') {
+    const currentPreliminary = qualityCategory(current) === 'preliminary';
+    const candidatePreliminary = qualityCategory(candidate) === 'preliminary';
+    if (currentPreliminary !== candidatePreliminary) return !candidatePreliminary;
+  }
+  if (snapshotTime(candidate) === snapshotTime(current) && candidate.scheduleHash !== current.scheduleHash) {
+    throw new Error(`Conflicting same-date snapshots: ${candidate.group.nrec}`);
+  }
+  return snapshotTime(candidate) > snapshotTime(current);
+}
+
+function snapshotTime(snapshot) {
+  return Date.parse(snapshot.capturedAt);
+}
+
+export function buildUniversityBundle(catalog, candidates, asOf = new Date()) {
   if (catalog?.schemaVersion !== 3 || !Array.isArray(catalog.institutes)) throw new Error('Invalid university catalog');
   const known = new Map();
   for (const institute of catalog.institutes) for (const group of institute.groups ?? []) {
@@ -25,10 +45,7 @@ export function buildUniversityBundle(catalog, candidates) {
       continue;
     }
     const current = groups[id];
-    if (!current || Date.parse(snapshot.capturedAt) > Date.parse(current.capturedAt)) groups[id] = snapshot;
-    else if (snapshot.capturedAt === current.capturedAt && snapshot.scheduleHash !== current.scheduleHash) {
-      throw new Error(`Conflicting same-date snapshots: ${id}`);
-    }
+    if (!current || preferCandidate(current, snapshot, asOf)) groups[id] = snapshot;
   }
   return {
     bundle: { schemaVersion: 1, groups: Object.fromEntries(Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))) },
@@ -171,7 +188,8 @@ async function main() {
   const directories = [path.join(dataDir, 'schedule'), ...args.flatMap((arg, i) => arg === '--fallback-dir' ? [args[i + 1]] : [])];
   const catalog = JSON.parse(await readFile(path.join(dataDir, 'catalog.json'), 'utf8'));
   const candidates = (await Promise.all(directories.map(readSnapshots))).flat();
-  const { bundle, report } = buildUniversityBundle(catalog, candidates);
+  const assessedAt = new Date();
+  const { bundle, report } = buildUniversityBundle(catalog, candidates, assessedAt);
   if (!report.available) throw new Error('No valid schedules for university bundle');
   const publishDir = args.includes('--publish-dir') ? args[args.indexOf('--publish-dir') + 1] : dataDir;
   if (!publishDir) throw new Error('Missing --publish-dir value');
@@ -189,7 +207,7 @@ async function main() {
     }]))
   };
   const gaps = buildCoverageGapReport(catalog, bundle);
-  const qualityReport = buildDataQualityReport(catalog, bundle);
+  const qualityReport = buildDataQualityReport(catalog, bundle, assessedAt);
   await Promise.all([
     writeFile(path.join(publishDir, 'catalog.json'), `${JSON.stringify(catalog)}\n`, 'utf8'),
     writeFile(path.join(publishDir, 'coverage.json'), `${JSON.stringify(coverage)}\n`, 'utf8'),
