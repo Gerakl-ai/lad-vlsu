@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 
 // В CI берём коммит, локально — время сборки. Главное, чтобы значение менялось
 // каждый раз: от него зависит и адрес service worker, и имя кэша.
-const release = (process.env.GITHUB_SHA ?? "").slice(0, 7)
+const release = (process.env.LAD_RELEASE_SHA ?? process.env.GITHUB_SHA ?? "").slice(0, 7)
   || new Date().toISOString().replace(/[-:T]/g, "").slice(0, 12);
 
 export default defineConfig({
