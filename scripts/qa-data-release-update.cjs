@@ -15,7 +15,7 @@ const server = http.createServer((request, response) => {
   if (!file.startsWith(dist + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { response.writeHead(404); response.end(); return; }
   const ext = path.extname(file);
   let content = fs.readFileSync(file);
-  const version = stage === 'first' ? release : `${release}-update-qa`;
+  const version = stage === 'first' ? release : `${release}-${stage}-qa`;
   if (pathname === '/sw.js') content = Buffer.from(content.toString().replace(`const BUILD_RELEASE = "${release}"`, `const BUILD_RELEASE = "${version}"`));
   if (file.endsWith('index.html')) content = Buffer.from(content.toString().replace(`name="lad-release" content="${release}"`, `name="lad-release" content="${version}"`));
   response.writeHead(200, { 'Content-Type': ({ '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp' })[ext] || 'application/octet-stream', 'Cache-Control': 'no-store' });
@@ -47,7 +47,7 @@ fs.mkdirSync('artifacts/qa/data-release-update', { recursive: true });
       await page.locator('.lesson-row').first().waitFor({ timeout: 15000 });
       let ready = false;
       for (let i = 0; i < 80 && !ready; i++) {
-        ready = await page.evaluate(async () => Boolean(await caches.match(new URL('./data/ocr-schedule/bundle.json', location.href).href)));
+        ready = await page.evaluate(async () => Boolean(await caches.match(new URL('./data/university-schedule.json', location.href).href)));
         if (!ready) await new Promise((resolve) => setTimeout(resolve, 250));
       }
       assert(ready, 'Missing initial bundle');
@@ -122,18 +122,50 @@ fs.mkdirSync('artifacts/qa/data-release-update', { recursive: true });
       assert(migrated, 'New worker did not finish activation');
       const migration = await page.evaluate(async (release) => ({
         caches: await caches.keys(),
-        bundle: Boolean(await (await caches.open('lad-vlsu-data:%2F:v1')).match(new URL('./data/ocr-schedule/bundle.json', location.href).href)),
+        bundle: Boolean(await (await caches.open('lad-vlsu-data:%2F:v1')).match(new URL('./data/university-schedule.json', location.href).href)),
         oldRemoved: !(await caches.keys()).includes(`lad-vlsu-scope:%2F:${release}`)
       }), release);
       assert(migration.bundle && migration.oldRemoved);
+      stage = 'third';
+      await Promise.race([page.evaluate(async () => {
+        const registration = await navigator.serviceWorker.getRegistration();
+        await registration.update();
+      }).catch(() => undefined), new Promise((_, reject) => setTimeout(() => reject(new Error('Third worker update timed out')), 20000))]);
+      const thirdRelease = `${release}-third-qa`;
+      let thirdActivated = false;
+      for (let i = 0; i < 80 && !thirdActivated; i++) {
+        try {
+          thirdActivated = await page.evaluate(async (expected) => {
+            const registration = await navigator.serviceWorker.getRegistration();
+            const cachesNow = await caches.keys();
+            return document.querySelector('meta[name="lad-release"]')?.content === expected
+              && registration?.active?.scriptURL.includes('/sw.js')
+              && cachesNow.includes(`lad-vlsu-scope:%2F:${expected}`)
+              && !cachesNow.some((name) => name.includes('-second-qa'));
+          }, thirdRelease);
+        } catch {}
+        if (!thirdActivated) await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+      assert(thirdActivated, 'Third release did not activate and reload the idle app');
+      if (liveUpdate) {
+        await page.locator('.bottom-nav').getByRole('button', { name: 'Записи', exact: true }).click();
+        await page.getByText(noteText, { exact: true }).first().waitFor();
+        await page.locator('.bottom-nav').getByRole('button', { name: 'Сегодня', exact: true }).click();
+      }
       await context.setOffline(true);
       await page.evaluate(() => { for (const key of Object.keys(localStorage)) if (key.startsWith('lad.schedule.v2')) localStorage.removeItem(key); });
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.locator('.lesson-row').first().waitFor({ timeout: 15000 });
       assert.equal(await page.getByText('Расписание не получено').count(), 0);
+      if (liveUpdate) {
+        await page.locator('.bottom-nav').getByRole('button', { name: 'Записи', exact: true }).click();
+        await page.getByText(noteText, { exact: true }).first().waitFor();
+        await page.locator('.bottom-nav').getByRole('button', { name: 'Сегодня', exact: true }).click();
+      }
       assert.deepEqual(errors, []);
       await page.screenshot({ path: `artifacts/qa/data-release-update/${viewport.width}.png` });
-      console.log(JSON.stringify({ viewport, liveUpdate, notePreserved: liveUpdate || undefined, ...migration, offlineLessons: await page.locator('.lesson-row').count(), errors }));
+      console.log(JSON.stringify({ viewport, liveUpdate, notePreserved: liveUpdate || undefined,
+        secondRelease: migration, thirdRelease, offlineLessons: await page.locator('.lesson-row').count(), errors }));
       await context.close();
     }
   } finally { await browser.close(); await new Promise((resolve) => server.close(resolve)); }
