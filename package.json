@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "qa:pwa-startup": "node scripts/qa-pwa-startup.cjs",
+    "qa:desktop": "node scripts/qa-desktop-layout.cjs",
     "check": "pnpm run typecheck && pnpm run test && pnpm run build",
     "cloudflare:worker:check": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "cloudflare:pages:check": "wrangler pages functions build functions --outdir .wrangler/pages --compatibility-date 2026-05-28",

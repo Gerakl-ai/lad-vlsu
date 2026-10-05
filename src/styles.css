@@ -5683,11 +5683,11 @@ button.day-title > svg {
 }
 
 /* Desktop uses the available width; phone and landscape layouts stay independent. */
-@media (min-width: 1100px) {
+@media (min-width: 960px) and (min-height: 600px) {
   .app-shell { padding: 0; }
 
   .phone-frame {
-    width: min(100%, 1560px);
+    width: min(100%, 1320px);
     height: var(--app-viewport-height);
     min-height: 0;
     display: flex;
@@ -5699,7 +5699,7 @@ button.day-title > svg {
 
   .content-scroll {
     order: 2;
-    padding: 20px 32px 32px;
+    padding: 24px 34px 40px;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
@@ -5709,7 +5709,7 @@ button.day-title > svg {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px 12px;
-    padding: 18px 32px 12px;
+    padding: 20px 34px 14px;
     border-right: 0;
     contain: none;
   }
@@ -5717,8 +5717,8 @@ button.day-title > svg {
   .sync-line { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(0,1fr) max-content; }
   .sync-line > span:first-child { display: block; max-width: none; }
   .brand-chevron { display: grid; }
-  .brand h1 { font-size: 26px; }
-  .sync-line { font-size: 12px; }
+  .brand h1 { font-size: 30px; }
+  .sync-line { font-size: 14px; }
 
   .view-stack { height: auto; overflow: visible; }
 
@@ -5726,9 +5726,9 @@ button.day-title > svg {
   .week-view,
   .notes-view {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.36fr);
     align-items: start;
-    gap: 24px;
+    gap: 26px;
   }
 
   .today-primary,
@@ -5748,20 +5748,26 @@ button.day-title > svg {
 
   .today-detail-scroll { display: grid; height: auto; overflow: visible; gap: 14px; }
 
-  .hero-card h2 { font-size: 28px; line-height: 1.16; }
-  .hero-card.compact-title h2 { font-size: 25px; }
-  .hero-card.dense-title h2 { font-size: 23px; }
-  .lesson-title { font-size: 18px; }
-  .day-title h3 { font-size: 20px; }
-  .day-title-main small { font-size: 12px; }
-  .mini-lesson strong { font-size: 16px; line-height: 1.35; }
-  .mini-lesson small { font-size: 13px; }
-  .mini-lesson-time time { font-size: 14px; }
-  .mini-lesson-time time:last-child { font-size: 12px; }
-  .upcoming-day-launch strong { font-size: 20px; }
-  .upcoming-lesson strong { font-size: 16px; }
-  .upcoming-lesson small { font-size: 13px; }
-  .settings-view { max-width: 940px; margin-inline: auto; }
+  .hero-card h2 { font-size: 33px; line-height: 1.16; }
+  .hero-card.compact-title h2 { font-size: 29px; }
+  .hero-card.dense-title h2 { font-size: 26px; }
+  .lesson-title { font-size: 19px; }
+  .day-title h3 { font-size: 23px; }
+  .day-title-main small { font-size: 14px; }
+  .mini-lesson strong { font-size: 17px; line-height: 1.35; }
+  .mini-lesson small { font-size: 14px; }
+  .mini-lesson-time time { font-size: 16px; }
+  .mini-lesson-time time:last-child { font-size: 14px; }
+  .week-overview { padding: 20px 22px 18px; gap: 14px; }
+  .week-view .week-primary-toolbar h2 { font-size: 28px; }
+  .week-view .week-primary-toolbar .week-toolbar-copy > span { font-size: 12px; }
+  .week-view .week-primary-toolbar .week-toolbar-copy p { font-size: 14px; }
+  .week-map-disclosure > summary { font-size: 14px; }
+  .week-view .mode-switch button { font-size: 13px; min-height: 42px; }
+  .upcoming-day-launch strong { font-size: 22px; }
+  .upcoming-lesson strong { font-size: 17px; }
+  .upcoming-lesson small { font-size: 14px; }
+  .settings-view { max-width: 1000px; margin-inline: auto; }
 
   .bottom-nav {
     --nav-bar-height: 48px;
@@ -5775,7 +5781,7 @@ button.day-title > svg {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-template-rows: var(--nav-bar-height);
-    padding: 6px 32px;
+    padding: 6px 34px;
     gap: 8px;
     border-right: 0;
     background: color-mix(in srgb, var(--theme-panel-solid) 82%, var(--bg));
@@ -5784,13 +5790,13 @@ button.day-title > svg {
     contain: none;
   }
 
-  .bottom-nav::before { inset: 5px 32px; border-radius: 8px; box-shadow: none; }
+  .bottom-nav::before { inset: 5px 34px; border-radius: 8px; box-shadow: none; }
   .bottom-nav::after { display: none; }
   .bottom-nav .nav-selection {
     display: block;
-    left: 34px;
+    left: 36px;
     top: 8px;
-    width: calc((100% - 64px - 24px) / 4);
+    width: calc((100% - 68px - 24px) / 4);
     height: 44px;
     border-radius: 7px;
     box-shadow: none;
@@ -5798,7 +5804,7 @@ button.day-title > svg {
   .bottom-nav[data-active-index="1"] .nav-selection { transform: translate3d(calc(100% + 8px),0,0); }
   .bottom-nav[data-active-index="2"] .nav-selection { transform: translate3d(calc(200% + 16px),0,0); }
   .bottom-nav[data-active-index="3"] .nav-selection { transform: translate3d(calc(300% + 24px),0,0); }
-  .bottom-nav button { display: flex; flex-direction: row; justify-content: center; gap: 8px; font-size: 14px; text-align: center; }
+  .bottom-nav button { display: flex; flex-direction: row; justify-content: center; gap: 8px; font-size: 16px; text-align: center; }
   .bottom-nav .nav-icon { width: 24px; height: 24px; }
   .bottom-nav .nav-icon svg { width: 21px; height: 21px; }
 }

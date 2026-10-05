@@ -1581,7 +1581,14 @@ function WeekView({
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
 }) {
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
+  const [loadMapOpen, setLoadMapOpen] = useState(() => window.matchMedia("(min-width: 960px) and (min-height: 600px)").matches);
   const personalEvents = usePersonalEvents();
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 960px) and (min-height: 600px)");
+    const onChange = () => setLoadMapOpen(media.matches);
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
+  }, []);
   if (hasDatedLessons(lessons)) {
     return <SessionScheduleView lessons={lessons} notes={notes} groupNrec={groupNrec} onToggleNote={onToggleNote} onOpenCalendar={onOpenCalendar} onCreateLessonNote={onCreateLessonNote} />;
   }
@@ -1607,7 +1614,7 @@ function WeekView({
           </button>
         </section>
 
-        <details className="week-map-disclosure">
+        <details className="week-map-disclosure" open={loadMapOpen} onToggle={(event) => setLoadMapOpen(event.currentTarget.open)}>
           <summary><Activity size={15} aria-hidden="true" /> Карта нагрузки <ChevronDown size={17} aria-hidden="true" /></summary>
           <WeekMap dayLoads={dayLoads} onSelectDate={onSelectDate} />
         </details>
