@@ -17,7 +17,7 @@
  * после смены группы.
  */
 
-import type { LessonSlot, LessonVariant, WeekMode } from "../types";
+import type { LessonSlot, LessonVariant, ScheduleState, WeekMode } from "../types";
 
 /** «Обе» — честный вариант по умолчанию: пока студент не выбрал, мы не угадываем. */
 export type SubgroupChoice = "all" | number;
@@ -107,4 +107,33 @@ export function hasSubgroups(lessons: LessonSlot[]) {
 /** Наибольшее число подгрупп в дне — столько кнопок выбора имеет смысл показать. */
 export function maxSubgroupCount(lessons: LessonSlot[]) {
   return lessons.reduce((max, lesson) => Math.max(max, lesson.variants?.length ?? 0), 0);
+}
+
+/** Keep verified subgroup order when another source contains the same lessons in a different order. */
+export function alignSubgroupOrder(candidate: ScheduleState, reference: ScheduleState): ScheduleState {
+  if (candidate.groupNrec !== reference.groupNrec) return candidate;
+  const key = (lesson: LessonSlot) => `${lesson.dayIndex}:${lesson.pairIndex}:${lesson.weekMode}:${lesson.date ?? ""}`;
+  const referenceLessons = new Map(reference.allLessons.map((lesson) => [key(lesson), lesson]));
+  let changed = false;
+  const allLessons = candidate.allLessons.map((lesson) => {
+    const verified = referenceLessons.get(key(lesson));
+    const received = lesson.variants ?? [];
+    const expected = verified?.variants ?? [];
+    if (received.length < 2 || received.length !== expected.length) return lesson;
+    const fingerprints = (variants: LessonVariant[]) => variants.map((variant) => variant.rawText.trim()).sort();
+    if (JSON.stringify(fingerprints(received)) !== JSON.stringify(fingerprints(expected))) return lesson;
+    if (received.every((variant, index) => variant.rawText.trim() === expected[index].rawText.trim())) return lesson;
+    changed = true;
+    return {
+      ...lesson,
+      rawText: verified!.rawText,
+      subject: verified!.subject,
+      room: verified!.room,
+      kind: verified!.kind,
+      teacher: verified!.teacher,
+      variants: expected,
+      id: verified!.id
+    };
+  });
+  return changed ? { ...candidate, allLessons } : candidate;
 }

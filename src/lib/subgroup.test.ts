@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { parseLessonText } from "./scheduleApi";
-import { hasSubgroups, lessonView, maxSubgroupCount, readSubgroup, writeSubgroup } from "./subgroup";
-import type { LessonSlot } from "../types";
+import { alignSubgroupOrder, hasSubgroups, lessonView, maxSubgroupCount, readSubgroup, writeSubgroup } from "./subgroup";
+import type { LessonSlot, ScheduleState } from "../types";
 
 /** Настоящая ячейка ПИ-124: две подгруппы в одном слоте, разделённые переводом строки. */
 const RAW_TWO_SUBGROUPS =
@@ -93,6 +93,28 @@ describe("обнаружение подгрупп в дне", () => {
     expect(hasSubgroups(without)).toBe(false);
     expect(maxSubgroupCount(withSplit)).toBe(2);
     expect(maxSubgroupCount(without)).toBe(1);
+  });
+});
+
+describe("порядок подгрупп при обновлении", () => {
+  it("сохраняет проверенную привязку при более свежем ответе с переставленными строками", () => {
+    const first = lesson("109-3, лб, Васильев Д.Н., Основы искусственного интеллекта\n111-3, лб, Аджамиех С.М., Основы архитектуры и интеграции информационных систем");
+    const reversedText = first.rawText.split("\n").reverse().join("\n");
+    const reversed = lesson(reversedText);
+    const state = (item: LessonSlot, fetchedAt: string) => ({ groupNrec: "pi124", fetchedAt, allLessons: [item] }) as ScheduleState;
+    const aligned = alignSubgroupOrder(state(reversed, "2026-10-05T18:00:00Z"), state(first, "2026-10-01T12:00:00Z"));
+
+    expect(lessonView(aligned.allLessons[0], 0).subject).toContain("искусственного интеллекта");
+    expect(lessonView(aligned.allLessons[0], 1).subject).toContain("архитектуры и интеграции");
+    expect(aligned.fetchedAt).toBe("2026-10-05T18:00:00Z");
+    expect(aligned.allLessons[0].rawText).toBe(first.rawText);
+  });
+
+  it("не заменяет действительно изменившееся занятие старым снимком", () => {
+    const original = lesson(RAW_TWO_SUBGROUPS);
+    const updated = lesson("428-2, лб, Матвеева А.П., Новое занятие\n109-3, лб, Аджамиех С.М., Основы backend разработки");
+    const state = (item: LessonSlot) => ({ groupNrec: "pi124", allLessons: [item] }) as ScheduleState;
+    expect(alignSubgroupOrder(state(updated), state(original)).allLessons[0]).toBe(updated);
   });
 });
 

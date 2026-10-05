@@ -56,7 +56,7 @@ import { importPersonalEvents, personalEventsOnDate, usePersonalEvents } from ".
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
 import { parseGroupLink, resolveGroupLink, syncGroupLink } from "./features/groups/groupLinks";
 import { groupBadgeParts, type GroupProfile } from "./features/groups/groupTypes";
-import { readFavoriteGroups, readGroupScheduleCache, readKnownGroup, readRecentGroups, readSelectedGroup, writeSelectedGroup } from "./features/groups/groupStorage";
+import { readFavoriteGroups, readGroupScheduleCache, readKnownGroup, readRecentGroups, readSelectedGroup, writeGroupScheduleCache, writeSelectedGroup } from "./features/groups/groupStorage";
 import { ThemeSheet } from "./features/themes/ThemeSheet";
 import {
   applyTheme,
@@ -72,7 +72,7 @@ import { heroCopy } from "./lib/heroCopy";
 import { scheduleNotice, preferNewerSchedule } from "./lib/freshness";
 import { assetUrl } from "./lib/assetUrl";
 import { backupSignature, markBackupMade, readBackupMade } from "./features/notes/backupState";
-import { lessonView, maxSubgroupCount, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
+import { alignSubgroupOrder, lessonView, maxSubgroupCount, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
 import { lessonChangeMessage } from "./lib/lessonChange";
 import { resetUniversityBundleCache, warmUniversityScheduleBundle } from "./lib/staticData";
 import { isSelectedScheduleUpdate } from "./lib/scheduleUpdate";
@@ -411,7 +411,7 @@ export function App() {
     try {
       const loaded = await loadSchedule(group, hasCache);
       if (requestSequence !== refreshSequenceRef.current || selectedGroupRef.current?.nrec !== group.nrec) return;
-      const preferred = preferNewerSchedule(currentSchedule, loaded);
+      const preferred = alignSubgroupOrder(preferNewerSchedule(currentSchedule, loaded), loaded);
       const changed = scheduleContentSignature(currentSchedule) !== scheduleContentSignature(preferred);
       if (hasCache && currentSchedule !== preferred) {
         dataUpdateScrollRef.current = [...document.querySelectorAll<HTMLElement>(
@@ -419,6 +419,7 @@ export function App() {
         )].map((element) => ({ element, top: element.scrollTop, left: element.scrollLeft }));
       }
       scheduleRef.current = preferred;
+      if (preferred !== currentSchedule) writeGroupScheduleCache(preferred);
       setSchedule(preferred);
       setStatus(changed && hasCache ? "updated" : "ready");
     } catch {

@@ -1,6 +1,7 @@
 import type { CurrentInfo, LessonSlot, LessonVariant, ScheduleDataSource, ScheduleQuality, ScheduleState, WeekMode } from "../types";
 import { writeGroupScheduleCache } from "../features/groups/groupStorage";
 import { preferNewerSchedule } from "./freshness";
+import { alignSubgroupOrder } from "./subgroup";
 import { withEstimatedSemesterPeriod } from "./schedulePeriod";
 import { vlsuWeekTypeForDate } from "./academicWeek";
 import {
@@ -663,7 +664,7 @@ export async function loadSchedule(group: GroupProfile, hasDeviceSnapshot = fals
     if (hasDeviceSnapshot && import.meta.env.PROD && import.meta.env.BASE_URL !== "/") {
       try {
         const archived = await fetchArchivedWorkerSnapshot(group.nrec);
-        const preferred = preferNewerSchedule(staticState, archived);
+        const preferred = alignSubgroupOrder(preferNewerSchedule(staticState, archived), staticState);
         writeGroupScheduleCache(preferred);
         return preferred;
       } catch {

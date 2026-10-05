@@ -385,6 +385,45 @@ describe("schedule snapshot v2", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("keeps subgroup assignments from the static snapshot when a newer Worker reverses only their order", async () => {
+    vi.stubEnv("PROD", true);
+    vi.stubEnv("BASE_URL", "/lad-vlsu/");
+    vi.stubEnv("VITE_SCHEDULE_FALLBACK_URL", "https://worker.example");
+    const storage = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value)
+    });
+    const ai = "109-3, лб, Васильев Д.Н., Основы искусственного интеллекта";
+    const architecture = "111-3, лб, Аджамиех С.М., Основы архитектуры и интеграции информационных систем";
+    const staticSnapshot = {
+      schemaVersion: 3,
+      group: { nrec, name: "ПИ-124", instituteShortName: "ИИТЭ" },
+      semester: 5,
+      schedule: [{ type: "Lessons", name: "Вторник", z1: `${ai}\n${architecture}` }],
+      scheduleHash: "b".repeat(64),
+      capturedAt: "2026-10-01T12:00:00Z",
+      quality: { valid: true, scheduleEntries: 1, lessonDays: 1, examEntries: 0, warnings: [] }
+    };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/data/schedule/")) return new Response(JSON.stringify(staticSnapshot), { status: 200 });
+      if (url.includes("?cached=1")) return new Response(JSON.stringify({
+        ...snapshot,
+        schedule: [{ type: "Lessons", name: "Вторник", z1: `${architecture}\n${ai}` }],
+        scheduleFetchedAt: "2026-10-05T18:00:00Z"
+      }), { status: 200 });
+      throw new Error(`Unexpected request: ${url}`);
+    }));
+
+    const state = await loadSchedule(LEGACY_PI124_GROUP, true);
+    const first = state.allLessons.find((item) => item.dayIndex === 2 && item.pairIndex === 1);
+    expect(first?.variants?.map((variant) => variant.subject)).toEqual([
+      "Основы искусственного интеллекта", "Основы архитектуры и интеграции информационных систем"
+    ]);
+    expect(state.fetchedAt).toBe("2026-10-05T18:00:00Z");
+  });
+
   it("discovers an uncached Pages group through the Worker", async () => {
     vi.stubEnv("PROD", true);
     vi.stubEnv("BASE_URL", "/vlsu-pi-124-schedule/");

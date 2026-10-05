@@ -3,13 +3,14 @@ const fs = require('node:fs');
 const { chromium } = require('playwright');
 
 const id = '7936a2a43b11b20b01d30f5b00c73166';
-const url = `http://127.0.0.1:4173/?group=${id}&institute=5b42fa53ec1dd1892e5ec44a3a60a896`;
+const root = process.env.QA_URL || 'http://127.0.0.1:4173/';
+const url = new URL(`?group=${id}&institute=5b42fa53ec1dd1892e5ec44a3a60a896`, root).href;
 
 (async () => {
   const browser = await chromium.launch({ executablePath: 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe' });
   const errors = [];
   try {
-    const page = await browser.newPage({ viewport: { width: 402, height: 874 }, deviceScaleFactor: 2 });
+    const page = await browser.newPage({ viewport: { width: 402, height: 874 }, deviceScaleFactor: 2, serviceWorkers: 'block' });
     page.on('pageerror', (error) => errors.push(error.message));
     await page.clock.install({ time: new Date('2026-10-05T09:00:00Z') });
     await page.goto(url, { waitUntil: 'domcontentloaded' });
@@ -39,6 +40,8 @@ const url = `http://127.0.0.1:4173/?group=${id}&institute=5b42fa53ec1dd1892e5ec4
     await page.getByRole('button', { name: 'Следующий день' }).click();
     await page.locator('.today-view').waitFor();
     await page.locator('.lesson-row').first().locator('.lesson-row-button').click();
+    await page.locator('.today-view .subgroup-picker').getByRole('button', { name: '1', exact: true }).click();
+    assert.match(await page.locator('.hero-card').innerText(), /искусственного интеллекта/);
     await page.locator('.today-view .subgroup-picker').getByRole('button', { name: '2', exact: true }).click();
     assert.match(await page.locator('.hero-card').innerText(), /архитектуры и интеграции/);
     assert.match(await page.locator('.hero-card').innerText(), /перенесена на дистант/);
@@ -48,8 +51,25 @@ const url = `http://127.0.0.1:4173/?group=${id}&institute=5b42fa53ec1dd1892e5ec4
       viewportBottom: innerHeight, overflow: document.documentElement.scrollWidth > innerWidth }));
     assert.ok(Math.abs(todayGeometry.navBottom - todayGeometry.viewportBottom) < 2);
     assert.equal(todayGeometry.overflow, false);
+    await page.evaluate((groupId) => {
+      const key = `lad.schedule.v2:${groupId}`;
+      const cached = JSON.parse(localStorage.getItem(key));
+      const tuesday = cached.allLessons.find((lesson) => lesson.dayIndex === 2 && lesson.pairIndex === 1 && lesson.weekMode === 'denominator');
+      tuesday.variants.reverse();
+      tuesday.rawText = tuesday.variants.map((variant) => variant.rawText).join('\n');
+      tuesday.subject = tuesday.variants.map((variant) => variant.subject).join(' / ');
+      cached.fetchedAt = '2026-10-07T12:00:00Z';
+      localStorage.setItem(key, JSON.stringify(cached));
+      localStorage.setItem(`lad.subgroup.v1:${groupId}`, '0');
+    }, id);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Следующий день' }).click();
+    await page.waitForFunction(() => document.querySelector('.hero-card')?.textContent?.includes('искусственного интеллекта'), { timeout: 12000 });
+    const restoredCache = await page.evaluate((groupId) => JSON.parse(localStorage.getItem(`lad.schedule.v2:${groupId}`)), id);
+    assert.match(restoredCache.allLessons.find((lesson) => lesson.dayIndex === 2 && lesson.pairIndex === 1 && lesson.weekMode === 'denominator').variants[0].subject, /искусственного интеллекта/);
+    await page.screenshot({ path: 'artifacts/qa/subgroup/today-restored-cache-430.png' });
     assert.equal(errors.length, 0, errors.join('\n'));
-    console.log(JSON.stringify({ geometry, todayGeometry, errors, checks: 'Tuesday and Friday, both subgroups and week types; Today change' }));
+    console.log(JSON.stringify({ geometry, todayGeometry, errors, checks: 'Tuesday and Friday, both subgroups and week types; Today both subgroups; corrupted cache recovery' }));
   } finally {
     await browser.close();
   }

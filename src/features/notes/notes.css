@@ -3281,3 +3281,7 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   .smart-calendar:not(:has(.personal-event-form)) > .calendar-actions { grid-column: 1 / -1; grid-row: 5; }
   .smart-calendar:has(.personal-event-form) { width: min(100%, 700px); margin: auto; }
 }
+
+@media (min-width: 1800px) and (min-height: 600px) {
+  .note-composer { width: min(100%, 920px); }
+}

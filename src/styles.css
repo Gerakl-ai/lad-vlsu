@@ -5838,6 +5838,16 @@ button.day-title > svg {
   .bottom-nav .nav-icon svg { width: 21px; height: 21px; }
 }
 
+@media (min-width: 1800px) and (min-height: 600px) {
+  .phone-frame { width: min(100%, 1760px); }
+  .week-view { grid-template-columns: minmax(420px, .68fr) minmax(0, 1.72fr); }
+  .week-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    align-items: start;
+  }
+}
+
 .upcoming-study {
   min-width: 0;
   padding-top: 4px;
