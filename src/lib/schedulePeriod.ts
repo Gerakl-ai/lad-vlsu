@@ -2,7 +2,7 @@ import type { ScheduleState } from "../types";
 
 /** A safety boundary for undated weekly API data, not an official validity period. */
 export function withEstimatedSemesterPeriod(state: ScheduleState): ScheduleState {
-  if (state.validFrom || state.validThrough || !state.allLessons.length
+  if (((state.validFrom || state.validThrough) && !state.periodEstimated) || !state.allLessons.length
     || state.allLessons.some((lesson) => lesson.date || lesson.scheduleKind === "exam")) return state;
 
   const semester = state.currentInfo.semester;
@@ -13,9 +13,14 @@ export function withEstimatedSemesterPeriod(state: ScheduleState): ScheduleState
   const year = captured.getUTCFullYear();
   const month = captured.getUTCMonth() + 1;
   const autumn = semester % 2 === 1;
-  const termYear = autumn ? (month < 8 ? year - 1 : year) : (month >= 8 ? year + 1 : year);
+  const termYear = autumn && month < 8 ? year - 1 : year;
   const validFrom = `${termYear}-${autumn ? "09-01" : "02-01"}`;
   const validThrough = `${termYear}-${autumn ? "12-31" : "06-30"}`;
+
+  if (state.periodEstimated && state.validFrom === validFrom && state.validThrough === validThrough
+    && state.allLessons.every((lesson) => lesson.validFrom === validFrom && lesson.validThrough === validThrough)) {
+    return state;
+  }
 
   return {
     ...state,

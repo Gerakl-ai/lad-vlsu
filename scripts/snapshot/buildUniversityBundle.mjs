@@ -122,7 +122,7 @@ function periodWindow(snapshot, asOf) {
     const year = captured.getUTCFullYear();
     const month = captured.getUTCMonth() + 1;
     const autumn = semester % 2 === 1;
-    const termYear = autumn ? (month < 8 ? year - 1 : year) : (month >= 8 ? year + 1 : year);
+    const termYear = autumn && month < 8 ? year - 1 : year;
     from = `${termYear}-${autumn ? '09-01' : '02-01'}`;
     through = `${termYear}-${autumn ? '12-31' : '06-30'}`;
     basis = 'estimated';

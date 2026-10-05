@@ -31,6 +31,18 @@ it('can use the current semester preliminary document when the API snapshot belo
   expect(buildUniversityBundle(catalog, [original, currentSemester], new Date('2027-10-05T12:00:00Z'))
     .bundle.groups[nrec]).toEqual(currentSemester);
 });
+it('does not mistake an autumn recapture of old spring data for next spring', () => {
+  const staleSpring = { ...original, semester: 6, capturedAt: '2026-10-05T00:00:00Z',
+    scheduleHash: sha256({ semester: 6, schedule }) };
+  const currentAutumn = { ...original, semester: 7, capturedAt: '2026-09-03T00:00:00Z',
+    scheduleHash: sha256({ semester: 7, schedule }),
+    extraction: { method: 'ocr', status: 'unreviewed' },
+    quality: { valid: true, warnings: ['ocr-unreviewed'] } };
+  for (const candidates of [[staleSpring, currentAutumn], [currentAutumn, staleSpring]]) {
+    expect(buildUniversityBundle(catalog, candidates, new Date('2026-10-05T12:00:00Z'))
+      .bundle.groups[nrec]).toEqual(currentAutumn);
+  }
+});
 it.each([{ schedule: [] }, { scheduleHash: 'b'.repeat(64) }, { capturedAt: 'broken' },
   { group: { ...original.group, instituteId: 'other' } }, { quality: { valid: false } }])('preserves a valid fallback when a newer candidate is invalid: %j', (fields) => {
   const result = buildUniversityBundle(catalog, [original, { ...original, capturedAt: '2026-10-01T00:00:00Z', ...fields }]);
@@ -118,6 +130,11 @@ it('reports declared and estimated semester windows separately from content qual
   } }, new Date('2027-05-01T12:00:00Z')).groups[nrec].period)
     .toEqual({ status: 'within', basis: 'estimated',
       validFrom: '2027-02-01', validThrough: '2027-06-30' });
+  expect(buildDataQualityReport(periodCatalog, { groups: {
+    [nrec]: { ...original, semester: 6, capturedAt: '2026-10-05T00:00:00Z' }
+  } }, new Date('2026-10-05T12:00:00Z')).groups[nrec].period)
+    .toEqual({ status: 'after', basis: 'estimated',
+      validFrom: '2026-02-01', validThrough: '2026-06-30' });
 });
 it('rejects ambiguous same-date content instead of silently picking a source', () => {
   const different = [{ ...schedule[0], n1: '111-3, лк, Пример П.П., Другой предмет' }];

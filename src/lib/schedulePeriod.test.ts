@@ -28,6 +28,20 @@ describe("границы недатированного расписания", (
     expect(state).toMatchObject({ validFrom: "2027-02-01", validThrough: "2027-06-30" });
   });
 
+  it("не переносит старый весенний снимок в следующий год при повторной загрузке осенью", () => {
+    const state = withEstimatedSemesterPeriod({ ...weekly,
+      currentInfo: { ...weekly.currentInfo, semester: 6 }, fetchedAt: "2026-10-05T10:00:00.000Z" });
+    expect(state).toMatchObject({ validFrom: "2026-02-01", validThrough: "2026-06-30", periodEstimated: true });
+    expect(selectDayLessons(state.allLessons, 1, "numerator", new Date(2027, 1, 1))).toHaveLength(0);
+    const cachedWithOldEstimate = { ...state, validFrom: "2027-02-01", validThrough: "2027-06-30",
+      allLessons: state.allLessons.map((lesson) => ({ ...lesson,
+        validFrom: "2027-02-01", validThrough: "2027-06-30" })) };
+    expect(withEstimatedSemesterPeriod(cachedWithOldEstimate)).toMatchObject({
+      validFrom: "2026-02-01", validThrough: "2026-06-30",
+      allLessons: [{ validFrom: "2026-02-01", validThrough: "2026-06-30" }]
+    });
+  });
+
   it("сохраняет явные границы документа и датированные экзамены", () => {
     const documented = { ...weekly, validFrom: "2026-09-05", validThrough: "2027-01-20" };
     expect(withEstimatedSemesterPeriod(documented)).toBe(documented);

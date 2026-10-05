@@ -193,6 +193,20 @@ describe("normalizeSchedule", () => {
     expect(cached).toMatchObject({ validFrom: "2026-02-01", validThrough: "2026-06-30", periodEstimated: true });
   });
 
+  it("corrects a previously cached future spring estimate on startup", () => {
+    const cached = normalizeCachedSchedule({
+      groupNrec: "group",
+      currentInfo: { currentLesson: "", currentWeekType: 1, name: "ПИ-124", semester: 6 },
+      fetchedAt: "2026-10-05T10:00:00.000Z",
+      validFrom: "2027-02-01", validThrough: "2027-06-30", periodEstimated: true,
+      allLessons: [{ id: "legacy", dayIndex: 1, dayName: "Понедельник", pairIndex: 1,
+        start: "08:30", end: "10:00", subject: "Базы данных", rawText: "Базы данных",
+        weekMode: "all", validFrom: "2027-02-01", validThrough: "2027-06-30" }]
+    });
+    expect(cached).toMatchObject({ validFrom: "2026-02-01", validThrough: "2026-06-30",
+      allLessons: [{ validFrom: "2026-02-01", validThrough: "2026-06-30" }] });
+  });
+
   it("rejects a partial legacy cache instead of crashing application startup", () => {
     expect(normalizeCachedSchedule({
       groupNrec: "group",
