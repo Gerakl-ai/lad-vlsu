@@ -98,6 +98,7 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
     const workerUrl = `${base}sw.js`;
     navigator.serviceWorker.register(workerUrl, { updateViaCache: "none" })
       .then(async (registration) => {
+        if (!registration) return;
         manageAppUpdates(registration, () => window.location.reload());
         await registration.update();
         if (!navigator.onLine) return;

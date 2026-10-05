@@ -26,9 +26,9 @@ import type { LessonSlot, WeekMode } from "../../types";
 import { FolderSheet } from "./FolderSheet";
 import { deadlineForCalendarDate } from "./noteDeadline";
 import { NoteCard } from "./NoteCard";
-import type { NotesLoadStatus } from "./noteStorage";
+import { loadDraftsWithStatus, type NotesLoadStatus } from "./noteStorage";
 import type { NoteDropPlacement } from "./noteOrdering";
-import type { LessonNoteContext, NoteClassification, NoteComposerRequest, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
+import type { LessonNoteContext, NoteClassification, NoteComposerRequest, NoteDocumentInput, NoteDraft, NoteFolder, SmartNote } from "./noteTypes";
 
 let noteComposerModule: Promise<typeof import("./NoteComposer")> | undefined;
 let calendarModule: Promise<typeof import("./SmartCalendarSheet")> | undefined;
@@ -148,6 +148,8 @@ export function NotesView({
   const [folderSheetOpen, setFolderSheetOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<SmartNote | null>(null);
+  const [restoringDraft, setRestoringDraft] = useState<NoteDraft | null>(null);
+  const [drafts, setDrafts] = useState<NoteDraft[]>([]);
   const [voiceStartToken, setVoiceStartToken] = useState(0);
   const [composerSeed, setComposerSeed] = useState("");
   const [composerDueAt, setComposerDueAt] = useState<string | undefined>(undefined);
@@ -158,6 +160,14 @@ export function NotesView({
   const voiceRequestIdRef = useRef(0);
   const reorderStateRef = useRef<NoteReorderState | null>(null);
   const reorderOriginRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    let active = true;
+    void loadDraftsWithStatus().then(({ drafts: stored }) => {
+      if (active) setDrafts(stored);
+    });
+    return () => { active = false; };
+  }, []);
 
   const filters = useMemo<SmartFilter[]>(() => {
     const folderFilters = folders.map((folder) => ({
@@ -353,6 +363,7 @@ export function NotesView({
     if (!composerRequest) return;
     preloadNoteComposer();
     setEditingNote(null);
+    setRestoringDraft(null);
     setComposerSeed(composerRequest.seed ?? "");
     setComposerDueAt(composerRequest.dueAt);
     setComposerLessonContext(composerRequest.lessonContext);
@@ -371,15 +382,18 @@ export function NotesView({
   function closeComposer() {
     setComposerOpen(false);
     setEditingNote(null);
+    setRestoringDraft(null);
     setVoiceStartToken(0);
     setComposerSeed("");
     setComposerDueAt(undefined);
     setComposerLessonContext(undefined);
+    void loadDraftsWithStatus().then(({ drafts: stored }) => setDrafts(stored));
   }
 
   function createBlankNote(seed = "", dueAt?: string, lessonContext?: LessonNoteContext) {
     preloadNoteComposer();
     setEditingNote(null);
+    setRestoringDraft(null);
     setComposerSeed(seed);
     setComposerDueAt(dueAt);
     setComposerLessonContext(lessonContext);
@@ -390,6 +404,7 @@ export function NotesView({
   function startDictation() {
     preloadNoteComposer();
     setEditingNote(null);
+    setRestoringDraft(null);
     setComposerSeed("");
     setComposerDueAt(undefined);
     setComposerLessonContext(undefined);
@@ -402,9 +417,21 @@ export function NotesView({
     preloadNoteComposer();
     setCalendarOpen(false);
     setEditingNote(note);
+    setRestoringDraft(null);
     setComposerSeed("");
     setComposerDueAt(undefined);
     setComposerLessonContext(note.lessonContext);
+    setVoiceStartToken(0);
+    setComposerOpen(true);
+  }
+
+  function openDraft(draft: NoteDraft) {
+    preloadNoteComposer();
+    setEditingNote(notes.find((note) => note.id === draft.id) ?? null);
+    setRestoringDraft(draft);
+    setComposerSeed("");
+    setComposerDueAt(undefined);
+    setComposerLessonContext(draft.lessonContext ?? undefined);
     setVoiceStartToken(0);
     setComposerOpen(true);
   }
@@ -491,6 +518,19 @@ export function NotesView({
         </div>
       </div>
 
+      {ready && drafts.some((draft) => draft.text.trim() || /<img\b/i.test(draft.contentHtml)) && (
+        <section className="recoverable-drafts" aria-label="Черновики записей">
+          <h3>Черновики</h3>
+          {drafts.filter((draft) => draft.text.trim() || /<img\b/i.test(draft.contentHtml)).map((draft) => (
+            <button key={draft.id} type="button" onClick={() => openDraft(draft)}>
+              <SquarePen size={18} aria-hidden="true" />
+              <span>{draft.text.trim().split("\n")[0].slice(0, 80) || "Запись с фото"}</span>
+              <ChevronRight size={18} aria-hidden="true" />
+            </button>
+          ))}
+        </section>
+      )}
+
       {!ready ? (
         <section className="notes-loading" aria-label="Загрузка записей"><span /><span /><span /></section>
       ) : storageStatus === "unavailable" && notes.length === 0 ? (
@@ -555,6 +595,7 @@ export function NotesView({
             initialSeed={composerSeed}
             initialDueAt={composerDueAt}
             initialLessonContext={composerLessonContext}
+            restoredDraft={restoringDraft}
             voiceStartToken={voiceStartToken}
             classifyDraft={classifyDraft}
             onClose={closeComposer}

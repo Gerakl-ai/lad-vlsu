@@ -255,25 +255,75 @@ export async function removeFolder(folderId: string): Promise<void> {
 }
 
 export async function loadDraft(draftId: string): Promise<NoteDraft | null> {
+  const fallback = readDraftSnapshot(draftId);
   try {
     const database = await openDatabase();
     try {
-      return await new Promise<NoteDraft | null>((resolve, reject) => {
+      const stored = await new Promise<NoteDraft | null>((resolve, reject) => {
         const request = database.transaction(DRAFTS_STORE, "readonly").objectStore(DRAFTS_STORE).get(draftId);
         request.onsuccess = () => resolve((request.result as NoteDraft | undefined) ?? null);
         request.onerror = () => reject(request.error);
       });
+      return !stored || fallback && Date.parse(fallback.updatedAt) > Date.parse(stored.updatedAt) ? fallback : stored;
     } finally {
       database.close();
     }
   } catch {
-    const drafts = readFallback<Record<string, NoteDraft>>(DRAFTS_FALLBACK_KEY, {});
-    return drafts[draftId] ?? null;
+    return fallback;
   }
 }
 
 export function readDraftSnapshot(draftId: string) {
   return readFallback<Record<string, NoteDraft>>(DRAFTS_FALLBACK_KEY, {})[draftId] ?? null;
+}
+
+export async function loadDraftsWithStatus(): Promise<{ drafts: NoteDraft[]; status: NotesLoadStatus }> {
+  let fallbackAvailable = false;
+  let fallback: Record<string, NoteDraft> = {};
+  try {
+    localStorage.getItem(DRAFTS_FALLBACK_KEY);
+    fallback = readFallback<Record<string, NoteDraft>>(DRAFTS_FALLBACK_KEY, {});
+    fallbackAvailable = true;
+  } catch { /* Storage can be disabled entirely. */ }
+  try {
+    const stored = await getAll<NoteDraft>(DRAFTS_STORE);
+    const merged = new Map(Object.values(fallback).map((draft) => [draft.id, draft]));
+    stored.forEach((draft) => {
+      const existing = merged.get(draft.id);
+      if (!existing || Date.parse(draft.updatedAt) > Date.parse(existing.updatedAt)) merged.set(draft.id, draft);
+    });
+    return { drafts: [...merged.values()], status: "database" };
+  } catch {
+    return { drafts: Object.values(fallback), status: fallbackAvailable ? "fallback" : "unavailable" };
+  }
+}
+
+export async function importDrafts(incoming: NoteDraft[]): Promise<{ added: number; conflicts: number }> {
+  const { drafts, status } = await loadDraftsWithStatus();
+  if (status === "unavailable") throw new Error("Draft storage unavailable");
+  const existing = new Map(drafts.map((draft) => [draft.id, draft]));
+  let added = 0;
+  let conflicts = 0;
+  for (const draft of incoming) {
+    const current = existing.get(draft.id);
+    if (current && JSON.stringify(current) === JSON.stringify(draft)) continue;
+    let restored = draft;
+    if (current) {
+      conflicts += 1;
+      const base = `imported-${draft.id}-${encodeURIComponent(draft.updatedAt)}`;
+      let id = base;
+      let suffix = 1;
+      while (existing.has(id) && JSON.stringify({ ...existing.get(id), id: draft.id }) !== JSON.stringify(draft)) {
+        id = `${base}-${suffix++}`;
+      }
+      if (existing.has(id)) continue;
+      restored = { ...draft, id };
+    }
+    if (!await storeDraft(restored)) throw new Error("Failed to save imported draft");
+    existing.set(restored.id, restored);
+    added += 1;
+  }
+  return { added, conflicts };
 }
 
 export async function storeDraft(draft: NoteDraft): Promise<boolean> {

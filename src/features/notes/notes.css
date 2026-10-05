@@ -3220,6 +3220,13 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 .theme-presets summary { min-height: 44px; padding: 14px 2px; color: var(--muted); font-size: 14px; cursor: pointer; }
 .theme-presets summary { min-height: 44px; cursor: pointer; padding: 12px 0; }
 
+.recoverable-drafts { display: grid; gap: 7px; min-width: 0; padding: 12px; border: 1px solid var(--theme-panel-border); border-radius: 8px; background: var(--theme-control); }
+.recoverable-drafts h3 { margin: 0 0 2px; color: var(--muted); font-size: 13px; font-weight: 800; }
+.recoverable-drafts button { display: grid; grid-template-columns: 20px minmax(0, 1fr) 18px; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px; border: 0; border-radius: 6px; background: transparent; color: var(--text); text-align: left; font: inherit; cursor: pointer; }
+.recoverable-drafts button:hover, .recoverable-drafts button:focus-visible { background: rgba(var(--accent-rgb), .12); outline: none; }
+.recoverable-drafts button > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recoverable-drafts button > svg:first-child { color: var(--cyan); }
+
 @media (min-width: 960px) and (min-height: 600px) {
   .notes-view { grid-template-columns: minmax(340px, .72fr) minmax(0, 1.28fr); align-items: start; }
   .notes-dashboard {
@@ -3234,7 +3241,8 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   .notes-list,
   .notes-empty,
   .notes-loading,
-  .notes-storage-warning { grid-column: 2; min-width: 0; }
+  .notes-storage-warning,
+  .recoverable-drafts { grid-column: 2; min-width: 0; }
   .notes-heading h2 { font-size: 30px; }
   .quick-capture strong { font-size: 18px; }
   .quick-capture small { font-size: 13px; }

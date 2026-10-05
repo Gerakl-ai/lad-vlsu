@@ -42,13 +42,15 @@ import {
   ShieldCheck,
   Sparkles,
   Upload,
+  Video,
   Waves
 } from "lucide-react";
 import type { AppTab, ApiStatus, LessonSlot, NotificationCapability, ReminderSettings, ScheduleState, WeekMode } from "./types";
 import { downloadNotesBackup, parseNotesArchive } from "./features/notes/noteBackup";
 import { deadlineForCalendarDate } from "./features/notes/noteDeadline";
 import { createLessonNoteContext, notesLinkedToLesson } from "./features/notes/noteLinking";
-import type { NoteComposerRequest, NoteFolder, SmartNote } from "./features/notes/noteTypes";
+import type { NoteComposerRequest, NoteDraft, NoteFolder, SmartNote } from "./features/notes/noteTypes";
+import { importDrafts, loadDraftsWithStatus, type NotesLoadStatus } from "./features/notes/noteStorage";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
 import { importPersonalEvents, personalEventsOnDate, usePersonalEvents } from "./features/notes/personalEvents";
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
@@ -70,7 +72,8 @@ import { heroCopy } from "./lib/heroCopy";
 import { scheduleNotice, preferNewerSchedule } from "./lib/freshness";
 import { assetUrl } from "./lib/assetUrl";
 import { backupSignature, markBackupMade, readBackupMade } from "./features/notes/backupState";
-import { lessonView, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
+import { lessonView, maxSubgroupCount, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
+import { lessonChangeMessage } from "./lib/lessonChange";
 import { resetUniversityBundleCache, warmUniversityScheduleBundle } from "./lib/staticData";
 import { isSelectedScheduleUpdate } from "./lib/scheduleUpdate";
 import { readReminderSettings, writeReminderSettings } from "./lib/storage";
@@ -340,7 +343,8 @@ export function App() {
   const todayDateKey = dateKeyFromDate(nowDate);
   const isSelectedToday = selectedDateKey === todayDateKey;
   const isSelectedPast = selectedDateKey < todayDateKey;
-  const selectedWeekMode = selectedWeekModeForDate(selectedDate, currentWeek, weekOverride, nowDate);
+  // A manually previewed week must not change the actual timetable of a selected calendar date.
+  const selectedWeekMode = selectedWeekModeForDate(selectedDate, currentWeek, "current", nowDate);
   const { todayLessons, current, next } = useMemo(() => {
     const allLessons = schedule?.allLessons ?? [];
     const selectedLessons = selectDayLessons(allLessons, currentDayIndex(selectedDate), selectedWeekMode, selectedDate);
@@ -365,12 +369,13 @@ export function App() {
   const heroLesson = current ?? next;
   // Карточка обязана показывать ту же подгруппу, что и лента ниже.
   const heroView = heroLesson ? lessonView(heroLesson, subgroup, selectedWeekMode) : null;
+  const heroChange = lessonChangeMessage(selectedGroup?.nrec, selectedDateKey, heroLesson, subgroup);
   const dayCompleted = (isSelectedToday && !heroLesson && todayLessons.length > 0) || (isSelectedPast && todayLessons.length > 0);
   const freeStudyDay = Boolean(schedule) && !heroLesson && !todayLessons.length;
   const heroMode: HeroMode = current ? "current" : next ? "next" : dayCompleted ? "done" : freeStudyDay ? "free" : "loading";
   const heroSubject = heroView?.subject ?? (dayCompleted ? "Все пары пройдены" : freeStudyDay ? (isSelectedToday ? "Сегодня без пар" : "В этот день без пар") : heroFallback?.subject ?? "Загрузка расписания");
   const heroRoom = heroView
-    ? heroView.room ?? "Аудитория уточняется"
+    ? (heroChange && subgroup !== "all" ? "Дистант" : heroView.room ?? "Аудитория уточняется")
     : dayCompleted || freeStudyDay
       ? selectedGroup?.name ?? "Группа"
       : heroFallback?.room ?? selectedGroup?.instituteShortName ?? "ВлГУ";
@@ -855,6 +860,7 @@ export function App() {
               lightHero={lightHero}
               heroRoom={heroRoom}
               heroTime={heroTime}
+              heroChange={heroChange}
               heroMode={heroMode}
               progress={progress}
               remaining={remaining}
@@ -891,6 +897,8 @@ export function App() {
 
           {!isLoading && !isScheduleUnavailable && activeTab === "week" && (
             <WeekView
+              subgroup={subgroup}
+              onSubgroup={setSubgroup}
               lessons={schedule?.allLessons ?? []}
               weekMode={weekMode}
               weekOverride={weekOverride}
@@ -1056,6 +1064,7 @@ function TodayView({
   lightHero,
   heroRoom,
   heroTime,
+  heroChange,
   heroMode,
   progress,
   remaining,
@@ -1095,6 +1104,7 @@ function TodayView({
   lightHero: boolean;
   heroRoom: string;
   heroTime: string;
+  heroChange: string | null;
   heroMode: HeroMode;
   progress: number;
   remaining: number;
@@ -1217,9 +1227,10 @@ function TodayView({
           )}
           <h2>{heroSubject}</h2>
           <div className="hero-meta">
-            <span><MapPin size={21} /> {heroRoom}</span>
+            <span>{heroChange && subgroup !== "all" ? <Video size={21} /> : <MapPin size={21} />} {heroRoom}</span>
             <span><Clock3 size={21} /> {heroTime}</span>
           </div>
+          {heroChange && <p className="lesson-change hero-change">{heroChange}</p>}
 
           {hero.showProgressRow && (
             <div className="progress-row" aria-label="Прогресс пары">
@@ -1388,6 +1399,8 @@ function Timeline({
           subgroup={subgroup}
           onSubgroup={onSubgroup}
           weekMode={selectedWeekMode}
+          groupNrec={groupNrec}
+          dateKey={dateKeyFromDate(selectedDate)}
           index={index}
         />
         </Fragment>
@@ -1410,6 +1423,8 @@ function LessonRow({
   subgroup,
   onSubgroup,
   weekMode,
+  groupNrec,
+  dateKey,
   index
 }: {
   lesson: LessonSlot;
@@ -1424,10 +1439,13 @@ function LessonRow({
   subgroup: SubgroupChoice;
   onSubgroup: (choice: SubgroupChoice) => void;
   weekMode: WeekMode;
+  groupNrec?: string;
+  dateKey: string;
   index: number;
 }) {
   const rowRef = useRef<HTMLElement>(null);
   const view = lessonView(lesson, subgroup, weekMode);
+  const change = lessonChangeMessage(groupNrec, dateKey, lesson, subgroup);
 
   function handleToggle() {
     const willExpand = !isExpanded;
@@ -1453,9 +1471,10 @@ function LessonRow({
         </span>
         <span className="route-dot" aria-hidden="true" />
         <span className="lesson-title">{view.subject}</span>
+        {change && <span className="lesson-change lesson-row-change">{change}</span>}
         <span className="lesson-place">
-          <MapPin size={16} />
-          {view.room || "Аудитория уточняется"}
+          {change && subgroup !== "all" ? <Video size={16} /> : <MapPin size={16} />}
+          {change && subgroup !== "all" ? "Дистант" : view.room || "Аудитория уточняется"}
           {view.kind ? <span>{view.kind}</span> : null}
         </span>
         <span className="row-end" aria-hidden="true">
@@ -1554,6 +1573,8 @@ function buildWeekLoads(lessons: LessonSlot[], weekMode: WeekMode, validFrom?: s
 }
 
 function WeekView({
+  subgroup,
+  onSubgroup,
   lessons,
   weekMode,
   weekOverride,
@@ -1567,6 +1588,8 @@ function WeekView({
   onSelectDate,
   onCreateLessonNote
 }: {
+  subgroup: SubgroupChoice;
+  onSubgroup: (choice: SubgroupChoice) => void;
   lessons: LessonSlot[];
   weekMode: WeekMode;
   weekOverride: WeekMode | "current";
@@ -1637,6 +1660,11 @@ function WeekView({
             </button>
           ))}
         </div>
+        {lessons.some((lesson) => (lesson.variants?.length ?? 0) > 1) && <div className="subgroup-picker week-subgroup-picker" role="group" aria-label="Моя подгруппа">
+          <span>Моя подгруппа</span>
+          {Array.from({ length: maxSubgroupCount(lessons) }, (_, index) => <button key={index} type="button" className={subgroup === index ? "active" : ""} aria-pressed={subgroup === index} onClick={() => onSubgroup(index)}>{index + 1}</button>)}
+          <button type="button" className={subgroup === "all" ? "active" : ""} aria-pressed={subgroup === "all"} onClick={() => onSubgroup("all")}>обе</button>
+        </div>}
       </div>
 
       <section className="week-list">
@@ -1661,6 +1689,8 @@ function WeekView({
                 day.lessons.map((lesson) => {
                   const linkedNotes = notesLinkedToLesson(lesson, notes, day.date, groupNrec);
                   const expanded = expandedLessonId === `${dateKeyFromDate(day.date)}-${lesson.id}`;
+                  const view = lessonView(lesson, subgroup, weekMode);
+                  const change = lessonChangeMessage(groupNrec, dateKeyFromDate(day.date), lesson, subgroup);
                   return (
                     <article className={`mini-lesson ${expanded ? "expanded" : ""}`} key={lesson.id}>
                       <button className="mini-lesson-main" type="button" onClick={() => setExpandedLessonId((value) => value === `${dateKeyFromDate(day.date)}-${lesson.id}` ? null : `${dateKeyFromDate(day.date)}-${lesson.id}`)} aria-expanded={expanded}>
@@ -1668,10 +1698,11 @@ function WeekView({
                           <time dateTime={lesson.start}>{lesson.start}</time>
                           <time dateTime={lesson.end}>{lesson.end}</time>
                         </span>
-                        <strong>{lesson.subject}</strong>
+                        <strong>{view.subject}</strong>
                         <small className="mini-lesson-meta">
-                          <span>{[lesson.room, lesson.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
-                          <span className="mini-lesson-teacher">{lesson.teacher || "Преподаватель не указан"}</span>
+                          <span>{[change && subgroup !== "all" ? "Дистант" : view.room, view.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
+                          <span className="mini-lesson-teacher">{view.teacher || "Преподаватель не указан"}</span>
+                          {change && <span className="lesson-change">{change}</span>}
                         </small>
                         {linkedNotes.length > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedNotes.length}</span>}
                         <ChevronRight className="mini-lesson-chevron" size={18} aria-hidden="true" />
@@ -1875,12 +1906,23 @@ function SettingsView({
   const importInputRef = useRef<HTMLInputElement>(null);
   const [backupNotice, setBackupNotice] = useState("");
   const [pendingBackupSignature, setPendingBackupSignature] = useState<string | null>(null);
+  const [drafts, setDrafts] = useState<NoteDraft[]>([]);
+  const [draftsStatus, setDraftsStatus] = useState<NotesLoadStatus | "loading">("loading");
   const personalEvents = usePersonalEvents();
+  useEffect(() => {
+    let active = true;
+    void loadDraftsWithStatus().then((loaded) => {
+      if (!active) return;
+      setDrafts(loaded.drafts);
+      setDraftsStatus(loaded.status);
+    });
+    return () => { active = false; };
+  }, []);
   const currentBackupSignature = useMemo(
-    () => backupSignature({ notes, folders: folders.filter((folder) => !folder.system), events: personalEvents }),
-    [notes, folders, personalEvents]
+    () => backupSignature({ notes, folders: folders.filter((folder) => !folder.system), events: personalEvents, drafts }),
+    [notes, folders, personalEvents, drafts]
   );
-  const backupMade = readBackupMade(currentBackupSignature);
+  const backupMade = draftsStatus === "database" && readBackupMade(currentBackupSignature);
   const [importBusy, setImportBusy] = useState(false);
   async function importBackup(file?: File) {
     if (!file || importBusy) return;
@@ -1897,7 +1939,11 @@ function SettingsView({
     try {
       const imported = await onImportNotes(archive.notes, archive.folders);
       const calendar = importPersonalEvents(archive.events);
-      setBackupNotice(`${imported ? `Добавлено или обновлено записей: ${imported}.` : "Все записи уже актуальны."}${archive.folders.length ? " Папки восстановлены; существующие сохранены." : ""} Событий добавлено: ${calendar.added}.${calendar.conflicts ? ` Сохранены оба варианта событий: ${calendar.conflicts}.` : ""}`);
+      const restoredDrafts = archive.drafts.length ? await importDrafts(archive.drafts) : { added: 0, conflicts: 0 };
+      const loaded = await loadDraftsWithStatus();
+      setDrafts(loaded.drafts);
+      setDraftsStatus(loaded.status);
+      setBackupNotice(`${imported ? `Добавлено или обновлено записей: ${imported}.` : "Все записи уже актуальны."}${archive.folders.length ? " Папки восстановлены; существующие сохранены." : ""} Событий добавлено: ${calendar.added}. Черновиков восстановлено: ${restoredDrafts.added}.${calendar.conflicts || restoredDrafts.conflicts ? " Разные версии сохранены отдельно." : ""}`);
     } catch {
       setBackupNotice("Импорт не завершён: устройству не удалось сохранить данные. Часть копии могла восстановиться. Сохраните исходный файл и повторите импорт после освобождения места.");
     } finally {
@@ -2017,7 +2063,7 @@ function SettingsView({
             <p>«Лад ВлГУ» - независимое приложение для студентов. Сверяй важные изменения с официальным расписанием ВлГУ.</p>
             <p>Личные записи и фотографии не отправляются на сервер. Для их переноса сохрани копию.</p>
           </details>
-          {(notes.length > 0 || personalEvents.length > 0) && !backupMade && (
+          {(notes.length > 0 || personalEvents.length > 0 || drafts.length > 0) && draftsStatus !== "loading" && !backupMade && (
             <p className="backup-warning" role="status">
               <TriangleAlert size={14} aria-hidden="true" />
               <span>
@@ -2029,14 +2075,16 @@ function SettingsView({
           <div className="backup-actions">
             <button type="button" onClick={() => {
               try {
-                downloadNotesBackup(notes, folders, personalEvents);
-                setPendingBackupSignature(currentBackupSignature);
-                setBackupNotice("Проверь, что файл сохранился в «Файлах» или загрузках, затем подтверди ниже.");
+                downloadNotesBackup(notes, folders, personalEvents, drafts);
+                setPendingBackupSignature(draftsStatus === "database" ? currentBackupSignature : null);
+                setBackupNotice(draftsStatus === "database"
+                  ? "Проверь, что файл сохранился в «Файлах» или загрузках, затем подтверди ниже."
+                  : "Файл создан из доступных данных, но часть черновиков может быть недоступна. Не удаляй старое приложение.");
               } catch {
                 setPendingBackupSignature(null);
                 setBackupNotice("Не удалось начать экспорт. Попробуйте ещё раз.");
               }
-            }} disabled={importBusy || (!notes.length && !personalEvents.length && !folders.some((folder) => !folder.system))}>
+            }} disabled={importBusy || draftsStatus === "loading" || (!notes.length && !personalEvents.length && !drafts.length && !folders.some((folder) => !folder.system))}>
               <Download size={17} /> Экспорт
             </button>
             <button type="button" disabled={importBusy} onClick={() => importInputRef.current?.click()}>
@@ -2054,7 +2102,7 @@ function SettingsView({
               <CheckCircle2 size={17} /> Файл сохранён
             </button>
           )}
-          <p className="backup-notice">Копия содержит записи, папки и личные события календаря.</p>
+          <p className="backup-notice">Копия содержит записи, черновики, папки и личные события календаря.</p>
           <input
             ref={importInputRef}
             className="visually-hidden"

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { readFile } from 'node:fs/promises';
-import { buildCoverageGapReport, buildDataQualityReport, buildUniversityBundle } from './buildUniversityBundle.mjs';
+import { buildCoverageGapReport, buildDataQualityReport, buildUniversityBundle, reconcileSubgroupOrder } from './buildUniversityBundle.mjs';
 import { sha256 } from './buildSnapshot.mjs';
 
 const nrec = 'a'.repeat(32);
@@ -22,6 +22,20 @@ it('does not let a newer unreviewed OCR replace an available API schedule for th
     expect(buildUniversityBundle(catalog, candidates, new Date('2026-10-05T12:00:00Z'))
       .bundle.groups[nrec]).toEqual(original);
   }
+});
+it('restores a documented subgroup rotation without replacing newer lesson text', () => {
+  const first = '111-3, лб, Teacher T.T., Architecture';
+  const second = '109-3, лб, Teacher T.T., AI';
+  const apiSchedule = [{ type: 'Lessons', name: 'Вторник', n1: `${first}\n${second}`, z1: `${first}\n${second}` }];
+  const documentSchedule = [{ type: 'Lessons', name: 'Вторник', n1: `${first}\n${second}`, z1: `${second}\n${first}` }];
+  const api = { ...original, schedule: apiSchedule, scheduleHash: sha256({ semester: 5, schedule: apiSchedule }), capturedAt: '2026-10-01T00:00:00Z' };
+  const document = { ...original, schedule: documentSchedule, scheduleHash: sha256({ semester: 5, schedule: documentSchedule }), extraction: { method: 'ocr', status: 'unreviewed' } };
+  const result = buildUniversityBundle(catalog, [api, document], new Date('2026-10-05T00:00:00Z')).bundle.groups[nrec];
+  expect(result.schedule[0].n1).toBe(apiSchedule[0].n1);
+  expect(result.schedule[0].z1).toBe(documentSchedule[0].z1);
+  expect(result.scheduleHash).toBe(sha256({ semester: 5, schedule: result.schedule }));
+  expect(reconcileSubgroupOrder(api, { ...document, semester: 6 })).toBe(api);
+  expect(reconcileSubgroupOrder(api, { ...document, schedule: [{ ...documentSchedule[0], z1: 'A different lesson\n' + first }] })).toBe(api);
 });
 it('can use the current semester preliminary document when the API snapshot belongs to an older semester', () => {
   const currentSemester = { ...original, semester: 7, capturedAt: '2027-09-03T00:00:00Z',

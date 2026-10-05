@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { createNotesBackup, parseNotesBackup, parseNotesArchive } from "./noteBackup";
-import type { SmartNote } from "./noteTypes";
+import type { NoteDraft, SmartNote } from "./noteTypes";
+
+const draft: NoteDraft = {
+  id: "new",
+  text: "Неоконченная мысль",
+  contentHtml: "<p>Неоконченная мысль</p>",
+  pinned: false,
+  updatedAt: "2026-07-17T10:00:00.000Z"
+};
 
 const manualDeadlineNote: SmartNote = {
   id: "note-1",
@@ -28,12 +36,19 @@ describe("notes backup", () => {
   it("accepts version 6 without calendar data", () => {
     expect(parseNotesArchive(JSON.stringify({ app: "lad", version: 6, notes: [], folders: [] })).events).toEqual([]);
   });
+  it("round-trips an autosaved draft and accepts version 7 without drafts", () => {
+    expect(parseNotesArchive(JSON.stringify(createNotesBackup([], [], [], [draft]))).drafts).toEqual([draft]);
+    expect(parseNotesArchive(JSON.stringify({ app: "lad", version: 7, notes: [], folders: [], events: [] })).drafts).toEqual([]);
+  });
+  it("rejects malformed drafts before importing any personal data", () => {
+    expect(() => parseNotesArchive(JSON.stringify({ ...createNotesBackup([manualDeadlineNote]), drafts: [{ id: "new" }] }))).toThrow("Invalid drafts backup");
+  });
   it("rejects malformed calendar events before importing any notes", () => {
     expect(() => parseNotesArchive(JSON.stringify({ ...createNotesBackup([manualDeadlineNote]), events: [{ id: "bad" }] }))).toThrow("Invalid calendar backup");
   });
   it("preserves empty custom folders and their colors", () => {
     const folder = { id: "custom", name: "Монтаж", color: "#123456", system: false, createdAt: manualDeadlineNote.createdAt };
-    expect(parseNotesArchive(JSON.stringify(createNotesBackup([], [folder])))).toEqual({ notes: [], folders: [folder], events: [] });
+    expect(parseNotesArchive(JSON.stringify(createNotesBackup([], [folder])))).toEqual({ notes: [], folders: [folder], events: [], drafts: [] });
   });
 
   it("rejects invalid folders before importing", () => {
@@ -41,7 +56,7 @@ describe("notes backup", () => {
   });
   it("preserves manual deadline metadata in the current version", () => {
     const backup = createNotesBackup([manualDeadlineNote]);
-    expect(backup.version).toBe(7);
+    expect(backup.version).toBe(8);
     expect(parseNotesBackup(JSON.stringify(backup))).toEqual([manualDeadlineNote]);
   });
 

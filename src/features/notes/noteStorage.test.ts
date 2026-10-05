@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LEGACY_PI124_GROUP } from "../groups/groupTypes";
-import { loadFolders, loadNotes, loadNotesWithStatus, normalizeStoredNote, removeNote, storeDraft, storeFolder, storeNote } from "./noteStorage";
-import type { SmartNote } from "./noteTypes";
+import { importDrafts, loadDraftsWithStatus, loadFolders, loadNotes, loadNotesWithStatus, normalizeStoredNote, removeNote, storeDraft, storeFolder, storeNote } from "./noteStorage";
+import type { NoteDraft, SmartNote } from "./noteTypes";
 
 const baseNote: SmartNote = {
   id: "legacy",
@@ -25,6 +25,32 @@ describe("note group migration", () => {
     expect(study.groupNrec).toBe(LEGACY_PI124_GROUP.nrec);
     expect(study.groupName).toBe(LEGACY_PI124_GROUP.name);
     expect(personal.groupNrec).toBeUndefined();
+  });
+});
+
+describe("draft transfer", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("keeps both different drafts with the same id and does not duplicate re-imports", async () => {
+    const values = new Map<string, string>();
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value)
+    });
+    const current: NoteDraft = { id: "new", text: "Текст на новом адресе", contentHtml: "<p>Текст на новом адресе</p>", pinned: false, updatedAt: "2026-10-05T10:00:00.000Z" };
+    const incoming: NoteDraft = { ...current, text: "Текст со старого адреса", contentHtml: "<p>Текст со старого адреса</p>", updatedAt: "2026-10-04T10:00:00.000Z" };
+    await storeDraft(current);
+    expect(await importDrafts([incoming])).toEqual({ added: 1, conflicts: 1 });
+    expect((await loadDraftsWithStatus()).drafts.map((draft) => draft.text)).toEqual([current.text, incoming.text]);
+    expect((await importDrafts([incoming])).added).toBe(0);
+  });
+
+  it("does not call an inaccessible draft database empty when the mirror is unavailable", async () => {
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("localStorage", { getItem: () => { throw new Error("blocked"); } });
+    expect(await loadDraftsWithStatus()).toEqual({ drafts: [], status: "unavailable" });
+    await expect(importDrafts([{ id: "new", text: "Text", contentHtml: "<p>Text</p>", pinned: false, updatedAt: "2026-10-05T10:00:00.000Z" }])).rejects.toThrow("Draft storage unavailable");
   });
 });
 

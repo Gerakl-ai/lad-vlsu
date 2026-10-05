@@ -1,7 +1,7 @@
-import type { NoteFolder, NoteKind, NoteStatus, SmartNote } from "./noteTypes";
+import type { NoteDraft, NoteFolder, NoteKind, NoteStatus, SmartNote } from "./noteTypes";
 import { validPersonalEvent, type PersonalEvent } from "./personalEvents";
 
-const BACKUP_VERSION = 7;
+const BACKUP_VERSION = 8;
 const NOTE_KINDS = new Set<NoteKind>(["note", "task", "homework", "wish", "idea"]);
 const NOTE_STATUSES = new Set<NoteStatus>(["open", "done"]);
 
@@ -12,6 +12,7 @@ interface NotesBackup {
   notes: SmartNote[];
   folders: NoteFolder[];
   events: PersonalEvent[];
+  drafts: NoteDraft[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -84,19 +85,32 @@ function isSmartNote(value: unknown): value is SmartNote {
   );
 }
 
-export function createNotesBackup(notes: SmartNote[], folders: NoteFolder[] = [], events: PersonalEvent[] = []): NotesBackup {
+function isNoteDraft(value: unknown): value is NoteDraft {
+  if (!isRecord(value)) return false;
+  return typeof value.id === "string" && value.id.length > 0
+    && typeof value.text === "string"
+    && typeof value.contentHtml === "string"
+    && typeof value.pinned === "boolean"
+    && isOptionalString(value.spaceOverride)
+    && (value.dueAtOverride === undefined || value.dueAtOverride === null || isDateString(value.dueAtOverride))
+    && (value.lessonContext === null || isOptionalLessonContext(value.lessonContext))
+    && isDateString(value.updatedAt);
+}
+
+export function createNotesBackup(notes: SmartNote[], folders: NoteFolder[] = [], events: PersonalEvent[] = [], drafts: NoteDraft[] = []): NotesBackup {
   return {
     app: "lad",
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     notes,
     folders: folders.filter((folder) => !folder.system),
-    events
+    events,
+    drafts
   };
 }
 
-export function downloadNotesBackup(notes: SmartNote[], folders: NoteFolder[] = [], events: PersonalEvent[] = []) {
-  const payload = JSON.stringify(createNotesBackup(notes, folders, events), null, 2);
+export function downloadNotesBackup(notes: SmartNote[], folders: NoteFolder[] = [], events: PersonalEvent[] = [], drafts: NoteDraft[] = []) {
+  const payload = JSON.stringify(createNotesBackup(notes, folders, events, drafts), null, 2);
   const blob = new Blob([payload], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -113,9 +127,9 @@ export function parseNotesBackup(raw: string): SmartNote[] {
   return parseNotesArchive(raw).notes;
 }
 
-export function parseNotesArchive(raw: string): { notes: SmartNote[]; folders: NoteFolder[]; events: PersonalEvent[] } {
+export function parseNotesArchive(raw: string): { notes: SmartNote[]; folders: NoteFolder[]; events: PersonalEvent[]; drafts: NoteDraft[] } {
   const parsed: unknown = JSON.parse(raw);
-  if (!isRecord(parsed) || parsed.app !== "lad" || ![1, 2, 3, 4, 5, 6, BACKUP_VERSION].includes(parsed.version as number) || !Array.isArray(parsed.notes)) {
+  if (!isRecord(parsed) || parsed.app !== "lad" || ![1, 2, 3, 4, 5, 6, 7, BACKUP_VERSION].includes(parsed.version as number) || !Array.isArray(parsed.notes)) {
     throw new Error("Unsupported notes backup");
   }
   if (!parsed.notes.every(isSmartNote)) throw new Error("Invalid notes backup");
@@ -126,5 +140,7 @@ export function parseNotesArchive(raw: string): { notes: SmartNote[]; folders: N
     && folder.system === false && isDateString(folder.createdAt))) throw new Error("Invalid folders backup");
   const events = parsed.events ?? [];
   if (!Array.isArray(events) || !events.every(validPersonalEvent)) throw new Error("Invalid calendar backup");
-  return { notes: parsed.notes, folders: folders as NoteFolder[], events };
+  const drafts = parsed.drafts ?? [];
+  if (!Array.isArray(drafts) || !drafts.every(isNoteDraft)) throw new Error("Invalid drafts backup");
+  return { notes: parsed.notes, folders: folders as NoteFolder[], events, drafts };
 }

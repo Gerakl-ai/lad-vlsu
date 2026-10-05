@@ -23,6 +23,57 @@ function snapshotTime(snapshot) {
   return Date.parse(snapshot.capturedAt);
 }
 
+function comparableLine(line) {
+  return line.trim().toLowerCase().replace(/[abcemhkopctx]/g, (letter) => ({
+    a: 'а', b: 'в', c: 'с', e: 'е', m: 'м', h: 'н', k: 'к', o: 'о', p: 'р', t: 'т', x: 'х'
+  })[letter]).replace(/\s+/g, ' ');
+}
+
+function orderedLines(value) {
+  return typeof value === 'string' ? value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean) : [];
+}
+
+function sameMembers(left, right) {
+  return left.length === right.length && left.map(comparableLine).sort().join('\n')
+    === right.map(comparableLine).sort().join('\n');
+}
+
+/** Restore subgroup order only when a semester-matched document confirms the same lessons in a different order. */
+export function reconcileSubgroupOrder(snapshot, document) {
+  if (!document || snapshot.semester !== document.semester
+    || snapshot.group.nrec !== document.group.nrec
+    || document.extraction?.method !== 'ocr'
+    || !Array.isArray(snapshot.schedule) || !Array.isArray(document.schedule)) return snapshot;
+  let changed = false;
+  const schedule = snapshot.schedule.map((day, dayIndex) => {
+    const reference = document.schedule[dayIndex];
+    if (day?.type !== 'Lessons' || reference?.type !== 'Lessons' || day.name !== reference.name) return day;
+    let next = day;
+    for (let pair = 1; pair <= 8; pair += 1) {
+      const primary = orderedLines(day[`n${pair}`]);
+      const secondary = orderedLines(day[`z${pair}`]);
+      const referencePrimary = orderedLines(reference[`n${pair}`]);
+      const referenceSecondary = orderedLines(reference[`z${pair}`]);
+      if (primary.length < 2 || !sameMembers(primary, secondary)
+        || !sameMembers(primary, referencePrimary) || !sameMembers(primary, referenceSecondary)
+        || primary.map(comparableLine).join('\n') !== secondary.map(comparableLine).join('\n')
+        || referencePrimary.map(comparableLine).join('\n') === referenceSecondary.map(comparableLine).join('\n')) continue;
+      const unused = [...secondary];
+      const reordered = referenceSecondary.map((line) => {
+        const index = unused.findIndex((candidate) => comparableLine(candidate) === comparableLine(line));
+        return index < 0 ? null : unused.splice(index, 1)[0];
+      });
+      if (reordered.includes(null) || unused.length) continue;
+      const value = reordered.join('\n');
+      if (value === day[`z${pair}`]) continue;
+      next = { ...next, [`z${pair}`]: value };
+      changed = true;
+    }
+    return next;
+  });
+  return changed ? { ...snapshot, schedule, scheduleHash: sha256({ semester: snapshot.semester, schedule }) } : snapshot;
+}
+
 export function buildUniversityBundle(catalog, candidates, asOf = new Date()) {
   if (catalog?.schemaVersion !== 3 || !Array.isArray(catalog.institutes)) throw new Error('Invalid university catalog');
   const known = new Map();
@@ -46,6 +97,15 @@ export function buildUniversityBundle(catalog, candidates, asOf = new Date()) {
     }
     const current = groups[id];
     if (!current || preferCandidate(current, snapshot, asOf)) groups[id] = snapshot;
+  }
+  for (const [id, snapshot] of Object.entries(groups)) {
+    if (snapshot.extraction?.method === 'ocr') continue;
+    const documents = candidates.filter((candidate) => candidate?.group?.nrec === id
+      && candidate.extraction?.method === 'ocr' && candidate.semester === snapshot.semester
+      && candidate.quality?.valid === true && scheduleQuality(candidate.schedule)
+      && candidate.scheduleHash === sha256({ semester: candidate.semester, schedule: candidate.schedule }))
+      .sort((a, b) => snapshotTime(b) - snapshotTime(a));
+    groups[id] = reconcileSubgroupOrder(snapshot, documents[0]);
   }
   return {
     bundle: { schemaVersion: 1, groups: Object.fromEntries(Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))) },
