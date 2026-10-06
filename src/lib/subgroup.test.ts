@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { parseLessonText } from "./scheduleApi";
-import { alignSubgroupOrder, hasSubgroups, lessonView, maxSubgroupCount, readSubgroup, writeSubgroup } from "./subgroup";
+import { alignSubgroupOrder, correctVerifiedSubgroups, hasSubgroups, lessonView, maxSubgroupCount, readSubgroup, writeSubgroup } from "./subgroup";
 import type { LessonSlot, ScheduleState } from "../types";
 
 /** Настоящая ячейка ПИ-124: две подгруппы в одном слоте, разделённые переводом строки. */
@@ -115,6 +115,21 @@ describe("порядок подгрупп при обновлении", () => {
     const updated = lesson("428-2, лб, Матвеева А.П., Новое занятие\n109-3, лб, Аджамиех С.М., Основы backend разработки");
     const state = (item: LessonSlot) => ({ groupNrec: "pi124", allLessons: [item] }) as ScheduleState;
     expect(alignSubgroupOrder(state(updated), state(original)).allLessons[0]).toBe(updated);
+  });
+
+  it("исправляет старый локальный снимок ПИ-124 без доступа к сети", () => {
+    const old = { ...lesson(RAW_TWO_SUBGROUPS), weekMode: "denominator" as const };
+    const cached = {
+      groupNrec: "7936a2a43b11b20b01d30f5b00c73166",
+      fetchedAt: "2026-10-05T18:00:00Z",
+      currentInfo: { semester: 5 },
+      allLessons: [old]
+    } as ScheduleState;
+    const corrected = correctVerifiedSubgroups(cached);
+    expect(lessonView(corrected.allLessons[0], 0).subject).toContain("backend");
+    expect(lessonView(corrected.allLessons[0], 1).subject).toContain("Информационная безопасность");
+    const nextYear = { ...cached, fetchedAt: "2027-02-01T00:00:00Z" };
+    expect(correctVerifiedSubgroups(nextYear)).toBe(nextYear);
   });
 });
 

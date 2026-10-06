@@ -137,3 +137,41 @@ export function alignSubgroupOrder(candidate: ScheduleState, reference: Schedule
   });
   return changed ? { ...candidate, allLessons } : candidate;
 }
+
+const PI124_2026_AUTUMN_ORDER = [
+  { dayIndex: 2, weekMode: "numerator", first: "архитектуры и интеграции" },
+  { dayIndex: 2, weekMode: "denominator", first: "искусственного интеллекта" },
+  { dayIndex: 5, weekMode: "numerator", first: "Информационная безопасность" },
+  { dayIndex: 5, weekMode: "denominator", first: "backend" }
+] as const;
+
+/** Verified autumn 2026 assignments survive an offline launch with an older device cache. */
+export function correctVerifiedSubgroups(state: ScheduleState): ScheduleState {
+  if (state.groupNrec !== "7936a2a43b11b20b01d30f5b00c73166"
+    || state.currentInfo.semester !== 5
+    || state.fetchedAt < "2026-08-01" || state.fetchedAt >= "2027-01-01") return state;
+  let changed = false;
+  const allLessons = state.allLessons.map((lesson) => {
+    if (lesson.pairIndex !== 1 || lesson.variants?.length !== 2) return lesson;
+    const rule = PI124_2026_AUTUMN_ORDER.find((item) => item.dayIndex === lesson.dayIndex && item.weekMode === lesson.weekMode);
+    if (!rule) return lesson;
+    const first = lesson.variants.find((variant) => variant.subject.toLowerCase().includes(rule.first.toLowerCase()));
+    if (!first || first === lesson.variants[0]) return lesson;
+    const variants = [first, ...lesson.variants.filter((variant) => variant !== first)];
+    const unique = (field: "subject" | "room" | "kind" | "teacher") =>
+      [...new Set(variants.map((variant) => variant[field]).filter((value): value is string => Boolean(value)))].join(" / ") || undefined;
+    const rawText = variants.map((variant) => variant.rawText).join("\n");
+    changed = true;
+    return {
+      ...lesson,
+      id: `${lesson.dayIndex}-${lesson.pairIndex}-${lesson.weekMode}-${rawText}`,
+      rawText,
+      variants,
+      subject: unique("subject") ?? lesson.subject,
+      room: unique("room"),
+      kind: unique("kind"),
+      teacher: unique("teacher")
+    };
+  });
+  return changed ? { ...state, allLessons } : state;
+}

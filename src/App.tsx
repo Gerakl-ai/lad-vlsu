@@ -115,6 +115,9 @@ const INITIAL_GROUP_LINK = parseGroupLink(window.location.search);
 const INITIAL_GROUP = (INITIAL_GROUP_LINK ? readKnownGroup(INITIAL_GROUP_LINK.nrec, INITIAL_GROUP_LINK.instituteId) : null) ?? readSelectedGroup();
 const CACHED_SCHEDULE = INITIAL_GROUP ? readGroupScheduleCache(INITIAL_GROUP) : null;
 const INITIAL_SCHEDULE = CACHED_SCHEDULE ? normalizeCachedSchedule(CACHED_SCHEDULE) : null;
+if (INITIAL_SCHEDULE && CACHED_SCHEDULE?.allLessons.some((lesson, index) => lesson.rawText !== INITIAL_SCHEDULE.allLessons[index]?.rawText)) {
+  writeGroupScheduleCache(INITIAL_SCHEDULE);
+}
 const INITIAL_FALLBACK_GROUP = [...readRecentGroups(), ...readFavoriteGroups()]
   .find((group) => group.nrec !== INITIAL_GROUP?.nrec && normalizeCachedSchedule(readGroupScheduleCache(group))) ?? null;
 const MOTION_PARTICLES = Array.from({ length: 8 }, (_, index) => index);
@@ -447,6 +450,9 @@ export function App() {
     }
     const cached = readGroupScheduleCache(group);
     const normalizedCache = cached ? normalizeCachedSchedule(cached) : null;
+    if (normalizedCache && cached?.allLessons.some((lesson, index) => lesson.rawText !== normalizedCache.allLessons[index]?.rawText)) {
+      writeGroupScheduleCache(normalizedCache);
+    }
     selectedGroupRef.current = group;
     pendingStaticRefreshRef.current = null;
     refreshSequenceRef.current += 1;
