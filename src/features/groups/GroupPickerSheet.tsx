@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Building2,
@@ -69,6 +69,10 @@ function snapshotLabel(coverage: StaticCoverage | null, nrec: string, ocrGroups:
 }
 
 export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: GroupPickerSheetProps) {
+  const sheetRef = useRef<HTMLElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   const [institutes, setInstitutes] = useState<InstituteOption[]>([]);
   const [groups, setGroups] = useState<GroupOption[]>([]);
   const [universityGroups, setUniversityGroups] = useState<GroupProfile[]>([]);
@@ -80,6 +84,38 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
   const [shareState, setShareState] = useState<"idle" | "done" | "error">("idle");
   const [coverage, setCoverage] = useState<StaticCoverage | null>(null);
   const [ocrGroups, setOcrGroups] = useState<Record<string, { validFrom: string; validThrough: string }>>({});
+
+  useEffect(() => {
+    if (!open) return;
+    const previousFocus = document.activeElement;
+    searchRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && selectedGroup) {
+        event.preventDefault();
+        closeRef.current();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = [...(sheetRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      ) ?? [])].filter((element) => element.getClientRects().length > 0);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !sheetRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !sheetRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+    };
+  }, [open, selectedGroup]);
 
   useEffect(() => {
     if (!open) return;
@@ -206,7 +242,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
 
   return (
     <div className="group-picker-backdrop" role="presentation" data-first-run={!selectedGroup}>
-      <section className={`group-picker-sheet${showCoverageWarning ? " has-coverage" : ""}`} role="dialog" aria-modal="true" aria-labelledby="group-picker-title">
+      <section ref={sheetRef} className={`group-picker-sheet${showCoverageWarning ? " has-coverage" : ""}`} role="dialog" aria-modal="true" aria-labelledby="group-picker-title">
         <header className="group-picker-header">
           {activeInstitute ? (
             <button type="button" className="group-picker-icon" onClick={() => { setActiveInstitute(null); setQuery(""); }} aria-label="Назад к институтам">
@@ -227,6 +263,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
         <label className="group-picker-search">
           <Search size={19} />
           <input
+            ref={searchRef}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={activeInstitute ? "Название группы или курс" : "Группа или институт, например ПИ-124"}

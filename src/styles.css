@@ -3805,6 +3805,12 @@ button.day-title > svg {
   background: rgba(var(--accent-rgb), .07);
 }
 
+.group-picker-sheet button:focus-visible,
+.group-picker-sheet a:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: -3px;
+}
+
 .group-picker-row:last-child {
   border-bottom: 0;
 }

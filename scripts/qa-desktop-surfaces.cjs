@@ -62,6 +62,18 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
         await page.screenshot({ path: `artifacts/qa/desktop-surfaces/${viewport.width}-${tab}.png` });
         console.log(JSON.stringify({ tab, ...viewport, ...metrics }));
       }
+      if (viewport.width === 1440) {
+        const brand = page.locator('.brand-button');
+        await brand.click();
+        await page.locator('.group-picker-search input').waitFor();
+        assert.equal(await page.locator('.group-picker-search input').evaluate((element) => document.activeElement === element), true);
+        await page.locator('.group-share-button').focus();
+        await page.keyboard.press('Tab');
+        assert.equal(await page.locator('.group-picker-sheet').evaluate((element) => element.contains(document.activeElement)), true);
+        await page.keyboard.press('Escape');
+        assert.equal(await page.locator('.group-picker-sheet').count(), 0);
+        assert.equal(await brand.evaluate((element) => document.activeElement === element), true);
+      }
       assert.deepEqual(errors, []);
       await page.close();
     }
