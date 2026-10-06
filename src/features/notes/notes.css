@@ -1016,8 +1016,8 @@
 }
 
 .notes-empty-create {
+  display: none;
   min-height: 40px;
-  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -3229,6 +3229,9 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 
 @media (min-width: 960px) and (min-height: 600px) {
   .notes-view { grid-template-columns: minmax(340px, .72fr) minmax(0, 1.28fr); align-items: start; }
+  .notes-empty { min-height: min(520px, max(320px, calc(100dvh - 360px))); }
+  .notes-empty > div { min-height: inherit; }
+  .notes-empty-create { display: inline-flex; justify-self: start; width: min(100%, 210px); }
   .notes-dashboard {
     display: grid;
     grid-column: 1;

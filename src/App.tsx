@@ -1258,7 +1258,7 @@ function TodayView({
           <span>Добавить событие</span>
           <ChevronRight size={19} aria-hidden="true" />
         </button>
-        {!outsideSchedulePeriod && !lessons.length && nextStudyDay && hasLoadedLessons && (
+        {!outsideSchedulePeriod && (!lessons.length || (dayCompleted && isSelectedToday)) && nextStudyDay && hasLoadedLessons && (
           <section className="upcoming-study" aria-label="Следующий учебный день">
             <button className="upcoming-day-launch" type="button" onClick={() => onSelectDate(nextStudyDay.date)}>
               <span>

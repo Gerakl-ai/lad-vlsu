@@ -578,6 +578,11 @@ export function NotesView({
             <h3>{query ? "Ничего не найдено" : "Здесь пока тихо"}</h3>
             <p>{query ? "Попробуйте другой запрос." : "Новая запись появится в этом пространстве."}</p>
             {!query && ready && notes.length === 0 && (
+              <button className="notes-empty-create" type="button" onPointerDown={preloadNoteComposer} onClick={() => createBlankNote()}>
+                <SquarePen size={17} aria-hidden="true" /> Создать запись
+              </button>
+            )}
+            {!query && ready && notes.length === 0 && (
               <button className="notes-empty-recovery" type="button" onClick={onOpenSettings}>
                 Были записи на другом адресе? Открыть импорт
               </button>
