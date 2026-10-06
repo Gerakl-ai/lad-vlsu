@@ -15,6 +15,7 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
       const page = await browser.newPage({ viewport });
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
+      await page.addInitScript(() => localStorage.setItem('lad.subgroup.v1:7936a2a43b11b20b01d30f5b00c73166', '0'));
       await page.clock.install({ time: new Date('2026-10-05T16:00:00Z') });
       await page.goto(url, { waitUntil: 'domcontentloaded' });
       await page.locator('.bottom-nav').waitFor();
@@ -24,6 +25,7 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
         if (tab === 'Сегодня') {
           await page.locator('.upcoming-study').waitFor();
           assert.match(await page.locator('.upcoming-study').innerText(), /6 октября/);
+          assert.doesNotMatch(await page.locator('.upcoming-lesson strong').first().innerText(), /\s\/\s/);
         }
         if (tab === 'Записи' && viewport.width >= 960) {
           const empty = page.locator('.notes-empty');

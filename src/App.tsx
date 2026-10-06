@@ -100,6 +100,7 @@ import {
   selectDayLessons,
   selectedWeekModeForDate,
   vlsuWeekModeForDate,
+  weekModeForDate,
   weekModeFromSnapshot
 } from "./lib/time";
 
@@ -178,10 +179,6 @@ function parseCurrentInfoLesson(text: string) {
   const match = text.match(/"(.+?)"\s*\((.+?)\)/);
   if (!match) return { subject: "Расписание загружено", room: "Группа" };
   return { subject: match[1], room: match[2] };
-}
-
-function lessonKeySubject(lesson?: LessonSlot) {
-  return lesson?.subject || "";
 }
 
 function formatLessonCount(count: number) {
@@ -787,7 +784,7 @@ export function App() {
     if (activeScroller) activeScroller.scrollTop = tabScrollPositionsRef.current[activeTab];
   }, [activeTab]);
 
-  const nextLabel = next ? `${next.start}, ${next.subject}` : isSelectedToday ? "Сегодня новых пар нет" : "В этот день новых пар нет";
+  const nextLabel = isSelectedToday ? "Сегодня новых пар нет" : "В этот день новых пар нет";
   const displayLessons = todayLessons;
   const isLoading = status === "loading" && !schedule;
   useEffect(() => {
@@ -1148,6 +1145,8 @@ function TodayView({
   const personalEvents = usePersonalEvents();
   const selectedPersonalEvents = personalEventsOnDate(personalEvents, selectedDate);
   const minutesToNext = next && isSelectedToday ? minutesUntilStart(next, now) : 0;
+  const nextView = next ? lessonView(next, subgroup, weekMode) : null;
+  const upcomingWeekMode = nextStudyDay ? weekModeForDate(nextStudyDay.date, weekMode, selectedDate) : weekMode;
   const hero = heroCopy({
     mode: heroMode,
     isSelectedToday,
@@ -1268,12 +1267,13 @@ function TodayView({
               <ChevronRight size={20} aria-hidden="true" />
             </button>
             <div className="upcoming-lessons">
-              {nextStudyDay.lessons.slice(0, 3).map((lesson) => (
-                <div className="upcoming-lesson" key={lesson.id}>
+              {nextStudyDay.lessons.slice(0, 3).map((lesson) => {
+                const view = lessonView(lesson, subgroup, upcomingWeekMode);
+                return <div className="upcoming-lesson" key={lesson.id}>
                   <time>{lesson.start}</time>
-                  <span><strong>{lessonKeySubject(lesson)}</strong>{lesson.room && <small>{lesson.room}</small>}</span>
-                </div>
-              ))}
+                  <span><strong>{view.subject}</strong>{view.room && <small>{view.room}</small>}</span>
+                </div>;
+              })}
             </div>
           </section>
         )}
@@ -1294,9 +1294,9 @@ function TodayView({
             <div className="next-icon"><Waves size={28} /></div>
             <div>
               <span>Следующая пара</span>
-              <strong>{lessonKeySubject(next) || nextLabel}</strong>
+              <strong>{nextView?.subject ?? nextLabel}</strong>
               {next && <small><Clock3 size={14} /> {next.start}–{next.end}</small>}
-              {next?.room && <small><MapPin size={14} /> {next.room}</small>}
+              {nextView?.room && <small><MapPin size={14} /> {nextView.room}</small>}
             </div>
           </section>
         )}
