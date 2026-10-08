@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LessonSlot } from "../../types";
 import { createLessonNoteContext, noteMatchesLesson } from "./noteLinking";
+import { lessonWithSelectedVariant } from "../../lib/lessonSelection";
 import type { SmartNote } from "./noteTypes";
 
 const lesson: LessonSlot = {
@@ -58,5 +59,33 @@ describe("lesson note linking", () => {
     const linked = note(createLessonNoteContext(lesson, firstDate, "note", "subject", { nrec: "group-a", name: "ПИ-124" }));
     expect(noteMatchesLesson(linked, lesson, firstDate, "group-a")).toBe(true);
     expect(noteMatchesLesson(linked, lesson, firstDate, "group-b")).toBe(false);
+  });
+
+  it("does not show a note for the other subject of the same slot", () => {
+    const split = { ...lesson, variants: [
+      { subject: "Основы искусственного интеллекта", rawText: "ИИ" },
+      { subject: "Основы архитектуры и интеграции информационных систем", rawText: "Архитектура" }
+    ] };
+    const ai = lessonWithSelectedVariant(split, 0);
+    const architecture = lessonWithSelectedVariant(split, 1);
+    const linked = note(createLessonNoteContext(ai, firstDate, "homework"));
+    linked.subjectKey = linked.lessonContext?.subjectKeys[0];
+    expect(noteMatchesLesson(linked, ai, firstDate)).toBe(true);
+    expect(noteMatchesLesson(linked, architecture, firstDate)).toBe(false);
+    linked.lessonContext = createLessonNoteContext(split, firstDate, "note", "subject");
+    expect(noteMatchesLesson(linked, architecture, firstDate)).toBe(false);
+  });
+
+  it("reads an explicit subject from an older note with a combined lesson context", () => {
+    const split = { ...lesson, variants: [
+      { subject: "Основы архитектуры и интеграции информационных систем", rawText: "Архитектура" },
+      { subject: "Основы искусственного интеллекта", rawText: "ИИ" }
+    ] };
+    const linked = note(createLessonNoteContext(split, firstDate, "homework"));
+    linked.text = "По основам ИИ доп задание";
+    linked.title = linked.text;
+    linked.subjectKey = linked.lessonContext?.subjectKeys[0];
+    expect(noteMatchesLesson(linked, lessonWithSelectedVariant(split, 0), firstDate)).toBe(false);
+    expect(noteMatchesLesson(linked, lessonWithSelectedVariant(split, 1), firstDate)).toBe(true);
   });
 });

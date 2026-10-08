@@ -5,7 +5,6 @@ interface LessonChange {
   groupNrec: string;
   date: string;
   pairIndex: number;
-  subgroup: number;
   subjectIncludes: string;
   message: string;
 }
@@ -15,15 +14,17 @@ const CHANGES: LessonChange[] = [{
   groupNrec: "7936a2a43b11b20b01d30f5b00c73166",
   date: "2026-10-06",
   pairIndex: 1,
-  subgroup: 1,
   subjectIncludes: "архитектуры и интеграции",
   message: "Очной пары не будет · перенесена на дистант"
 }];
 
 export function lessonChangeMessage(groupNrec: string | undefined, date: string, lesson: LessonSlot | undefined, subgroup: SubgroupChoice): string | null {
   if (!groupNrec || !lesson) return null;
+  const selectedSubjects = subgroup === "all"
+    ? lesson.variants?.map((variant) => variant.subject) ?? [lesson.subject]
+    : [lesson.variants?.[subgroup]?.subject ?? lesson.subject];
   const change = CHANGES.find((item) => item.groupNrec === groupNrec && item.date === date
-    && item.pairIndex === lesson.pairIndex && (subgroup === "all" || subgroup === item.subgroup)
-    && lesson.variants?.[item.subgroup]?.subject.toLowerCase().includes(item.subjectIncludes));
-  return change ? `${subgroup === "all" ? "2 подгруппа: " : ""}${change.message}` : null;
+    && item.pairIndex === lesson.pairIndex
+    && selectedSubjects.some((subject) => subject.toLowerCase().includes(item.subjectIncludes)));
+  return change ? `${subgroup === "all" ? "Для архитектуры: " : ""}${change.message}` : null;
 }

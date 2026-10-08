@@ -1,7 +1,7 @@
 import { dateKeyFromDate } from "../../lib/time";
 import type { LessonSlot } from "../../types";
 import type { GroupProfile } from "../groups/groupTypes";
-import { lessonSubjectKeys } from "./noteClassifier";
+import { explicitSubjectKeyFromKeys, lessonSubjectKeys } from "./noteClassifier";
 import type { LessonNoteContext, SmartNote } from "./noteTypes";
 
 export function createLessonNoteContext(
@@ -31,15 +31,21 @@ export function noteMatchesLesson(note: SmartNote, lesson: LessonSlot, date: Dat
   const context = note.lessonContext;
 
   if (context?.scope === "lesson") {
-    return context.lessonId === lesson.id
-      && context.date === (lesson.date ?? dateKeyFromDate(date));
+    if (context.lessonId !== lesson.id || context.date !== (lesson.date ?? dateKeyFromDate(date))) return false;
+    // An exact lesson can still contain two different subjects in the same time slot.
+    if ((lesson.variants?.length ?? 0) === 1) {
+      const noteKey = context.subjectKeys.length > 1
+        ? explicitSubjectKeyFromKeys(`${note.title} ${note.text}`, context.subjectKeys) ?? note.subjectKey
+        : note.subjectKey ?? context.subjectKeys[0];
+      if (noteKey && !lessonKeys.has(noteKey)) return false;
+    }
+    return true;
   }
 
-  const noteKeys = context?.subjectKeys?.length
-    ? context.subjectKeys
-    : note.subjectKey
-      ? [note.subjectKey]
-      : [];
+  const explicitKey = context?.subjectKeys && context.subjectKeys.length > 1
+    ? explicitSubjectKeyFromKeys(`${note.title} ${note.text}`, context.subjectKeys)
+    : undefined;
+  const noteKeys = explicitKey ? [explicitKey] : note.subjectKey ? [note.subjectKey] : context?.subjectKeys ?? [];
   return noteKeys.some((key) => lessonKeys.has(key));
 }
 

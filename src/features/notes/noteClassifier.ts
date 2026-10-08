@@ -92,6 +92,7 @@ function subjectAliases(label: string) {
     ["алгоритмы", "алгоритмизация", "ап", "прога", "проге", "программирование", "программированию"].forEach((alias) => aliases.add(alias));
   }
   if (/правовед/.test(normalized)) ["право", "правоведение"].forEach((alias) => aliases.add(alias));
+  if (/искусствен.*интеллект/.test(normalized)) ["ии", "основам ии", "основы ии"].forEach((alias) => aliases.add(alias));
   if (/физическ.*культур/.test(normalized)) ["физра", "физкультура"].forEach((alias) => aliases.add(alias));
   if (/теория.*систем|системн.*анализ/.test(normalized)) ["тса", "теория систем", "системный анализ"].forEach((alias) => aliases.add(alias));
 
@@ -191,6 +192,14 @@ function matchExplicitSubject(text: string, subjects: SubjectOption[]) {
   return subjectCandidates(subjects)
     .find(({ alias }) => hasPrefixedAlias(text, alias) || (strongStudyContext && matchesAlias(text, alias)))
     ?.subject;
+}
+
+export function explicitSubjectKeyFromKeys(text: string, keys: string[]) {
+  const subjects = keys.map((key) => {
+    const label = key.replace(/-/g, " ");
+    return { key, label, aliases: subjectAliases(label) } as SubjectOption;
+  });
+  return matchExplicitSubject(normalizeNoteText(text), subjects)?.key;
 }
 
 export function hasExplicitStudyContext(text: string, subjects: SubjectOption[] = []) {

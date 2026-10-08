@@ -72,7 +72,8 @@ import { heroCopy } from "./lib/heroCopy";
 import { scheduleNotice, preferNewerSchedule } from "./lib/freshness";
 import { assetUrl } from "./lib/assetUrl";
 import { backupSignature, markBackupMade, readBackupMade } from "./features/notes/backupState";
-import { alignSubgroupOrder, lessonView, maxSubgroupCount, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
+import { alignSubgroupOrder, lessonView, readSubgroup, type SubgroupChoice } from "./lib/subgroup";
+import { lessonWithSelectedVariant, readLessonSelections, selectedLessonVariant, setLessonSelection, writeLessonSelections } from "./lib/lessonSelection";
 import { lessonChangeMessage } from "./lib/lessonChange";
 import { resetUniversityBundleCache, warmUniversityScheduleBundle } from "./lib/staticData";
 import { isSelectedScheduleUpdate } from "./lib/scheduleUpdate";
@@ -356,26 +357,39 @@ export function App() {
     };
   }, [isSelectedPast, isSelectedToday, nowDate, schedule?.allLessons, selectedDate, selectedWeekMode]);
 
-  const [subgroup, setSubgroupState] = useState<SubgroupChoice>(() => readSubgroup(selectedGroup?.nrec));
+  const [lessonSelections, setLessonSelections] = useState(() => readLessonSelections(selectedGroup?.nrec, schedule?.currentInfo.semester));
   useEffect(() => {
-    setSubgroupState(readSubgroup(selectedGroup?.nrec));
-  }, [selectedGroup?.nrec]);
-  const setSubgroup = useCallback((choice: SubgroupChoice) => {
-    setSubgroupState(choice);
-    writeSubgroup(selectedGroup?.nrec, choice);
-  }, [selectedGroup?.nrec]);
+    setLessonSelections(readLessonSelections(selectedGroup?.nrec, schedule?.currentInfo.semester));
+  }, [selectedGroup?.nrec, schedule?.currentInfo.semester]);
+  const legacySubgroup = useMemo(() => readSubgroup(selectedGroup?.nrec), [selectedGroup?.nrec]);
+  const getLessonChoice = useCallback((lesson: LessonSlot, mode: WeekMode) => {
+    const oppositeMode = mode === "numerator" ? "denominator" : "numerator";
+    const counterpart = schedule?.allLessons.find((candidate) =>
+      candidate.weekMode === oppositeMode && candidate.dayIndex === lesson.dayIndex
+      && candidate.pairIndex === lesson.pairIndex && candidate.start === lesson.start
+      && candidate.date === lesson.date);
+    return selectedLessonVariant(lesson, mode, lessonSelections, selectedGroup?.nrec,
+      schedule?.currentInfo.semester, legacySubgroup, counterpart);
+  }, [lessonSelections, selectedGroup?.nrec, schedule, legacySubgroup]);
+  const chooseLesson = useCallback((lesson: LessonSlot, mode: WeekMode, choice: number | "all") => {
+    setLessonSelections((currentSelections) => {
+      const nextSelections = setLessonSelection(currentSelections, lesson, mode, choice);
+      writeLessonSelections(selectedGroup?.nrec, schedule?.currentInfo.semester, nextSelections);
+      return nextSelections;
+    });
+  }, [selectedGroup?.nrec, schedule?.currentInfo.semester]);
 
   const heroFallback = schedule ? parseCurrentInfoLesson(schedule.currentInfo.currentLesson) : null;
   const heroLesson = current ?? next;
-  // Карточка обязана показывать ту же подгруппу, что и лента ниже.
-  const heroView = heroLesson ? lessonView(heroLesson, subgroup, selectedWeekMode) : null;
-  const heroChange = lessonChangeMessage(selectedGroup?.nrec, selectedDateKey, heroLesson, subgroup);
+  const heroChoice = heroLesson ? getLessonChoice(heroLesson, selectedWeekMode) : "all";
+  const heroView = heroLesson ? lessonView(heroLesson, heroChoice, selectedWeekMode) : null;
+  const heroChange = lessonChangeMessage(selectedGroup?.nrec, selectedDateKey, heroLesson, heroChoice);
   const dayCompleted = (isSelectedToday && !heroLesson && todayLessons.length > 0) || (isSelectedPast && todayLessons.length > 0);
   const freeStudyDay = Boolean(schedule) && !heroLesson && !todayLessons.length;
   const heroMode: HeroMode = current ? "current" : next ? "next" : dayCompleted ? "done" : freeStudyDay ? "free" : "loading";
   const heroSubject = heroView?.subject ?? (dayCompleted ? "Все пары пройдены" : freeStudyDay ? (isSelectedToday ? "Сегодня без пар" : "В этот день без пар") : heroFallback?.subject ?? "Загрузка расписания");
   const heroRoom = heroView
-    ? (heroChange && subgroup !== "all" ? "Дистант" : heroView.room ?? "Аудитория уточняется")
+    ? (heroChange && heroChoice !== "all" ? "Дистант" : heroView.room ?? "Аудитория уточняется")
     : dayCompleted || freeStudyDay
       ? selectedGroup?.name ?? "Группа"
       : heroFallback?.room ?? selectedGroup?.instituteShortName ?? "ВлГУ";
@@ -681,12 +695,14 @@ export function App() {
   const openLessonComposer = useCallback((lesson: LessonSlot, date: Date, intent: "note" | "homework") => {
     const group = selectedGroupRef.current;
     if (!group) return;
+    const mode = selectedWeekModeForDate(date, currentWeek, "current", nowDate);
+    const selectedLesson = lessonWithSelectedVariant(lesson, getLessonChoice(lesson, mode));
     setComposerRequest({
       id: Date.now(),
-      lessonContext: createLessonNoteContext(lesson, date, intent, "lesson", group)
+      lessonContext: createLessonNoteContext(selectedLesson, date, intent, "lesson", group)
     });
     navigateToTab("notes");
-  }, [navigateToTab]);
+  }, [currentWeek, getLessonChoice, navigateToTab, nowDate]);
 
   const openComposerForDate = useCallback((date: Date) => {
     setComposerRequest({ id: Date.now(), dueAt: deadlineForCalendarDate(date) });
@@ -857,8 +873,8 @@ export function App() {
 
           {!isLoading && !isScheduleUnavailable && activeTab === "today" && (
             <TodayView
-              subgroup={subgroup}
-              onSubgroup={setSubgroup}
+              getLessonChoice={getLessonChoice}
+              onChooseLesson={chooseLesson}
               heroSubject={heroSubject}
               heroVisual={lightHero ? HERO_VISUAL_LIGHT : HERO_VISUAL_DARK}
               lightHero={lightHero}
@@ -901,8 +917,8 @@ export function App() {
 
           {!isLoading && !isScheduleUnavailable && activeTab === "week" && (
             <WeekView
-              subgroup={subgroup}
-              onSubgroup={setSubgroup}
+              getLessonChoice={getLessonChoice}
+              onChooseLesson={chooseLesson}
               lessons={schedule?.allLessons ?? []}
               weekMode={weekMode}
               weekOverride={weekOverride}
@@ -1060,9 +1076,12 @@ function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, on
   );
 }
 
+type LessonChoiceResolver = (lesson: LessonSlot, mode: WeekMode) => SubgroupChoice;
+type LessonChoiceSetter = (lesson: LessonSlot, mode: WeekMode, choice: number | "all") => void;
+
 function TodayView({
-  subgroup,
-  onSubgroup,
+  getLessonChoice,
+  onChooseLesson,
   heroSubject,
   heroVisual,
   lightHero,
@@ -1101,8 +1120,8 @@ function TodayView({
   scheduleValidThrough,
   schedulePeriodEstimated
 }: {
-  subgroup: SubgroupChoice;
-  onSubgroup: (choice: SubgroupChoice) => void;
+  getLessonChoice: LessonChoiceResolver;
+  onChooseLesson: LessonChoiceSetter;
   heroSubject: string;
   heroVisual: string;
   lightHero: boolean;
@@ -1145,7 +1164,7 @@ function TodayView({
   const personalEvents = usePersonalEvents();
   const selectedPersonalEvents = personalEventsOnDate(personalEvents, selectedDate);
   const minutesToNext = next && isSelectedToday ? minutesUntilStart(next, now) : 0;
-  const nextView = next ? lessonView(next, subgroup, weekMode) : null;
+  const nextView = next ? lessonView(next, getLessonChoice(next, weekMode), weekMode) : null;
   const upcomingWeekMode = nextStudyDay ? weekModeForDate(nextStudyDay.date, weekMode, selectedDate) : weekMode;
   const hero = heroCopy({
     mode: heroMode,
@@ -1233,7 +1252,7 @@ function TodayView({
           )}
           <h2>{heroSubject}</h2>
           <div className="hero-meta">
-            <span>{heroChange && subgroup !== "all" ? <Video size={21} /> : <MapPin size={21} />} {heroRoom}</span>
+            <span>{heroChange && current && getLessonChoice(current, weekMode) !== "all" ? <Video size={21} /> : <MapPin size={21} />} {heroRoom}</span>
             <span><Clock3 size={21} /> {heroTime}</span>
           </div>
           {heroChange && <p className="lesson-change hero-change">{heroChange}</p>}
@@ -1268,7 +1287,7 @@ function TodayView({
             </button>
             <div className="upcoming-lessons">
               {nextStudyDay.lessons.slice(0, 3).map((lesson) => {
-                const view = lessonView(lesson, subgroup, upcomingWeekMode);
+                const view = lessonView(lesson, getLessonChoice(lesson, upcomingWeekMode), upcomingWeekMode);
                 return <div className="upcoming-lesson" key={lesson.id}>
                   <time>{lesson.start}</time>
                   <span><strong>{view.subject}</strong>{view.room && <small>{view.room}</small>}</span>
@@ -1313,8 +1332,8 @@ function TodayView({
           groupNrec={groupNrec}
           onToggleNote={onToggleNote}
           onCreateLessonNote={onCreateLessonNote}
-          subgroup={subgroup}
-          onSubgroup={onSubgroup}
+          getLessonChoice={getLessonChoice}
+          onChooseLesson={onChooseLesson}
           selectedWeekMode={weekMode}
         />}
       </div>
@@ -1334,8 +1353,8 @@ function Timeline({
   groupNrec,
   onToggleNote,
   onCreateLessonNote,
-  subgroup,
-  onSubgroup,
+  getLessonChoice,
+  onChooseLesson,
   selectedWeekMode
 }: {
   lessons: LessonSlot[];
@@ -1349,8 +1368,8 @@ function Timeline({
   groupNrec?: string;
   onToggleNote: (noteId: string) => void;
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
-  subgroup: SubgroupChoice;
-  onSubgroup: (choice: SubgroupChoice) => void;
+  getLessonChoice: LessonChoiceResolver;
+  onChooseLesson: LessonChoiceSetter;
   selectedWeekMode: WeekMode;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -1400,11 +1419,11 @@ function Timeline({
           isPast={isSelectedPast || (isSelectedToday && lessonTimingState(lesson, now) === "past")}
           isExpanded={expandedId === lesson.id}
           onToggle={() => setExpandedId((value) => (value === lesson.id ? null : lesson.id))}
-          linkedNotes={notesLinkedToLesson(lesson, notes, selectedDate, groupNrec)}
+          linkedNotes={notesLinkedToLesson(lessonWithSelectedVariant(lesson, getLessonChoice(lesson, selectedWeekMode)), notes, selectedDate, groupNrec)}
           onToggleNote={onToggleNote}
           onCreateNote={(intent) => onCreateLessonNote(lesson, selectedDate, intent)}
-          subgroup={subgroup}
-          onSubgroup={onSubgroup}
+          choice={getLessonChoice(lesson, selectedWeekMode)}
+          onChoose={(choice) => onChooseLesson(lesson, selectedWeekMode, choice)}
           weekMode={selectedWeekMode}
           groupNrec={groupNrec}
           dateKey={dateKeyFromDate(selectedDate)}
@@ -1427,8 +1446,8 @@ function LessonRow({
   linkedNotes,
   onToggleNote,
   onCreateNote,
-  subgroup,
-  onSubgroup,
+  choice,
+  onChoose,
   weekMode,
   groupNrec,
   dateKey,
@@ -1443,16 +1462,16 @@ function LessonRow({
   linkedNotes: SmartNote[];
   onToggleNote: (noteId: string) => void;
   onCreateNote: (intent: "note" | "homework") => void;
-  subgroup: SubgroupChoice;
-  onSubgroup: (choice: SubgroupChoice) => void;
+  choice: SubgroupChoice;
+  onChoose: (choice: number | "all") => void;
   weekMode: WeekMode;
   groupNrec?: string;
   dateKey: string;
   index: number;
 }) {
   const rowRef = useRef<HTMLElement>(null);
-  const view = lessonView(lesson, subgroup, weekMode);
-  const change = lessonChangeMessage(groupNrec, dateKey, lesson, subgroup);
+  const view = lessonView(lesson, choice, weekMode);
+  const change = lessonChangeMessage(groupNrec, dateKey, lesson, choice);
 
   function handleToggle() {
     const willExpand = !isExpanded;
@@ -1480,8 +1499,8 @@ function LessonRow({
         <span className="lesson-title">{view.subject}</span>
         {change && <span className="lesson-change lesson-row-change">{change}</span>}
         <span className="lesson-place">
-          {change && subgroup !== "all" ? <Video size={16} /> : <MapPin size={16} />}
-          {change && subgroup !== "all" ? "Дистант" : view.room || "Аудитория уточняется"}
+          {change && choice !== "all" ? <Video size={16} /> : <MapPin size={16} />}
+          {change && choice !== "all" ? "Дистант" : view.room || "Аудитория уточняется"}
           {view.kind ? <span>{view.kind}</span> : null}
         </span>
         <span className="row-end" aria-hidden="true">
@@ -1492,44 +1511,9 @@ function LessonRow({
       </button>
       {isExpanded && (
         <div className="lesson-detail">
-          <span>{formatWeekMode(lesson.weekMode)}</span>
+          <span>{formatWeekMode(weekMode)}</span>
           {lesson.variants && lesson.variants.length > 1 ? (
-            <div className="lesson-variants" aria-label="Варианты для подгрупп">
-              {lesson.variants.map((variant, variantIndex) => (
-                <div
-                  className={`lesson-variant ${subgroup === variantIndex ? "chosen" : ""}`}
-                  key={`${variant.rawText}-${variantIndex}`}
-                >
-                  <strong>{variant.subject}</strong>
-                  <span>
-                    {[variant.room, variant.kind, variant.teacher].filter(Boolean).join(" · ")}
-                  </span>
-                </div>
-              ))}
-              {/* Выбор предлагается там, где студент впервые видит две подгруппы. */}
-              <div className="subgroup-picker" role="group" aria-label="Моя подгруппа">
-                <span>Моя подгруппа</span>
-                {lesson.variants.map((_, variantIndex) => (
-                  <button
-                    key={`pick-${variantIndex}`}
-                    type="button"
-                    className={subgroup === variantIndex ? "active" : ""}
-                    aria-pressed={subgroup === variantIndex}
-                    onClick={() => onSubgroup(subgroup === variantIndex ? "all" : variantIndex)}
-                  >
-                    {variantIndex + 1}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  className={subgroup === "all" ? "active" : ""}
-                  aria-pressed={subgroup === "all"}
-                  onClick={() => onSubgroup("all")}
-                >
-                  обе
-                </button>
-              </div>
-            </div>
+            <LessonVariantPicker lesson={lesson} choice={choice} onChoose={onChoose} />
           ) : view.teacher ? <span>{view.teacher}</span> : null}
           <div className="lesson-note-actions" aria-label="Добавить к паре">
             <button type="button" onClick={() => onCreateNote("note")}><NotebookPen size={16} /> Записка</button>
@@ -1550,6 +1534,32 @@ function LessonRow({
         </div>
       )}
     </article>
+  );
+}
+
+function LessonVariantPicker({ lesson, choice, onChoose }: {
+  lesson: LessonSlot;
+  choice: SubgroupChoice;
+  onChoose: (choice: number | "all") => void;
+}) {
+  if (!lesson.variants || lesson.variants.length < 2) return null;
+  return (
+    <div className="lesson-variants" role="group" aria-label="Выбрать свою пару">
+      <strong className="lesson-variants-label">Какая у тебя пара?</strong>
+      {lesson.variants.map((variant, index) => (
+        <button
+          className={`lesson-variant ${choice === index ? "chosen" : ""}`}
+          key={`${variant.rawText}-${index}`}
+          type="button"
+          aria-pressed={choice === index}
+          onClick={() => onChoose(index)}
+        >
+          <strong>{variant.subject}</strong>
+          <span>{[variant.room, variant.kind, variant.teacher].filter(Boolean).join(" · ")}</span>
+        </button>
+      ))}
+      <button className="lesson-variants-all" type="button" aria-pressed={choice === "all"} onClick={() => onChoose("all")}>Показать оба варианта</button>
+    </div>
   );
 }
 
@@ -1580,8 +1590,8 @@ function buildWeekLoads(lessons: LessonSlot[], weekMode: WeekMode, validFrom?: s
 }
 
 function WeekView({
-  subgroup,
-  onSubgroup,
+  getLessonChoice,
+  onChooseLesson,
   lessons,
   weekMode,
   weekOverride,
@@ -1595,8 +1605,8 @@ function WeekView({
   onSelectDate,
   onCreateLessonNote
 }: {
-  subgroup: SubgroupChoice;
-  onSubgroup: (choice: SubgroupChoice) => void;
+  getLessonChoice: LessonChoiceResolver;
+  onChooseLesson: LessonChoiceSetter;
   lessons: LessonSlot[];
   weekMode: WeekMode;
   weekOverride: WeekMode | "current";
@@ -1667,11 +1677,6 @@ function WeekView({
             </button>
           ))}
         </div>
-        {lessons.some((lesson) => (lesson.variants?.length ?? 0) > 1) && <div className="subgroup-picker week-subgroup-picker" role="group" aria-label="Моя подгруппа">
-          <span>Моя подгруппа</span>
-          {Array.from({ length: maxSubgroupCount(lessons) }, (_, index) => <button key={index} type="button" className={subgroup === index ? "active" : ""} aria-pressed={subgroup === index} onClick={() => onSubgroup(index)}>{index + 1}</button>)}
-          <button type="button" className={subgroup === "all" ? "active" : ""} aria-pressed={subgroup === "all"} onClick={() => onSubgroup("all")}>обе</button>
-        </div>}
       </div>
 
       <section className="week-list">
@@ -1694,10 +1699,11 @@ function WeekView({
               </button>
               {day.lessons.length ? (
                 day.lessons.map((lesson) => {
-                  const linkedNotes = notesLinkedToLesson(lesson, notes, day.date, groupNrec);
+                  const choice = getLessonChoice(lesson, weekMode);
+                  const linkedNotes = notesLinkedToLesson(lessonWithSelectedVariant(lesson, choice), notes, day.date, groupNrec);
                   const expanded = expandedLessonId === `${dateKeyFromDate(day.date)}-${lesson.id}`;
-                  const view = lessonView(lesson, subgroup, weekMode);
-                  const change = lessonChangeMessage(groupNrec, dateKeyFromDate(day.date), lesson, subgroup);
+                  const view = lessonView(lesson, choice, weekMode);
+                  const change = lessonChangeMessage(groupNrec, dateKeyFromDate(day.date), lesson, choice);
                   return (
                     <article className={`mini-lesson ${expanded ? "expanded" : ""}`} key={lesson.id}>
                       <button className="mini-lesson-main" type="button" onClick={() => setExpandedLessonId((value) => value === `${dateKeyFromDate(day.date)}-${lesson.id}` ? null : `${dateKeyFromDate(day.date)}-${lesson.id}`)} aria-expanded={expanded}>
@@ -1707,7 +1713,7 @@ function WeekView({
                         </span>
                         <strong>{view.subject}</strong>
                         <small className="mini-lesson-meta">
-                          <span>{[change && subgroup !== "all" ? "Дистант" : view.room, view.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
+                          <span>{[change && choice !== "all" ? "Дистант" : view.room, view.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
                           <span className="mini-lesson-teacher">{view.teacher || "Преподаватель не указан"}</span>
                           {change && <span className="lesson-change">{change}</span>}
                         </small>
@@ -1716,6 +1722,7 @@ function WeekView({
                       </button>
                       {expanded && (
                         <div className="mini-lesson-actions">
+                          {(lesson.variants?.length ?? 0) > 1 && <LessonVariantPicker lesson={lesson} choice={choice} onChoose={(nextChoice) => onChooseLesson(lesson, weekMode, nextChoice)} />}
                           <button type="button" onClick={() => onCreateLessonNote(lesson, day.date, "note")}><NotebookPen size={15} /> Записка</button>
                           <button type="button" onClick={() => onCreateLessonNote(lesson, day.date, "homework")}><BookCheck size={15} /> Добавить ДЗ</button>
                           {linkedNotes.map((note) => (

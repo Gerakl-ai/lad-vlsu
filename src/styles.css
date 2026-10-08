@@ -2143,12 +2143,40 @@ select,
 }
 
 .lesson-variant {
+  width: 100%;
   min-width: 0;
   display: grid;
   gap: 4px;
   padding: 6px 8px 6px 11px;
+  text-align: left;
+  color: var(--text);
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
   border-left: 2px solid rgba(var(--accent-rgb), .54);
   background: linear-gradient(90deg, rgba(var(--accent-rgb), .07), transparent 76%);
+  cursor: pointer;
+}
+
+.lesson-variants-label {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.lesson-variants-all {
+  justify-self: start;
+  padding: 6px 8px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.lesson-variants-all[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: rgba(var(--accent-rgb), .5);
 }
 
 .lesson-variant:nth-child(even) {
@@ -2900,6 +2928,10 @@ button.day-title > svg {
   padding-top: 9px;
   border-top: 1px solid rgba(159, 179, 196, .12);
   animation: lesson-detail-in .26s cubic-bezier(.2,.82,.2,1) both;
+}
+
+.mini-lesson-actions .lesson-variants {
+  grid-column: 1 / -1;
 }
 
 .mini-lesson-actions > span {
@@ -5605,7 +5637,7 @@ button.day-title > svg {
 
 .lesson-variant.chosen {
   border-left: 2px solid var(--accent);
-  padding-left: 7px;
+  background: rgba(var(--accent-rgb), .16);
 }
 
 /* ------------------------------------------------------------------ *
