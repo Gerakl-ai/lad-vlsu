@@ -111,20 +111,45 @@ export function maxSubgroupCount(lessons: LessonSlot[]) {
 
 /** Keep verified subgroup order when another source contains the same lessons in a different order. */
 export function alignSubgroupOrder(candidate: ScheduleState, reference: ScheduleState): ScheduleState {
-  if (candidate.groupNrec !== reference.groupNrec) return candidate;
+  if (candidate.groupNrec !== reference.groupNrec
+    || candidate.currentInfo?.semester !== reference.currentInfo?.semester) return candidate;
   const key = (lesson: LessonSlot) => `${lesson.dayIndex}:${lesson.pairIndex}:${lesson.weekMode}:${lesson.date ?? ""}`;
+  const slotKey = (lesson: LessonSlot) => `${lesson.dayIndex}:${lesson.pairIndex}:${lesson.date ?? ""}`;
   const referenceLessons = new Map(reference.allLessons.map((lesson) => [key(lesson), lesson]));
+  const referenceBySlot = new Map<string, LessonSlot[]>();
+  for (const lesson of reference.allLessons) {
+    const slot = slotKey(lesson);
+    referenceBySlot.set(slot, [...(referenceBySlot.get(slot) ?? []), lesson]);
+  }
+  const candidateSlotCounts = new Map<string, number>();
+  for (const lesson of candidate.allLessons) {
+    const slot = slotKey(lesson);
+    candidateSlotCounts.set(slot, (candidateSlotCounts.get(slot) ?? 0) + 1);
+  }
+  const fingerprints = (variants: LessonVariant[]) => variants.map((variant) => variant.rawText.trim()).sort();
+  const sameVariants = (left: LessonVariant[], right: LessonVariant[]) =>
+    left.length >= 2 && left.length === right.length
+      && JSON.stringify(fingerprints(left)) === JSON.stringify(fingerprints(right));
   let changed = false;
-  const allLessons = candidate.allLessons.map((lesson) => {
+  const allLessons = candidate.allLessons.flatMap((lesson) => {
+    if (lesson.weekMode === "all" && candidateSlotCounts.get(slotKey(lesson)) === 1) {
+      const split = referenceBySlot.get(slotKey(lesson)) ?? [];
+      const numerator = split.find((item) => item.weekMode === "numerator");
+      const denominator = split.find((item) => item.weekMode === "denominator");
+      if (split.length === 2 && numerator && denominator
+        && sameVariants(lesson.variants ?? [], numerator.variants ?? [])
+        && sameVariants(lesson.variants ?? [], denominator.variants ?? [])) {
+        changed = true;
+        return [numerator, denominator];
+      }
+    }
     const verified = referenceLessons.get(key(lesson));
     const received = lesson.variants ?? [];
     const expected = verified?.variants ?? [];
-    if (received.length < 2 || received.length !== expected.length) return lesson;
-    const fingerprints = (variants: LessonVariant[]) => variants.map((variant) => variant.rawText.trim()).sort();
-    if (JSON.stringify(fingerprints(received)) !== JSON.stringify(fingerprints(expected))) return lesson;
-    if (received.every((variant, index) => variant.rawText.trim() === expected[index].rawText.trim())) return lesson;
+    if (!sameVariants(received, expected)) return [lesson];
+    if (received.every((variant, index) => variant.rawText.trim() === expected[index].rawText.trim())) return [lesson];
     changed = true;
-    return {
+    return [{
       ...lesson,
       rawText: verified!.rawText,
       subject: verified!.subject,
@@ -133,7 +158,7 @@ export function alignSubgroupOrder(candidate: ScheduleState, reference: Schedule
       teacher: verified!.teacher,
       variants: expected,
       id: verified!.id
-    };
+    }];
   });
   return changed ? { ...candidate, allLessons } : candidate;
 }
@@ -151,18 +176,43 @@ export function correctVerifiedSubgroups(state: ScheduleState): ScheduleState {
     || state.currentInfo.semester !== 5
     || state.fetchedAt < "2026-08-01" || state.fetchedAt >= "2027-01-01") return state;
   let changed = false;
-  const allLessons = state.allLessons.map((lesson) => {
-    if (lesson.pairIndex !== 1 || lesson.variants?.length !== 2) return lesson;
+  const allLessons = state.allLessons.flatMap((lesson) => {
+    if (lesson.pairIndex !== 1 || lesson.variants?.length !== 2) return [lesson];
+    if (lesson.weekMode === "all") {
+      const rules = PI124_2026_AUTUMN_ORDER.filter((item) => item.dayIndex === lesson.dayIndex);
+      if (rules.length === 2 && rules.every((rule) => lesson.variants!.some((variant) =>
+        variant.subject.toLowerCase().includes(rule.first.toLowerCase())))) {
+        changed = true;
+        return rules.map((rule) => {
+          const variants = [
+            ...lesson.variants!.filter((variant) => variant.subject.toLowerCase().includes(rule.first.toLowerCase())),
+            ...lesson.variants!.filter((variant) => !variant.subject.toLowerCase().includes(rule.first.toLowerCase()))
+          ];
+          const rawText = variants.map((variant) => variant.rawText).join("\n");
+          return {
+            ...lesson,
+            weekMode: rule.weekMode,
+            id: `${lesson.dayIndex}-${lesson.pairIndex}-${rule.weekMode}-${rawText}`,
+            rawText,
+            variants,
+            subject: variants.map((variant) => variant.subject).join(" / "),
+            room: variants.map((variant) => variant.room).filter(Boolean).join(" / "),
+            kind: variants.map((variant) => variant.kind).filter(Boolean).join(" / "),
+            teacher: variants.map((variant) => variant.teacher).filter(Boolean).join(" / ")
+          };
+        });
+      }
+    }
     const rule = PI124_2026_AUTUMN_ORDER.find((item) => item.dayIndex === lesson.dayIndex && item.weekMode === lesson.weekMode);
-    if (!rule) return lesson;
+    if (!rule) return [lesson];
     const first = lesson.variants.find((variant) => variant.subject.toLowerCase().includes(rule.first.toLowerCase()));
-    if (!first || first === lesson.variants[0]) return lesson;
+    if (!first || first === lesson.variants[0]) return [lesson];
     const variants = [first, ...lesson.variants.filter((variant) => variant !== first)];
     const unique = (field: "subject" | "room" | "kind" | "teacher") =>
       [...new Set(variants.map((variant) => variant[field]).filter((value): value is string => Boolean(value)))].join(" / ") || undefined;
     const rawText = variants.map((variant) => variant.rawText).join("\n");
     changed = true;
-    return {
+    return [{
       ...lesson,
       id: `${lesson.dayIndex}-${lesson.pairIndex}-${lesson.weekMode}-${rawText}`,
       rawText,
@@ -171,7 +221,7 @@ export function correctVerifiedSubgroups(state: ScheduleState): ScheduleState {
       room: unique("room"),
       kind: unique("kind"),
       teacher: unique("teacher")
-    };
+    }];
   });
   return changed ? { ...state, allLessons } : state;
 }

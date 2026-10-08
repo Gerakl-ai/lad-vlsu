@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { parseLessonText } from "./scheduleApi";
 import { alignSubgroupOrder, correctVerifiedSubgroups, hasSubgroups, lessonView, maxSubgroupCount, readSubgroup, writeSubgroup } from "./subgroup";
+import { selectDayLessons, vlsuWeekModeForDate } from "./time";
 import type { LessonSlot, ScheduleState } from "../types";
 
 /** Настоящая ячейка ПИ-124: две подгруппы в одном слоте, разделённые переводом строки. */
@@ -97,6 +98,22 @@ describe("обнаружение подгрупп в дне", () => {
 });
 
 describe("порядок подгрупп при обновлении", () => {
+  const ai = "109-3, лб, Васильев Д.Н., Основы искусственного интеллекта";
+  const architecture = "111-3, лб, Аджамиех С.М., Основы архитектуры и интеграции информационных систем";
+  const pi124 = (allLessons: LessonSlot[]) => ({
+    groupNrec: "7936a2a43b11b20b01d30f5b00c73166",
+    fetchedAt: "2026-10-08T12:00:00Z",
+    currentInfo: { name: "ПИ-124", semester: 5, currentLesson: "", currentWeekType: 2 as const },
+    allLessons
+  }) as ScheduleState;
+
+  function visibleSubject(state: ScheduleState, day: number, date: string, subgroup: number) {
+    const targetDate = new Date(`${date}T12:00:00Z`);
+    const week = vlsuWeekModeForDate(targetDate);
+    const [selected] = selectDayLessons(state.allLessons, day, week, targetDate);
+    return lessonView(selected, subgroup, week).subject;
+  }
+
   it("сохраняет проверенную привязку при более свежем ответе с переставленными строками", () => {
     const first = lesson("109-3, лб, Васильев Д.Н., Основы искусственного интеллекта\n111-3, лб, Аджамиех С.М., Основы архитектуры и интеграции информационных систем");
     const reversedText = first.rawText.split("\n").reverse().join("\n");
@@ -130,6 +147,37 @@ describe("порядок подгрупп при обновлении", () => {
     expect(lessonView(corrected.allLessons[0], 1).subject).toContain("Информационная безопасность");
     const nextYear = { ...cached, fetchedAt: "2027-02-01T00:00:00Z" };
     expect(correctVerifiedSubgroups(nextYear)).toBe(nextYear);
+  });
+
+  it("разворачивает старый офлайн-кэш и чередует обе подгруппы по датам", () => {
+    const tuesday = { ...lesson(`${architecture}\n${ai}`), dayIndex: 2, dayName: "Вторник", weekMode: "all" as const };
+    const friday = { ...lesson(RAW_TWO_SUBGROUPS), weekMode: "all" as const };
+    const fixed = correctVerifiedSubgroups(pi124([tuesday, friday]));
+    expect(fixed.allLessons).toHaveLength(4);
+    expect(visibleSubject(fixed, 2, "2026-10-06", 0)).toContain("искусственного интеллекта");
+    expect(visibleSubject(fixed, 2, "2026-10-06", 1)).toContain("архитектуры и интеграции");
+    expect(visibleSubject(fixed, 2, "2026-10-13", 0)).toContain("архитектуры и интеграции");
+    expect(visibleSubject(fixed, 2, "2026-10-13", 1)).toContain("искусственного интеллекта");
+    expect(visibleSubject(fixed, 5, "2026-10-09", 0)).toContain("backend");
+    expect(visibleSubject(fixed, 5, "2026-10-09", 1)).toContain("Информационная безопасность");
+    expect(visibleSubject(fixed, 5, "2026-10-16", 0)).toContain("Информационная безопасность");
+    expect(visibleSubject(fixed, 5, "2026-10-16", 1)).toContain("backend");
+  });
+
+  it("заменяет объединённую неделю старого кэша проверенными неделями без потери других пар", () => {
+    const all = { ...lesson(`${architecture}\n${ai}`), dayIndex: 2, dayName: "Вторник", weekMode: "all" as const };
+    const other = { ...lesson("119-3, лк, Шутов А.В., Базы данных"), pairIndex: 2 };
+    const cached = { ...pi124([all, other]), fetchedAt: "2026-10-09T12:00:00Z" };
+    const reference = pi124([
+      { ...lesson(`${architecture}\n${ai}`), dayIndex: 2, weekMode: "numerator" },
+      { ...lesson(`${ai}\n${architecture}`), dayIndex: 2, weekMode: "denominator" }
+    ]);
+    const aligned = alignSubgroupOrder(cached, reference);
+    expect(aligned.fetchedAt).toBe(cached.fetchedAt);
+    expect(aligned.allLessons).toHaveLength(3);
+    expect(aligned.allLessons[2]).toBe(other);
+    expect(visibleSubject(aligned, 2, "2026-10-06", 0)).toContain("искусственного интеллекта");
+    expect(visibleSubject(aligned, 2, "2026-10-13", 0)).toContain("архитектуры и интеграции");
   });
 });
 
