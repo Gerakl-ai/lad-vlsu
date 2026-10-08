@@ -2056,6 +2056,12 @@ select,
   color: var(--cyan);
 }
 
+.lesson-place .lesson-choice-hint,
+.mini-lesson-meta .lesson-choice-hint {
+  color: var(--cyan);
+  font-weight: 800;
+}
+
 .row-chip {
   grid-column: 4;
   grid-row: 1;

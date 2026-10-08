@@ -33,6 +33,10 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
           assert.match(await page.locator('.upcoming-study').innerText(), /6 октября/);
           assert.match(await page.locator('.upcoming-lesson strong').first().innerText(), /искусственного интеллекта\s\/\s.*архитектуры/i);
         }
+        if (tab === 'Неделя') {
+          await page.locator('.week-list .lesson-choice-hint').first().waitFor();
+          assert.match(await page.locator('.week-list .lesson-choice-hint').first().innerText(), /2 варианта · выбрать/);
+        }
         if (tab === 'Записи' && viewport.width >= 960) {
           const empty = page.locator('.notes-empty');
           await empty.waitFor();
@@ -72,6 +76,15 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
         }
         await page.screenshot({ path: `artifacts/qa/desktop-surfaces/${viewport.width}-${tab}.png` });
         console.log(JSON.stringify({ tab, ...viewport, ...metrics }));
+        if (tab === 'Неделя' && [402, 1280].includes(viewport.width)) {
+          const alternative = page.locator('.week-list .mini-lesson').filter({ has: page.locator('.lesson-choice-hint') }).first();
+          await alternative.locator('.mini-lesson-main').click();
+          const first = alternative.locator('.lesson-variant').first();
+          const subject = await first.locator('strong').innerText();
+          await first.click();
+          assert.equal(await first.getAttribute('aria-pressed'), 'true');
+          assert.equal(await alternative.locator('.mini-lesson-main > strong').innerText(), subject);
+        }
       }
       if (viewport.width === 1440) {
         const brand = page.locator('.brand-button');

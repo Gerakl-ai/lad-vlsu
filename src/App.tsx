@@ -190,6 +190,14 @@ function formatLessonCount(count: number) {
   return `${count} пар`;
 }
 
+function formatVariantCount(count: number) {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${count} вариант`;
+  if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return `${count} варианта`;
+  return `${count} вариантов`;
+}
+
 function formatNoteCount(count: number) {
   const mod10 = count % 10;
   const mod100 = count % 100;
@@ -1500,6 +1508,7 @@ function LessonRow({
           {change && choice !== "all" ? <Video size={16} /> : <MapPin size={16} />}
           {change && choice !== "all" ? "Дистант" : view.room || "Аудитория уточняется"}
           {view.kind ? <span>{view.kind}</span> : null}
+          {(lesson.variants?.length ?? 0) > 1 && <span className="lesson-choice-hint">{formatVariantCount(lesson.variants?.length ?? 0)} · выбрать</span>}
         </span>
         <span className="row-end" aria-hidden="true">
           {isCurrent && <span className="row-chip">Сейчас</span>}
@@ -1556,7 +1565,7 @@ function LessonVariantPicker({ lesson, choice, onChoose }: {
           <span>{[variant.room, variant.kind, variant.teacher].filter(Boolean).join(" · ")}</span>
         </button>
       ))}
-      <button className="lesson-variants-all" type="button" aria-pressed={choice === "all"} onClick={() => onChoose("all")}>Показать оба варианта</button>
+      <button className="lesson-variants-all" type="button" aria-pressed={choice === "all"} onClick={() => onChoose("all")}>Показать все варианты</button>
     </div>
   );
 }
@@ -1713,6 +1722,7 @@ function WeekView({
                         <small className="mini-lesson-meta">
                           <span>{[change && choice !== "all" ? "Дистант" : view.room, view.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
                           <span className="mini-lesson-teacher">{view.teacher || "Преподаватель не указан"}</span>
+                          {(lesson.variants?.length ?? 0) > 1 && <span className="lesson-choice-hint">{formatVariantCount(lesson.variants?.length ?? 0)} · выбрать</span>}
                           {change && <span className="lesson-change">{change}</span>}
                         </small>
                         {linkedNotes.length > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedNotes.length}</span>}
