@@ -13,7 +13,7 @@ import {
   X
 } from "lucide-react";
 import { loadGroups, loadInstitutes, normalizeCachedSchedule } from "../../lib/scheduleApi";
-import { catalogGroups, catalogInstitutes, fetchOcrScheduleCoverage, loadStaticCatalog, loadStaticCoverage, type StaticCoverage } from "../../lib/staticData";
+import { catalogGroups, catalogInstitutes, fetchOcrScheduleCoverage, loadStaticCatalog, loadStaticCoverage, loadStaticQuality, type StaticCoverage, type StaticQuality } from "../../lib/staticData";
 import { searchUniversityGroups } from "./groupSearch";
 import { dateKeyFromDate } from "../../lib/time";
 import {
@@ -53,19 +53,22 @@ function matchesSearch(values: Array<string | undefined>, query: string) {
   return values.some((value) => normalizedSearch(value ?? "").includes(normalized));
 }
 
-function snapshotLabel(coverage: StaticCoverage | null, nrec: string, ocrGroups: Record<string, { validFrom: string; validThrough: string }>) {
+export function snapshotLabel(coverage: StaticCoverage | null, nrec: string, ocrGroups: Record<string, { validFrom: string; validThrough: string }>, quality: StaticQuality | null, savedOffline = false) {
   const entry = coverage?.groups[nrec];
+  const report = quality?.groups[nrec];
   const capturedAt = entry?.capturedAt;
-  if (entry?.validThrough && entry.validThrough < dateKeyFromDate()) {
-    return `Архив до ${new Date(`${entry.validThrough}T12:00:00`).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
-  }
-  if (capturedAt) return `Есть данные от ${new Date(capturedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
   const ocr = ocrGroups[nrec];
-  if (ocr?.validThrough && ocr.validThrough < dateKeyFromDate()) {
-    return `Архив до ${new Date(`${ocr.validThrough}T12:00:00`).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
+  const validThrough = entry?.validThrough ?? report?.period?.validThrough ?? ocr?.validThrough;
+  if (validThrough && validThrough < dateKeyFromDate()) {
+    const date = new Date(`${validThrough}T12:00:00`).toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+    return `${savedOffline ? "Сохранённый архив" : "Архив"} до ${date}`;
   }
+  if (report?.category === "preliminary") return savedOffline ? "Сохранено здесь · предварительно" : "Предварительное расписание";
+  if (report?.category === "reviewedDocument") return savedOffline ? "Сохранено здесь · сверено" : "Сверенное расписание";
+  if (savedOffline) return "Сохранено здесь";
+  if (capturedAt) return `Снимок от ${new Date(capturedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}`;
   if (ocr) return "Есть расписание";
-  return coverage ? "Нет сохранённого расписания" : null;
+  return coverage || report ? "Нет сохранённого расписания" : null;
 }
 
 export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: GroupPickerSheetProps) {
@@ -83,6 +86,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
   const [favoriteGroups, setFavoriteGroups] = useState<GroupProfile[]>(() => readFavoriteGroups());
   const [shareState, setShareState] = useState<"idle" | "done" | "error">("idle");
   const [coverage, setCoverage] = useState<StaticCoverage | null>(null);
+  const [quality, setQuality] = useState<StaticQuality | null>(null);
   const [ocrGroups, setOcrGroups] = useState<Record<string, { validFrom: string; validThrough: string }>>({});
 
   useEffect(() => {
@@ -129,6 +133,11 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
       if (!cancelled) setCoverage(result);
     }).catch(() => {
       if (!cancelled) setCoverage(null);
+    });
+    void loadStaticQuality().then((result) => {
+      if (!cancelled) setQuality(result);
+    }).catch(() => {
+      if (!cancelled) setQuality(null);
     });
     void fetchOcrScheduleCoverage().then((result) => {
       if (!cancelled) setOcrGroups(result);
@@ -293,7 +302,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
                   <span className="group-picker-copy">
                     <strong>{group.name}</strong>
                     <small>{[group.instituteShortName, group.course, studyFormLabel(group.forms)].filter(Boolean).join(" · ")}</small>
-                    <span className="group-picker-availability">{normalizeCachedSchedule(readGroupScheduleCache(group)) ? "Сохранено здесь" : snapshotLabel(coverage, group.nrec, ocrGroups)}</span>
+                    <span className="group-picker-availability">{snapshotLabel(coverage, group.nrec, ocrGroups, quality, Boolean(normalizeCachedSchedule(readGroupScheduleCache(group))))}</span>
                   </span>
                   {selectedGroup?.nrec === group.nrec ? <Check size={20} className="group-picker-check" /> : <ChevronRight size={20} />}
                 </button>
@@ -310,7 +319,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
                     <span className="group-picker-copy">
                       <strong>{group.name}</strong>
                       <small>{[group.instituteShortName, group.course].filter(Boolean).join(" · ")}</small>
-                      <span className="group-picker-availability">{normalizeCachedSchedule(readGroupScheduleCache(group)) ? "Сохранено здесь" : snapshotLabel(coverage, group.nrec, ocrGroups)}</span>
+                      <span className="group-picker-availability">{snapshotLabel(coverage, group.nrec, ocrGroups, quality, Boolean(normalizeCachedSchedule(readGroupScheduleCache(group))))}</span>
                     </span>
                     {selectedGroup?.nrec === group.nrec ? <Check size={20} className="group-picker-check" /> : <ChevronRight size={20} />}
                   </button>
@@ -335,7 +344,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
             const profile = toGroupProfile(activeInstitute, group);
             const isFavorite = favoriteGroups.some((item) => item.nrec === group.nrec);
             const savedOffline = Boolean(normalizeCachedSchedule(readGroupScheduleCache(profile)));
-            const availability = savedOffline ? "Сохранено здесь" : snapshotLabel(coverage, group.nrec, ocrGroups);
+            const availability = snapshotLabel(coverage, group.nrec, ocrGroups, quality, savedOffline);
             return (
               <div className="group-picker-row-wrap" key={group.nrec}>
                 <button type="button" className="group-picker-row group-row" onClick={() => chooseGroup(group)}>

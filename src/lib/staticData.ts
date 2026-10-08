@@ -89,6 +89,16 @@ export interface StaticCoverage {
   groups: Record<string, { capturedAt: string; semester: number | null; scheduleHash: string; validFrom?: string; validThrough?: string }>;
 }
 
+export type ScheduleQualityCategory = "preliminary" | "reviewedDocument" | "otherAvailable" | "missing";
+
+export interface StaticQuality {
+  assessedAt: string;
+  groups: Record<string, {
+    category: ScheduleQualityCategory;
+    period?: { status: "within" | "before" | "after" | "unknown"; validThrough?: string };
+  }>;
+}
+
 export interface OfficialDocumentLocation {
   period: string;
   title: string;
@@ -289,6 +299,37 @@ export function loadStaticCoverage(): Promise<StaticCoverage> {
       .catch((error) => { coveragePromise = null; throw error; });
   }
   return coveragePromise;
+}
+
+export function normalizeStaticQuality(payload: unknown): StaticQuality {
+  if (!isRecord(payload) || payload.schemaVersion !== 1 || !isRecord(payload.groups)
+    || typeof payload.assessedAt !== "string" || Number.isNaN(Date.parse(payload.assessedAt))) {
+    throw new Error("Отчёт качества имеет неизвестный формат");
+  }
+  const groups: StaticQuality["groups"] = {};
+  for (const [nrec, item] of Object.entries(payload.groups)) {
+    if (!/^[a-f\d]{32}$/i.test(nrec) || !isRecord(item)
+      || !["preliminary", "reviewedDocument", "otherAvailable", "missing"].includes(String(item.category))) continue;
+    const period = isRecord(item.period) && ["within", "before", "after", "unknown"].includes(String(item.period.status))
+      ? {
+          status: item.period.status as "within" | "before" | "after" | "unknown",
+          ...(validDateKey(item.period.validThrough) ? { validThrough: item.period.validThrough } : {})
+        }
+      : undefined;
+    groups[nrec] = { category: item.category as ScheduleQualityCategory, ...(period ? { period } : {}) };
+  }
+  return { assessedAt: payload.assessedAt, groups };
+}
+
+let qualityPromise: Promise<StaticQuality> | null = null;
+
+export function loadStaticQuality(): Promise<StaticQuality> {
+  if (!qualityPromise) {
+    qualityPromise = fetchJson(staticDataUrl("quality.json"))
+      .then(normalizeStaticQuality)
+      .catch((error) => { qualityPromise = null; throw error; });
+  }
+  return qualityPromise;
 }
 
 export function catalogInstitutes(catalog: StaticCatalog): InstituteOption[] {

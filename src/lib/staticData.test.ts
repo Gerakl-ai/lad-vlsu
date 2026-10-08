@@ -14,6 +14,7 @@ import {
   normalizeStaticCatalog,
   normalizeStaticSnapshot,
   normalizeStaticCoverage,
+  normalizeStaticQuality,
   resetStaticCatalogCache,
   normalizeCrawlStatus,
   normalizeProvenance,
@@ -21,6 +22,21 @@ import {
   scheduleStateFromSnapshot,
   staticDataUrl
 } from "./staticData";
+
+describe("отчёт качества расписаний", () => {
+  it("читает категории и сроки только для корректных групп", () => {
+    const nrec = "a".repeat(32);
+    expect(normalizeStaticQuality({
+      schemaVersion: 1,
+      assessedAt: "2026-10-06T00:00:00Z",
+      groups: {
+        [nrec]: { category: "preliminary", period: { status: "within", validThrough: "2026-12-31" } },
+        ["b".repeat(32)]: { category: "verified" },
+        wrong: { category: "missing" }
+      }
+    }).groups).toEqual({ [nrec]: { category: "preliminary", period: { status: "within", validThrough: "2026-12-31" } } });
+  });
+});
 
 describe("официальный документ группы", () => {
   it("показывает доступность только для датированных структурированных снимков", async () => {
