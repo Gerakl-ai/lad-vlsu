@@ -72,7 +72,7 @@ import { heroCopy } from "./lib/heroCopy";
 import { scheduleNotice, preferNewerSchedule } from "./lib/freshness";
 import { assetUrl } from "./lib/assetUrl";
 import { backupSignature, markBackupMade, readBackupMade } from "./features/notes/backupState";
-import { alignSubgroupOrder, lessonView, readSubgroup, type SubgroupChoice } from "./lib/subgroup";
+import { alignSubgroupOrder, lessonView, type SubgroupChoice } from "./lib/subgroup";
 import { lessonWithSelectedVariant, readLessonSelections, selectedLessonVariant, setLessonSelection, writeLessonSelections } from "./lib/lessonSelection";
 import { lessonChangeMessage } from "./lib/lessonChange";
 import { resetUniversityBundleCache, warmUniversityScheduleBundle } from "./lib/staticData";
@@ -361,16 +361,14 @@ export function App() {
   useEffect(() => {
     setLessonSelections(readLessonSelections(selectedGroup?.nrec, schedule?.currentInfo.semester));
   }, [selectedGroup?.nrec, schedule?.currentInfo.semester]);
-  const legacySubgroup = useMemo(() => readSubgroup(selectedGroup?.nrec), [selectedGroup?.nrec]);
   const getLessonChoice = useCallback((lesson: LessonSlot, mode: WeekMode) => {
     const oppositeMode = mode === "numerator" ? "denominator" : "numerator";
     const counterpart = schedule?.allLessons.find((candidate) =>
       candidate.weekMode === oppositeMode && candidate.dayIndex === lesson.dayIndex
       && candidate.pairIndex === lesson.pairIndex && candidate.start === lesson.start
       && candidate.date === lesson.date);
-    return selectedLessonVariant(lesson, mode, lessonSelections, selectedGroup?.nrec,
-      schedule?.currentInfo.semester, legacySubgroup, counterpart);
-  }, [lessonSelections, selectedGroup?.nrec, schedule, legacySubgroup]);
+    return selectedLessonVariant(lesson, mode, lessonSelections, counterpart);
+  }, [lessonSelections, schedule]);
   const chooseLesson = useCallback((lesson: LessonSlot, mode: WeekMode, choice: number | "all") => {
     setLessonSelections((currentSelections) => {
       const nextSelections = setLessonSelection(currentSelections, lesson, mode, choice);

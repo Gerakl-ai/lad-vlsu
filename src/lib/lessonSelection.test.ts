@@ -32,7 +32,7 @@ describe("выбор конкретной пары", () => {
     const tuesday = lesson(2, `${architecture}\n${ai}`);
     const choices = setLessonSelection({}, tuesday, "denominator", 1);
     expect(selectedLessonVariant(tuesday, "denominator", choices)).toBe(1);
-    expect(selectedLessonVariant(tuesday, "numerator", choices, group, 5)).toBe(0);
+    expect(selectedLessonVariant(tuesday, "numerator", choices)).toBe(0);
     expect(lessonWithSelectedVariant(tuesday, 1).subject).toContain("искусственного интеллекта");
     writeLessonSelections(group, 5, choices);
     expect(selectedLessonVariant(tuesday, "denominator", readLessonSelections(group, 5))).toBe(1);
@@ -46,9 +46,9 @@ describe("выбор конкретной пары", () => {
     let choices = setLessonSelection({}, tuesdayDenominator, "denominator", 0);
     choices = setLessonSelection(choices, fridayDenominator, "denominator", 0);
     expect(lessonWithSelectedVariant(tuesdayDenominator, selectedLessonVariant(tuesdayDenominator, "denominator", choices)).subject).toContain("искусственного интеллекта");
-    expect(lessonWithSelectedVariant(tuesdayNumerator, selectedLessonVariant(tuesdayNumerator, "numerator", choices, group, 5)).subject).toContain("архитектуры");
+    expect(lessonWithSelectedVariant(tuesdayNumerator, selectedLessonVariant(tuesdayNumerator, "numerator", choices, tuesdayDenominator)).subject).toContain("архитектуры");
     expect(lessonWithSelectedVariant(fridayDenominator, selectedLessonVariant(fridayDenominator, "denominator", choices)).subject).toContain("backend");
-    expect(lessonWithSelectedVariant(fridayNumerator, selectedLessonVariant(fridayNumerator, "numerator", choices, group, 5)).subject).toContain("безопасность");
+    expect(lessonWithSelectedVariant(fridayNumerator, selectedLessonVariant(fridayNumerator, "numerator", choices, fridayDenominator)).subject).toContain("безопасность");
   });
 
   it("пятница выбирается независимо от вторника и допускает собственное правило", () => {
@@ -57,15 +57,15 @@ describe("выбор конкретной пары", () => {
     let choices = setLessonSelection({}, tuesday, "denominator", 1);
     choices = setLessonSelection(choices, friday, "denominator", 1);
     expect(selectedLessonVariant(friday, "denominator", choices)).toBe(1);
-    expect(selectedLessonVariant(friday, "numerator", choices, group, 5)).toBe(0);
+    expect(selectedLessonVariant(friday, "numerator", choices)).toBe(0);
     choices = setLessonSelection(choices, friday, "numerator", 1);
     expect(selectedLessonVariant(friday, "numerator", choices)).toBe(1);
-    expect(selectedLessonVariant(tuesday, "numerator", choices, group, 5)).toBe(0);
+    expect(selectedLessonVariant(tuesday, "numerator", choices)).toBe(0);
   });
 
   it("не угадывает выбор для другой группы и не чередует три варианта", () => {
     const tuesday = lesson(2, `${architecture}\n${ai}`);
-    expect(selectedLessonVariant(tuesday, "denominator", {}, "other", 5, 0)).toBe("all");
+    expect(selectedLessonVariant(tuesday, "denominator", {})).toBe("all");
     const three = lesson(2, `${architecture}\n${ai}\n${backend}`);
     const choices = setLessonSelection({}, three, "denominator", 1);
     expect(selectedLessonVariant(three, "numerator", choices)).toBe("all");
@@ -81,9 +81,9 @@ describe("выбор конкретной пары", () => {
     const sameOrder = lesson(2, `${architecture}\n${ai}`);
     const changed = lesson(2, `${backend}\n${ai}`);
     const choices = setLessonSelection({}, numerator, "numerator", 0);
-    expect(selectedLessonVariant(denominator, "denominator", choices, "other", 3, "all", numerator)).toBe(0);
-    expect(selectedLessonVariant(sameOrder, "denominator", choices, "other", 3, "all", numerator)).toBe("all");
-    expect(selectedLessonVariant(changed, "denominator", choices, "other", 3, "all", numerator)).toBe("all");
+    expect(selectedLessonVariant(denominator, "denominator", choices, numerator)).toBe(0);
+    expect(selectedLessonVariant(sameOrder, "denominator", choices, numerator)).toBe(1);
+    expect(selectedLessonVariant(changed, "denominator", choices, numerator)).toBe("all");
   });
 
   it("не подменяет гидрологию строительством у С-424 при переходе на другую неделю", () => {
@@ -93,16 +93,15 @@ describe("выбор конкретной пары", () => {
     const numerator = lesson(1, monday.n3);
     const denominator = lesson(1, monday.z3);
     const choices = setLessonSelection({}, numerator, "numerator", 0);
-    expect(selectedLessonVariant(denominator, "denominator", choices, snapshot.group.nrec, snapshot.semester, "all", numerator)).toBe("all");
+    expect(selectedLessonVariant(denominator, "denominator", choices, numerator)).toBe("all");
   });
 
-  it("на старом ПИ-124 использует проверенный выбор, но ручной выбор имеет приоритет", () => {
+  it("не переносит старый выбор подгруппы, а ручной выбор имеет приоритет", () => {
     const tuesday = lesson(2, `${architecture}\n${ai}`);
-    expect(selectedLessonVariant(tuesday, "denominator", {}, group, 5, 0)).toBe(1);
-    expect(selectedLessonVariant(tuesday, "numerator", {}, group, 5, 0)).toBe(0);
+    expect(selectedLessonVariant(tuesday, "denominator", {})).toBe("all");
     const choices = setLessonSelection({}, tuesday, "denominator", 0);
-    expect(selectedLessonVariant(tuesday, "denominator", choices, group, 5, 0)).toBe(0);
-    expect(selectedLessonVariant(tuesday, "numerator", choices, group, 5, 0)).toBe(1);
-    expect(selectedLessonVariant(tuesday, "denominator", setLessonSelection(choices, tuesday, "denominator", "all"), group, 5, 0)).toBe("all");
+    expect(selectedLessonVariant(tuesday, "denominator", choices)).toBe(0);
+    expect(selectedLessonVariant(tuesday, "numerator", choices)).toBe(1);
+    expect(selectedLessonVariant(tuesday, "denominator", setLessonSelection(choices, tuesday, "denominator", "all"))).toBe("all");
   });
 });

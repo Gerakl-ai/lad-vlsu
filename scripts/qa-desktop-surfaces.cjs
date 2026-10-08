@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const { chromium } = require('playwright');
 
 const tabs = ['Сегодня', 'Неделя', 'Записи', 'Настройки'];
-const sizes = [{ width: 402, height: 874 }, { width: 932, height: 430 }, { width: 960, height: 600 }, { width: 1440, height: 900 }, { width: 2560, height: 1440 }];
+const sizes = [{ width: 402, height: 874 }, { width: 932, height: 430 }, { width: 960, height: 600 }, { width: 1280, height: 800 }, { width: 1366, height: 768 }, { width: 1440, height: 900 }, { width: 1920, height: 1080 }, { width: 2560, height: 1440 }];
 const root = process.env.QA_URL || 'http://127.0.0.1:4173/';
 const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53ec1dd1892e5ec44a3a60a896', root).href;
 
@@ -15,7 +15,13 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
       const page = await browser.newPage({ viewport });
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
-      await page.addInitScript(() => localStorage.setItem('lad.subgroup.v1:7936a2a43b11b20b01d30f5b00c73166', '0'));
+      await page.addInitScript(() => {
+        localStorage.setItem('lad.subgroup.v1:7936a2a43b11b20b01d30f5b00c73166', '0');
+        if (innerWidth === 1366) {
+          localStorage.setItem('lad.theme-schema', '2026-08-ember');
+          localStorage.setItem('lad.theme', 'obsidian');
+        }
+      });
       await page.clock.install({ time: new Date('2026-10-05T16:00:00Z') });
       await page.goto(url, { waitUntil: 'domcontentloaded' });
       await page.locator('.bottom-nav').waitFor();
@@ -25,7 +31,7 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
         if (tab === 'Сегодня') {
           await page.locator('.upcoming-study').waitFor();
           assert.match(await page.locator('.upcoming-study').innerText(), /6 октября/);
-          assert.doesNotMatch(await page.locator('.upcoming-lesson strong').first().innerText(), /\s\/\s/);
+          assert.match(await page.locator('.upcoming-lesson strong').first().innerText(), /искусственного интеллекта\s\/\s.*архитектуры/i);
         }
         if (tab === 'Записи' && viewport.width >= 960) {
           const empty = page.locator('.notes-empty');
@@ -43,7 +49,7 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
             const box = element.getBoundingClientRect();
             return { x: Math.round(box.x), y: Math.round(box.y), width: Math.round(box.width), height: Math.round(box.height), right: Math.round(box.right) };
           };
-          return { viewport: innerWidth, frame: rect('.phone-frame'), content: rect('.content-scroll'),
+          return { viewport: innerWidth, frame: rect('.phone-frame'), topbar: rect('.topbar'), nav: rect('.bottom-nav'), content: rect('.content-scroll'),
             primary: rect('.today-primary, .week-overview, .notes-dashboard, .settings-view'),
             secondary: rect('.today-detail-scroll, .week-list, .notes-list'),
             weekColumns: document.querySelector('.week-list') ? getComputedStyle(document.querySelector('.week-list')).gridTemplateColumns.split(' ').length : null,
@@ -51,6 +57,11 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
         });
         assert.equal(metrics.overflow, false);
         assert.ok(metrics.frame?.right <= viewport.width + 1);
+        if (viewport.width >= 1280) {
+          assert.ok(metrics.nav.right <= metrics.content.x + 1);
+          assert.ok(Math.abs(metrics.nav.y - metrics.content.y) <= 1);
+          assert.ok(metrics.content.y < 120);
+        }
         if (viewport.width === 402 || viewport.height < 600) {
           const navBottom = await page.locator('.bottom-nav').evaluate((element) => element.getBoundingClientRect().bottom);
           assert.ok(Math.abs(navBottom - viewport.height) <= 2);

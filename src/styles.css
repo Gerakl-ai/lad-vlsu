@@ -5876,6 +5876,89 @@ button.day-title > svg {
   .bottom-nav .nav-icon svg { width: 21px; height: 21px; }
 }
 
+@media (min-width: 1280px) and (min-height: 600px) {
+  .phone-frame {
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .topbar {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    padding: 12px 28px 8px;
+  }
+
+  .topbar .brand-mark { width: 46px; height: 46px; }
+  .topbar .brand h1 { font-size: 26px; }
+  .topbar .sync-line { font-size: 12px; }
+
+  .content-scroll {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+    padding: 22px 28px 36px;
+  }
+
+  .phone-frame > .bottom-nav {
+    grid-column: 1;
+    grid-row: 2;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(4, 52px);
+    align-content: start;
+    gap: 5px;
+    padding: 22px 12px;
+    border-right: 1px solid var(--theme-panel-border);
+    background: color-mix(in srgb, var(--theme-panel-solid) 84%, var(--bg));
+    box-shadow: none;
+  }
+
+  .phone-frame > .bottom-nav::before,
+  .phone-frame > .bottom-nav::after,
+  .phone-frame > .bottom-nav .nav-selection { display: none; }
+
+  .phone-frame > .bottom-nav button {
+    min-height: 48px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    font-size: 15px;
+    text-align: left;
+    text-shadow: none;
+  }
+
+  .phone-frame > .bottom-nav button.active {
+    border-color: rgba(var(--accent-rgb), .32);
+    background: rgba(var(--accent-rgb), .12);
+  }
+
+  .phone-frame > .bottom-nav button::after {
+    left: 5px;
+    top: 50%;
+    bottom: auto;
+    width: 2px;
+    height: 22px;
+    transform: translateY(-50%) scaleY(.3);
+    animation: none;
+  }
+
+  .phone-frame > .bottom-nav button.active::after {
+    transform: translateY(-50%) scaleY(1);
+    animation: none;
+  }
+
+  .phone-frame > .bottom-nav .nav-icon { flex: 0 0 26px; width: 26px; height: 26px; }
+}
+
 @media (min-width: 1800px) and (min-height: 600px) {
   .phone-frame { width: min(100%, 1760px); }
   .week-view { grid-template-columns: minmax(420px, .68fr) minmax(0, 1.72fr); }

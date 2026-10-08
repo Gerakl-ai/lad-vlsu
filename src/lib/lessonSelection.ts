@@ -5,14 +5,6 @@ import type { SubgroupChoice } from "./subgroup";
 export type LessonSelections = Record<string, { numerator?: string; denominator?: string; showAll?: boolean }>;
 
 const STORAGE_PREFIX = "lad.lesson-selection.v1";
-const PI124_NREC = "7936a2a43b11b20b01d30f5b00c73166";
-const PI124_AUTUMN = [
-  { day: 2, week: "numerator", first: "архитектуры и интеграции" },
-  { day: 2, week: "denominator", first: "искусственного интеллекта" },
-  { day: 5, week: "numerator", first: "информационная безопасность" },
-  { day: 5, week: "denominator", first: "backend" }
-] as const;
-
 export function lessonSelectionKey(lesson: LessonSlot) {
   return `${lesson.dayIndex}:${lesson.pairIndex}:${lesson.start}:${lesson.date ?? ""}`;
 }
@@ -73,9 +65,6 @@ export function selectedLessonVariant(
   lesson: LessonSlot,
   week: WeekMode,
   selections: LessonSelections,
-  groupNrec?: string,
-  semester?: number,
-  legacyChoice: SubgroupChoice = "all",
   counterpart?: LessonSlot
 ): SubgroupChoice {
   const variants = lesson.variants ?? [];
@@ -92,21 +81,9 @@ export function selectedLessonVariant(
     const keys = variants.map((variant) => variantIdentity(variant, variants));
     const partnerKeys = counterpart?.variants?.map((variant) => variantIdentity(variant, counterpart.variants!));
     const sameAlternatives = partnerKeys?.length === 2 && keys.every((key) => partnerKeys.includes(key));
-    const verifiedLegacy = groupNrec === PI124_NREC && semester === 5
-      && PI124_AUTUMN.some((rule) => rule.day === lesson.dayIndex && lesson.pairIndex === 1);
-    if ((sameAlternatives && partnerKeys[0] !== keys[0]) || (!counterpart && verifiedLegacy)) {
+    if (sameAlternatives || (!counterpart && lesson.weekMode === "all")) {
       const index = keys.findIndex((key) => key !== opposite);
       if (index >= 0 && keys.includes(opposite)) return index;
-    }
-  }
-
-  // Preserve the verified personal choice on old PI-124 installations only.
-  if (groupNrec === PI124_NREC && semester === 5 && (legacyChoice === 0 || legacyChoice === 1)
-    && lesson.pairIndex === 1) {
-    const rule = PI124_AUTUMN.find((item) => item.day === lesson.dayIndex && item.week === week);
-    if (rule) {
-      const first = variants.findIndex((variant) => normalizeNoteText(variant.subject).includes(rule.first));
-      if (first >= 0) return legacyChoice === 0 ? first : variants.findIndex((_, index) => index !== first);
     }
   }
   return "all";
