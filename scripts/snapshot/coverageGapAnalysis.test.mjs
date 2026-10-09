@@ -24,4 +24,14 @@ describe('coverage gap analysis', () => {
       ]
     });
   });
+
+  it('uses every verified document index without counting a group twice', () => {
+    const catalog = { institutes: [{ name: 'A', groups: [
+      { nrec: 'one', forms: ['full-time'] }, { nrec: 'two', forms: ['full-time'] }
+    ] }] };
+    const coverage = { groups: {} };
+    const oldIndex = { groups: { one: {} } };
+    const newIndex = { groups: { one: {}, two: {} } };
+    expect(analyzeCoverageGaps(catalog, coverage, [oldIndex, newIndex]).missingWithIndexedDocument).toBe(2);
+  });
 });

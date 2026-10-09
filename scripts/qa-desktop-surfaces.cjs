@@ -84,6 +84,13 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
           await first.click();
           assert.equal(await first.getAttribute('aria-pressed'), 'true');
           assert.equal(await alternative.locator('.mini-lesson-main > strong').innerText(), subject);
+          const otherWeek = page.getByRole('radiogroup', { name: 'Тип недели' }).getByRole('radio', { name: 'Числитель' });
+          await otherWeek.click();
+          const alternatingLesson = page.locator('.week-list .mini-lesson').filter({ has: page.locator('.lesson-choice-hint') }).first();
+          await alternatingLesson.locator('.mini-lesson-main').click();
+          assert.notEqual(await alternatingLesson.locator('.mini-lesson-main > strong').innerText(), subject);
+          await page.getByRole('radiogroup', { name: 'Тип недели' }).getByRole('radio', { name: 'Знаменатель' }).click();
+          assert.equal(await page.locator('.week-list .mini-lesson').filter({ has: page.locator('.lesson-choice-hint') }).first().locator('.mini-lesson-main > strong').innerText(), subject);
         }
       }
       if (viewport.width === 1440) {

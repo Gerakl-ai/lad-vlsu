@@ -21,6 +21,42 @@ function makeLesson(rawText, dayIndex, pairIndex, weekMode) {
 }
 
 describe('выбор пары в расписаниях университета', () => {
+  it('сохраняет ручной выбор каждого варианта при перестановке строк в источнике', () => {
+    let checkedChoices = 0;
+    const checkedGroups = new Set();
+
+    for (const file of readdirSync(scheduleDir).filter((name) => /^[a-f\d]{32}\.json$/i.test(name))) {
+      const snapshot = JSON.parse(readFileSync(join(scheduleDir, file), 'utf8'));
+      for (const [dayOffset, day] of (snapshot.schedule ?? []).entries()) {
+        for (let pairIndex = 1; pairIndex <= 7; pairIndex += 1) {
+          for (const [field, weekMode] of [['n', 'numerator'], ['z', 'denominator']]) {
+            const rawText = day[`${field}${pairIndex}`];
+            if (!rawText) continue;
+            const original = makeLesson(rawText, dayOffset + 1, pairIndex, weekMode);
+            const variants = original.variants ?? [];
+            if (variants.length < 2) continue;
+            const identities = variants.map((variant) => variantIdentity(variant, variants));
+            if (new Set(identities).size !== variants.length) continue;
+            const reordered = makeLesson(variants.map((variant) => variant.rawText).reverse().join('\n'), dayOffset + 1, pairIndex, weekMode);
+
+            for (let index = 0; index < variants.length; index += 1) {
+              const selections = setLessonSelection({}, original, weekMode, index);
+              const selectedIndex = selectedLessonVariant(reordered, weekMode, selections);
+              expect(selectedIndex, `${file}: day ${dayOffset + 1}, pair ${pairIndex}, variant ${index}`).not.toBe('all');
+              expect(variantIdentity(reordered.variants[selectedIndex], reordered.variants), `${file}: day ${dayOffset + 1}, pair ${pairIndex}, variant ${index}`)
+                .toBe(identities[index]);
+              checkedChoices += 1;
+              checkedGroups.add(file);
+            }
+          }
+        }
+      }
+    }
+
+    expect(checkedChoices).toBeGreaterThan(300);
+    expect(checkedGroups.size).toBeGreaterThan(100);
+  });
+
   it('чередует все реальные слоты с двумя одинаковыми альтернативами', () => {
     let checkedSlots = 0;
     const checkedGroups = new Set();

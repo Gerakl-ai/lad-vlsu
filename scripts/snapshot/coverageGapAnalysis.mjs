@@ -2,9 +2,10 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export function analyzeCoverageGaps(catalog, coverage, documentIndex) {
+export function analyzeCoverageGaps(catalog, coverage, documentIndexes) {
   const available = coverage.groups ?? {};
-  const indexedDocuments = documentIndex.groups ?? {};
+  const indexes = Array.isArray(documentIndexes) ? documentIndexes : [documentIndexes];
+  const indexedDocuments = new Set(indexes.flatMap((index) => Object.keys(index?.groups ?? {})));
   const byForm = {};
   const byInstitute = [];
   let catalogGroups = 0;
@@ -22,7 +23,7 @@ export function analyzeCoverageGaps(catalog, coverage, documentIndex) {
       }
       missing += 1;
       instituteMissing += 1;
-      if (indexedDocuments[group.nrec]) missingWithIndexedDocument += 1;
+      if (indexedDocuments.has(group.nrec)) missingWithIndexedDocument += 1;
       for (const form of group.forms?.length ? group.forms : ['unknown']) {
         byForm[form] = (byForm[form] ?? 0) + 1;
       }
@@ -45,8 +46,9 @@ export function analyzeCoverageGaps(catalog, coverage, documentIndex) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const [catalogPath, coveragePath, documentsPath] = process.argv.slice(2);
-  const files = [catalogPath || 'public/data/catalog.json', coveragePath || 'public/data/coverage.json', documentsPath || 'public/data/document-index.json'];
-  const [catalog, coverage, documents] = await Promise.all(files.map(async (file) => JSON.parse(await readFile(file, 'utf8'))));
+  const [catalogPath, coveragePath, ...documentPaths] = process.argv.slice(2);
+  const files = [catalogPath || 'public/data/catalog.json', coveragePath || 'public/data/coverage.json',
+    ...(documentPaths.length ? documentPaths : ['public/data/document-index.json'])];
+  const [catalog, coverage, ...documents] = await Promise.all(files.map(async (file) => JSON.parse(await readFile(file, 'utf8'))));
   console.log(JSON.stringify(analyzeCoverageGaps(catalog, coverage, documents), null, 2));
 }
