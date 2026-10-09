@@ -1,5 +1,9 @@
 import type { ScheduleState } from "../types";
 
+export function schedulePeriodContains(date: string, validFrom?: string, validThrough?: string) {
+  return (!validFrom || date >= validFrom) && (!validThrough || date <= validThrough);
+}
+
 /** A safety boundary for undated weekly API data, not an official validity period. */
 export function withEstimatedSemesterPeriod(state: ScheduleState): ScheduleState {
   if (((state.validFrom || state.validThrough) && !state.periodEstimated) || !state.allLessons.length

@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "academicYear": "2026/27",
+  "reviewedAt": "2026-10-09",
+  "sourcePage": "https://uu.vlsu.ru/index.php?catid=35%3A2010-05-07-06-35-16&id=245%3A-20262027-&option=com_content&view=article",
+  "sources": {
+    "ias": { "url": "https://uu.vlsu.ru/images/stories/Files/iase_z_2026.pdf", "sha256": "cb54232d12793c947ccfe470ac8a9d2ecccf83f5c6082947bcc3a28c7c651470", "page": 1 },
+    "pi": { "url": "https://uu.vlsu.ru/images/stories/Files/pi_z_2026.pdf", "sha256": "22682963ecc540545a56142ad117ac475ee13c46799100ba3df63b74f1089cb1", "page": 1 },
+    "ui": { "url": "https://uu.vlsu.ru/images/stories/Files/ui_z_2026.pdf", "sha256": "67964903be023a40881866021830b048261de32698baf6af3fb867ca0b6eb88a", "page": 1 },
+    "fk": { "url": "https://uu.vlsu.ru/images/stories/Files/ifksh_z_2026.pdf", "sha256": "c0b3fa49e844836df48b96cba8a788da4121749edf8c8a290eefd26fe6ebb779", "page": 1 },
+    "music": { "url": "https://uu.vlsu.ru/images/stories/Files/vshmt_z_2026.pdf", "sha256": "97df3d1048b5d086c760999beb838f762a36e7c86fd0d0ee551df81c6200b48c", "page": 1 }
+  },
+  "groups": [
+    { "name": "ЗЭЭ-123", "nrec": "751fe4ad3947f2ea2f0a8ea1e54f3357", "sourceId": "ias", "periods": [
+      { "kind": "session", "start": "2027-01-11", "end": "2027-01-30" },
+      { "kind": "session", "start": "2027-06-09", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗЭЭу-123", "nrec": "dbce74e0dc7ee71b0eea900896dafd52", "sourceId": "ias", "periods": [
+      { "kind": "session", "start": "2026-11-09", "end": "2026-11-28" },
+      { "kind": "practice", "start": "2026-11-30", "end": "2026-12-12" },
+      { "kind": "final", "start": "2027-01-11", "end": "2027-02-28" }
+    ] },
+    { "name": "ЗЭЭ-122", "nrec": "0a4da5c4869ae046e1cf3437b8d48892", "sourceId": "ias", "periods": [
+      { "kind": "session", "start": "2027-01-11", "end": "2027-01-30" },
+      { "kind": "session", "start": "2027-04-05", "end": "2027-04-24" }
+    ] },
+    { "name": "ЗНО-123", "nrec": "5f2ef322994aac90d4a8b02c12376b06", "sourceId": "pi", "periods": [
+      { "kind": "session", "start": "2027-01-11", "end": "2027-02-04" },
+      { "kind": "practice", "start": "2027-02-15", "end": "2027-04-24" },
+      { "kind": "session", "start": "2027-06-01", "end": "2027-06-25" }
+    ] },
+    { "name": "ЗНОу-123", "nrec": "961b0c1a377026735256bc9d7c18c456", "sourceId": "pi", "periods": [
+      { "kind": "practice", "start": "2026-09-01", "end": "2026-11-07" },
+      { "kind": "practice", "start": "2026-11-09", "end": "2026-12-05" },
+      { "kind": "final", "start": "2027-01-18", "end": "2027-02-28" }
+    ] },
+    { "name": "ЗДОу-123", "nrec": "998ffe00deef6449f292c80f1c2db9e2", "sourceId": "pi", "periods": [
+      { "kind": "practice", "start": "2026-09-01", "end": "2026-11-07" },
+      { "kind": "practice", "start": "2026-11-09", "end": "2026-12-05" },
+      { "kind": "final", "start": "2027-01-18", "end": "2027-02-28" }
+    ] },
+    { "name": "ЗНО-122", "nrec": "22bf2b59e14c2f70705a8be6f89cab78", "sourceId": "pi", "periods": [
+      { "kind": "practice", "start": "2026-09-01", "end": "2026-11-07" },
+      { "kind": "session", "start": "2026-11-23", "end": "2026-12-13" },
+      { "kind": "session", "start": "2027-03-15", "end": "2027-03-31" },
+      { "kind": "practice", "start": "2027-04-19", "end": "2027-05-15" }
+    ] },
+    { "name": "ЗТМД-125", "nrec": "6e0bae2adea74f65057db5b1b4027cff", "sourceId": "ui", "periods": [
+      { "kind": "session", "start": "2027-01-11", "end": "2027-01-30" },
+      { "kind": "session", "start": "2027-06-09", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗТМД-124", "nrec": "ddec0b039e443bd10de5bb04f4a44712", "sourceId": "ui", "periods": [
+      { "kind": "session", "start": "2027-01-11", "end": "2027-01-30" },
+      { "kind": "session", "start": "2027-06-09", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗТМД-123", "nrec": "4027f02adfd21cb08b89bdec168c3955", "sourceId": "ui", "periods": [
+      { "kind": "session", "start": "2027-01-11", "end": "2027-01-30" },
+      { "kind": "session", "start": "2027-06-09", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗТМД-122", "nrec": "48eb9651d81d5ff5e269ebcbd1661eda", "sourceId": "ui", "periods": [
+      { "kind": "session", "start": "2027-01-11", "end": "2027-01-30" },
+      { "kind": "session", "start": "2027-06-09", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗТМД-121", "nrec": "eff695e1f08d7f39d0b36c794044179b", "sourceId": "ui", "periods": [
+      { "kind": "session", "start": "2027-01-11", "end": "2027-01-30" },
+      { "kind": "final", "start": "2027-05-17", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗФКм-125", "nrec": "9ffb7f0cd35bd083f179c629dad61e7f", "sourceId": "fk", "periods": [
+      { "kind": "session", "start": "2027-01-11", "end": "2027-01-30" },
+      { "kind": "practice", "start": "2027-02-08", "end": "2027-03-06" },
+      { "kind": "practice", "start": "2027-04-26", "end": "2027-06-05" },
+      { "kind": "session", "start": "2027-06-07", "end": "2027-06-26" }
+    ] },
+    { "name": "ЗМТИ-122", "nrec": "b7348799e3b73ea57b363d1edcf9a30a", "sourceId": "music", "periods": [
+      { "kind": "practice", "start": "2026-11-09", "end": "2026-12-30" },
+      { "kind": "session", "start": "2027-01-11", "end": "2027-01-30" },
+      { "kind": "session", "start": "2027-04-12", "end": "2027-04-30" }
+    ] }
+  ]
+}

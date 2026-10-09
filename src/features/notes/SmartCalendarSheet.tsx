@@ -19,9 +19,15 @@ import type { SmartNote } from "./noteTypes";
 import { personalEventsOnDate, usePersonalEvents, type PersonalEvent } from "./personalEvents";
 import { PersonalEventForm } from "./PersonalEventForm";
 import { shiftCalendarMonth } from "./calendarMonth";
+import { groupStudyCalendar, studyPeriodRange, studyPeriodsOnDate, studyPeriodTitle } from "../../lib/studyPeriods";
+import { schedulePeriodContains } from "../../lib/schedulePeriod";
 
 interface SmartCalendarSheetProps {
   lessons: LessonSlot[];
+  scheduleAvailable?: boolean;
+  scheduleValidFrom?: string;
+  scheduleValidThrough?: string;
+  groupNrec?: string;
   notes: SmartNote[];
   open: boolean;
   initialCreateEvent?: boolean;
@@ -189,7 +195,7 @@ async function shareCalendar(events: CalendarEvent[], fileName: string, title: s
   return true;
 }
 
-export function SmartCalendarSheet({ lessons, notes, open, initialCreateEvent = false, weekMode, initialDate, onClose, onCreateForDate, onOpenNote, onSelectDate }: SmartCalendarSheetProps) {
+export function SmartCalendarSheet({ lessons, scheduleAvailable = true, scheduleValidFrom, scheduleValidThrough, groupNrec, notes, open, initialCreateEvent = false, weekMode, initialDate, onClose, onCreateForDate, onOpenNote, onSelectDate }: SmartCalendarSheetProps) {
   const personalEvents = usePersonalEvents();
   const [editingEvent, setEditingEvent] = useState<PersonalEvent | "new" | null>(initialCreateEvent ? "new" : null);
   const swipe = useRef<{ pointerId: number; x: number; y: number } | null>(null);
@@ -296,12 +302,17 @@ export function SmartCalendarSheet({ lessons, notes, open, initialCreateEvent = 
   const selectedRelation = relativeDayLabel(selectedDate, today);
   const monthRelation = relativeMonthLabel(month, today);
   const monthKey = `${month.getFullYear()}-${month.getMonth()}`;
+  const studyCalendar = groupStudyCalendar(groupNrec);
+  const selectedPeriods = studyPeriodsOnDate(studyCalendar?.periods ?? [], dateKeyFromDate(selectedDate));
+  const scheduleKnownOnDate = (date: Date) => scheduleAvailable && schedulePeriodContains(dateKeyFromDate(date), scheduleValidFrom, scheduleValidThrough);
+  const selectedScheduleKnown = scheduleKnownOnDate(selectedDate);
 
   function renderMonthCells(gridMonth: Date, interactive: boolean) {
     return monthCells(gridMonth).map((date) => {
       const key = dateKeyFromDate(date);
       const dayLessons = lessonsForDate(lessons, date, weekMode);
       const dayNotes = [...notesForDate(notes, date), ...personalEventsOnDate(personalEvents, date)];
+      const dayPeriods = studyPeriodsOnDate(studyCalendar?.periods ?? [], key);
       const selected = key === dateKeyFromDate(selectedDate);
       const isToday = key === dateKeyFromDate(today);
       return (
@@ -313,12 +324,13 @@ export function SmartCalendarSheet({ lessons, notes, open, initialCreateEvent = 
           onClick={() => selectCalendarDate(date)}
           aria-pressed={selected}
           aria-current={isToday ? "date" : undefined}
-          aria-label={`${date.toLocaleDateString("ru-RU")}: ${formatCount(dayLessons.length, "пара", "пары", "пар")}, ${formatCount(dayNotes.length, "событие", "события", "событий")}`}
+          aria-label={`${date.toLocaleDateString("ru-RU")}: ${scheduleKnownOnDate(date) ? formatCount(dayLessons.length, "пара", "пары", "пар") : "расписание пар не получено"}, ${formatCount(dayNotes.length, "событие", "события", "событий")}${dayPeriods.length ? `, ${dayPeriods.map((period) => studyPeriodTitle(period.kind)).join(", ")}` : ""}`}
         >
           <span>{date.getDate()}</span>
           <i className="calendar-dots" aria-hidden="true">
             {dayLessons.length > 0 && <b className="lesson-dot" />}
             {dayNotes.length > 0 && <b className="note-dot" />}
+            {dayPeriods.length > 0 && <b className="study-period-dot" />}
           </i>
         </button>
       );
@@ -400,7 +412,7 @@ export function SmartCalendarSheet({ lessons, notes, open, initialCreateEvent = 
             <div>
               <span>{selectedLabel}</span>
               <strong>{selectedRelation}</strong>
-              <small>{selectedEvents.length ? formatEventCount(selectedEvents.length) : "Свободный день"}</small>
+              <small>{selectedEvents.length ? formatEventCount(selectedEvents.length) : selectedPeriods.length ? studyPeriodTitle(selectedPeriods[0].kind) : selectedScheduleKnown ? "Свободный день" : "Пары не загружены"}</small>
             </div>
             <button type="button" onClick={() => { onClose(); onCreateForDate(selectedDate); }} aria-label="Создать запись на выбранную дату" title="Новая запись">
               <NotebookPen size={18} />
@@ -408,6 +420,11 @@ export function SmartCalendarSheet({ lessons, notes, open, initialCreateEvent = 
             <button className="calendar-add-event" type="button" onClick={() => setEditingEvent("new")} aria-label="Добавить событие" title="Добавить событие"><CalendarPlus size={18} /><span>Событие</span></button>
           </header>
           <div key={dateKeyFromDate(selectedDate)} className="calendar-event-list calendar-event-list-enter">
+            {selectedPeriods.map((period) => (
+              <div className="calendar-study-period" key={`${period.kind}:${period.start}`}>
+                <strong>{studyPeriodTitle(period.kind)}</strong><span>{studyPeriodRange(period)}</span>
+              </div>
+            ))}
             {selectedEvents.length ? selectedEvents.map((event) => {
               const contents = (
                 <>
@@ -427,7 +444,7 @@ export function SmartCalendarSheet({ lessons, notes, open, initialCreateEvent = 
                 <article className="calendar-event lesson" key={event.id}>{contents}</article>
               );
             }) : (
-              <div className="calendar-empty-day"><CalendarDays size={22} /><span>На эту дату пока ничего не запланировано.</span></div>
+              <div className="calendar-empty-day"><CalendarDays size={22} /><span>{selectedScheduleKnown ? "На эту дату пока ничего не запланировано." : "Расписание занятий на эту дату пока не получено."}</span></div>
             )}
           </div>
         </section>

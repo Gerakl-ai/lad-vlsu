@@ -54,6 +54,7 @@ import { importDrafts, loadDraftsWithStatus, type NotesLoadStatus } from "./feat
 import { useSmartNotes } from "./features/notes/useSmartNotes";
 import { importPersonalEvents, personalEventsOnDate, usePersonalEvents } from "./features/notes/personalEvents";
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
+import { StudyCalendarPanel } from "./features/groups/StudyCalendarPanel";
 import { parseGroupLink, resolveGroupLink, syncGroupLink } from "./features/groups/groupLinks";
 import { groupBadgeParts, type GroupProfile } from "./features/groups/groupTypes";
 import { readFavoriteGroups, readGroupScheduleCache, readKnownGroup, readRecentGroups, readSelectedGroup, writeGroupScheduleCache, writeSelectedGroup } from "./features/groups/groupStorage";
@@ -874,7 +875,8 @@ export function App() {
           {isLoading && (activeTab === "today" || activeTab === "week") && <SkeletonView />}
 
           {isScheduleUnavailable && (activeTab === "today" || activeTab === "week") && (
-            <ScheduleUnavailableView groupNrec={selectedGroup?.nrec} selectedDateKey={selectedDateKey} onRetry={() => refreshSchedule()} onGroupOpen={() => setGroupPickerOpen(true)} onRestore={lastAvailableGroupRef.current ? () => selectGroup(lastAvailableGroupRef.current!) : undefined} />
+            <ScheduleUnavailableView groupNrec={selectedGroup?.nrec} selectedDateKey={selectedDateKey} onRetry={() => refreshSchedule()} onGroupOpen={() => setGroupPickerOpen(true)} onRestore={lastAvailableGroupRef.current ? () => selectGroup(lastAvailableGroupRef.current!) : undefined}
+              onOpenPeriodDate={(date) => { setSelectedDate(new Date(`${date}T12:00:00`)); setCalendarCreateOnOpen(false); setCalendarOpen(true); }} />
           )}
 
           {!isLoading && !isScheduleUnavailable && activeTab === "today" && (
@@ -994,6 +996,10 @@ export function App() {
           <Suspense fallback={null}>
             <LazySmartCalendarSheet
               lessons={schedule?.allLessons ?? []}
+              scheduleAvailable={Boolean(schedule)}
+              scheduleValidFrom={schedule?.validFrom}
+              scheduleValidThrough={schedule?.validThrough}
+              groupNrec={selectedGroup?.nrec}
               notes={smartNotes.notes}
               open={calendarOpen}
               initialCreateEvent={calendarCreateOnOpen}
@@ -2192,8 +2198,9 @@ function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange:
   );
 }
 
-function ScheduleUnavailableView({ onRetry, onGroupOpen, onRestore }: { groupNrec?: string; selectedDateKey: string; onRetry: () => void; onGroupOpen: () => void; onRestore?: () => void }) {
+function ScheduleUnavailableView({ groupNrec, selectedDateKey, onRetry, onGroupOpen, onRestore, onOpenPeriodDate }: { groupNrec?: string; selectedDateKey: string; onRetry: () => void; onGroupOpen: () => void; onRestore?: () => void; onOpenPeriodDate: (date: string) => void }) {
   return (
+    <div className="view-stack unavailable-view">
     <section className="schedule-unavailable" role="status" aria-live="polite">
       <span className="schedule-unavailable-icon" aria-hidden="true"><CalendarX2 size={27} /></span>
       <span className="schedule-unavailable-copy">
@@ -2211,5 +2218,7 @@ function ScheduleUnavailableView({ onRetry, onGroupOpen, onRestore }: { groupNre
         <ExternalLink size={17} /> Расписание на сайте ВлГУ
       </a>
     </section>
+    <StudyCalendarPanel groupNrec={groupNrec} selectedDateKey={selectedDateKey} onOpenDate={onOpenPeriodDate} />
+    </div>
   );
 }

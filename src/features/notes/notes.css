@@ -2316,6 +2316,10 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 
 .calendar-dots .lesson-dot { color: var(--coral); background: currentColor; }
 .calendar-dots .note-dot { color: var(--green); background: currentColor; }
+.calendar-dots .study-period-dot { color: var(--accent); background: transparent; border: 1px solid currentColor; }
+.calendar-study-period { display: grid; gap: 5px; padding: 12px 14px; border-left: 3px solid var(--accent); background: rgba(var(--accent-rgb), .08); }
+.calendar-study-period strong { font-size: 16px; line-height: 1.35; }
+.calendar-study-period span { font-size: 14px; line-height: 1.5; color: var(--muted); }
 .calendar-grid > button.selected .calendar-dots b { color: var(--bg-deep); }
 
 .calendar-agenda {

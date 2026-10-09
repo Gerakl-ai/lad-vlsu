@@ -3534,6 +3534,22 @@ button.day-title > svg {
   outline-offset: 2px;
 }
 
+.study-calendar-panel { padding: 18px 2px; border-top: 1px solid rgba(var(--accent-rgb), .2); }
+.study-calendar-panel > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.study-calendar-panel h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; line-height: 1.3; }
+.study-calendar-panel > header > span { color: var(--muted); font-size: 13px; }
+.study-calendar-panel > p { margin: 8px 0 12px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.study-period-list { display: grid; }
+.study-period-list > button { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 68px; padding: 12px 8px; text-align: left; color: var(--text); background: transparent; border: 0; border-top: 1px solid rgba(var(--accent-rgb), .15); cursor: pointer; }
+.study-period-list > button.active { background: rgba(var(--accent-rgb), .08); }
+.study-period-list > button > span { display: grid; gap: 5px; min-width: 0; }
+.study-period-list strong { font-size: 16px; line-height: 1.35; }
+.study-period-list small { color: var(--muted); font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
+.study-period-list svg { flex-shrink: 0; color: var(--accent); }
+.study-calendar-panel > a { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; margin-top: 4px; color: var(--accent); font-size: 14px; }
+.study-period-list > button:focus-visible, .study-calendar-panel > a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.unavailable-view { max-width: 760px; margin-inline: auto; }
+
 .skeleton-hero,
 .skeleton-list {
   overflow: hidden;
