@@ -6,6 +6,9 @@ const root = path.resolve('public/data/ocr-schedule');
 const documents = JSON.parse(await readFile('public/data/document-index.json', 'utf8'));
 const index = JSON.parse(await readFile(path.join(root, 'index.json'), 'utf8'));
 const nrecs = Object.keys(index.groups);
+const snapshots = Object.fromEntries(await Promise.all(nrecs.map(async (nrec) => [
+  nrec, JSON.parse(await readFile(path.join(root, `${nrec}.json`), 'utf8'))
+])));
 
 describe('published provisional schedules', () => {
   it('bundles every available group with identical data for unvisited offline access', async () => {
@@ -13,7 +16,7 @@ describe('published provisional schedules', () => {
     expect(bundle.schemaVersion).toBe(1);
     expect(Object.keys(bundle.groups).sort()).toEqual([...nrecs].sort());
     for (const nrec of nrecs) {
-      expect(bundle.groups[nrec]).toEqual(JSON.parse(await readFile(path.join(root, `${nrec}.json`), 'utf8')));
+      expect(bundle.groups[nrec]).toEqual(snapshots[nrec]);
     }
   });
   it('contains one structured schedule for every verified document column', async () => {
@@ -24,9 +27,9 @@ describe('published provisional schedules', () => {
     expect(nrecs.sort()).toEqual(Object.keys(documents.groups).sort());
   });
 
-  it('keeps group identity, source hash, period and provisional status intact', async () => {
+  it('keeps group identity, source hash, period and provisional status intact', () => {
     for (const nrec of nrecs) {
-      const item = JSON.parse(await readFile(path.join(root, `${nrec}.json`), 'utf8'));
+      const item = snapshots[nrec];
       const source = documents.groups[nrec];
       expect(item.group.nrec).toBe(nrec);
       expect(item.group.name).toBe(source.groupName);

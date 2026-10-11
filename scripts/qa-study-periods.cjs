@@ -24,6 +24,16 @@ const groupUrl = (nrec) => {
       await page.clock.setFixedTime(new Date('2026-10-09T12:00:00+03:00'));
       for (const group of reviewed.groups) {
         await page.goto(groupUrl(group.nrec), { waitUntil: 'domcontentloaded' });
+        if (group.nrec === '09e5d59b4a6c048ceca6b5c3dd426293') {
+          await page.getByRole('button', { name: /Пятница, 9 Октября/i }).click();
+          const existingCalendar = page.getByRole('dialog', { name: 'Календарь', exact: true });
+          await existingCalendar.locator('.calendar-study-period').first().waitFor();
+          assert.match(await existingCalendar.locator('.calendar-empty-day').innerText(), /Других событий на эту дату нет/);
+          await existingCalendar.getByRole('button', { name: 'Закрыть календарь' }).click();
+          assert.deepEqual(errors, []);
+          console.log(JSON.stringify({ group: group.name, existingSchedule: true, practiceVisible: true, errors }));
+          continue;
+        }
         const panel = page.getByRole('region', { name: 'Учебный календарь' });
         await panel.waitFor({ timeout: 15000 });
         assert.equal(await page.getByText('Сегодня без пар').count(), 0);
@@ -58,7 +68,7 @@ const groupUrl = (nrec) => {
         const page = await context.newPage();
         await page.route('https://**/*', (route) => new URL(route.request().url()).origin === appOrigin ? route.continue() : route.abort());
         await page.clock.setFixedTime(new Date('2026-10-09T12:00:00+03:00'));
-        await page.goto(groupUrl('aa5d14ef738d51b1c17110321becd667'), { waitUntil: 'domcontentloaded' });
+        await page.goto(groupUrl('d23c5b2ab5a6dd9ffe945e577726ad1e'), { waitUntil: 'domcontentloaded' });
         const panel = page.getByRole('region', { name: 'Учебный календарь' });
         await panel.waitFor({ timeout: 15000 });
         await panel.locator('.study-period-list button').first().scrollIntoViewIfNeeded();
@@ -73,9 +83,12 @@ const groupUrl = (nrec) => {
         await page.screenshot({ path: `artifacts/qa/study-periods/calendar-${viewport.width}.png` });
         await calendar.getByRole('button', { name: 'Следующий месяц', exact: true }).click();
         await page.waitForTimeout(400);
-        assert.equal(await calendar.locator('.calendar-study-period').count(), 0);
+        assert.equal(await calendar.locator('.calendar-grid:not([aria-hidden]) > button:not(.outside) .study-period-dot').count() > 0, true);
+        await calendar.getByRole('button', { name: 'Следующий месяц', exact: true }).click();
+        await page.waitForTimeout(400);
+        assert.equal(await calendar.locator('.calendar-grid:not([aria-hidden]) > button:not(.outside) .study-period-dot').count(), 0);
         assert.match(await calendar.locator('.calendar-agenda > header > div').innerText(), /Пары не загружены/);
-        console.log(JSON.stringify({ viewport, calendarRect: box, nextMonth: 'unknown lessons remain unknown' }));
+        console.log(JSON.stringify({ viewport, calendarRect: box, februarySession: true, march: 'unknown lessons remain unknown' }));
       } finally { await context.close(); }
     }
     if (process.env.QA_OFFLINE_CHECK === '1') {
@@ -101,6 +114,12 @@ const groupUrl = (nrec) => {
         await giPanel.waitFor({ timeout: 15000 });
         assert.match(await giPanel.innerText(), /18 января 2027 - 29 января 2027/);
         console.log(JSON.stringify({ offline: true, group: 'ЗКПд-126', sessionsVisible: true }));
+        await page.goto(groupUrl('09e5d59b4a6c048ceca6b5c3dd426293'), { waitUntil: 'domcontentloaded' });
+        await page.getByRole('button', { name: /Пятница, 9 Октября/i }).click();
+        const fkCalendar = page.getByRole('dialog', { name: 'Календарь', exact: true });
+        await fkCalendar.locator('.calendar-study-period').first().waitFor();
+        assert.match(await fkCalendar.innerText(), /7 сентября 2026 - 17 октября 2026/);
+        console.log(JSON.stringify({ offline: true, group: 'ЗФСд-122', existingScheduleAndPracticeVisible: true }));
       } finally { await context.close(); }
     }
   } finally { await browser.close(); }

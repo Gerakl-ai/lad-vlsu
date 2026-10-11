@@ -872,7 +872,7 @@ export function App() {
             </p>
           )}
 
-          {isLoading && (activeTab === "today" || activeTab === "week") && <SkeletonView />}
+          {isLoading && (activeTab === "today" || activeTab === "week") && <SkeletonView light={lightHero} />}
 
           {isScheduleUnavailable && (activeTab === "today" || activeTab === "week") && (
             <ScheduleUnavailableView groupNrec={selectedGroup?.nrec} selectedDateKey={selectedDateKey} onRetry={() => refreshSchedule()} onGroupOpen={() => setGroupPickerOpen(true)} onRestore={lastAvailableGroupRef.current ? () => selectGroup(lastAvailableGroupRef.current!) : undefined}
@@ -1046,6 +1046,8 @@ function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, on
   const isBusy = status === "loading" || status === "refreshing";
   const connectionState = status === "stale" || status === "error-without-cache" ? "offline" : isBusy ? "syncing" : "ready";
   const badge = groupBadgeParts(group?.name ?? "ВлГУ");
+  const groupName = group?.name ?? "Выберите группу";
+  const titleParts = /^(.+)(-\d+[А-Яа-яA-Za-z]*)$/.exec(groupName);
 
   return (
     <header className="topbar" data-sync-status={status}>
@@ -1055,7 +1057,7 @@ function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, on
           {badge.suffix && <small>{badge.suffix}</small>}
         </span>
         <div>
-          <h1>{group?.name ?? "Выберите группу"}</h1>
+          <h1>{titleParts ? <><span>{titleParts[1]}</span><wbr /><span className="group-title-suffix">{titleParts[2]}</span></> : groupName}</h1>
           <p>{group?.instituteShortName ?? "ВлГУ"}</p>
         </div>
         <ChevronDown className="brand-chevron" size={17} />
@@ -2146,10 +2148,10 @@ function SettingsView({
   );
 }
 
-function SkeletonView() {
+function SkeletonView({ light }: { light: boolean }) {
   return (
     <div className="view-stack" aria-label="Загрузка расписания">
-      <section className="hero-card skeleton-hero">
+      <section className={`hero-card skeleton-hero ${light ? "light-hero" : ""}`}>
         <div className="skeleton-line short" />
         <div className="skeleton-line title" />
         <div className="skeleton-line title second" />

@@ -415,7 +415,15 @@ select,
   min-width: 0;
 }
 
-.brand-button h1,
+.brand-button h1 {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.group-title-suffix {
+  white-space: nowrap;
+}
+
 .brand-button p {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -533,7 +541,7 @@ select,
 
 .brand h1 {
   font-size: 28px;
-  line-height: 1;
+  line-height: 1.05;
   font-weight: 900;
   letter-spacing: 0;
   text-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
@@ -4670,6 +4678,18 @@ button.day-title > svg {
   .lesson-time strong,
   .lesson-time span {
     font-size: 15px;
+  }
+}
+
+@media (max-width: 360px) {
+  .topbar {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 8px;
+  }
+
+  .header-actions {
+    width: auto;
+    justify-self: end;
   }
 }
 

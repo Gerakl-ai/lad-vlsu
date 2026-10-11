@@ -7,8 +7,8 @@ import { schedulePeriodContains } from "./schedulePeriod";
 describe("официальный учебный календарь", () => {
   it("сопоставляет каждую сверенную группу с каталогом и источником", () => {
     const known = catalog.institutes.flatMap((institute) => institute.groups);
-    expect(reviewed.groups).toHaveLength(54);
-    expect(new Set(reviewed.groups.map((group) => group.nrec)).size).toBe(54);
+    expect(reviewed.groups).toHaveLength(59);
+    expect(new Set(reviewed.groups.map((group) => group.nrec)).size).toBe(59);
     for (const group of reviewed.groups) {
       expect(known.find((entry) => entry.nrec === group.nrec)?.name).toBe(group.name);
       const source = reviewed.sources[group.sourceId as keyof typeof reviewed.sources];
@@ -68,5 +68,14 @@ describe("официальный учебный календарь", () => {
       ]);
     }
     expect(studyPeriodsOnDate(groupStudyCalendar(firstYear[0].nrec)!.periods, "2027-01-30")).toHaveLength(0);
+  });
+
+  it("различает практики и защиту выпускной группы ИФКСХ", () => {
+    const firstYear = reviewed.groups.filter((group) => group.sourceId === "ifksh-dot");
+    expect(firstYear).toHaveLength(5);
+    const graduate = groupStudyCalendar("09e5d59b4a6c048ceca6b5c3dd426293")!;
+    expect(studyPeriodsOnDate(graduate.periods, "2026-10-11").map((period) => period.kind)).toEqual(["practice"]);
+    expect(studyPeriodsOnDate(graduate.periods, "2027-06-30").map((period) => period.kind)).toEqual(["final"]);
+    expect(studyPeriodsOnDate(graduate.periods, "2027-07-01")).toHaveLength(0);
   });
 });

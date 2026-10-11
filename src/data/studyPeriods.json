@@ -10,7 +10,8 @@
     "fk": { "url": "https://uu.vlsu.ru/images/stories/Files/ifksh_z_2026.pdf", "sha256": "c0b3fa49e844836df48b96cba8a788da4121749edf8c8a290eefd26fe6ebb779", "page": 1 },
     "music": { "url": "https://uu.vlsu.ru/images/stories/Files/vshmt_z_2026.pdf", "sha256": "97df3d1048b5d086c760999beb838f762a36e7c86fd0d0ee551df81c6200b48c", "page": 1 },
     "iite-dot": { "url": "https://uu.vlsu.ru/images/stories/Files/iite_z_dot_2026.pdf", "sha256": "9249a5ef677fa80e4a00558a1056c0f623a7e8cfb1bd0fb41f7659ba330b3439", "page": 1, "sourcePage": "https://uu.vlsu.ru/index.php?option=com_content&view=article&id=246:-20262027-&catid=35:2010-05-07-06-35-16" },
-    "gi-dot-first": { "url": "https://uu.vlsu.ru/images/stories/Files/gi_z_dot_2026_1k.pdf", "sha256": "03a68bcddc4e3147b9d703d3c3b3f73c5f5668bc34158ef1ca4c59f53cd35cfa", "page": 1, "sourcePage": "https://uu.vlsu.ru/index.php?option=com_content&view=article&id=246:-20262027-&catid=35:2010-05-07-06-35-16" }
+    "gi-dot-first": { "url": "https://uu.vlsu.ru/images/stories/Files/gi_z_dot_2026_1k.pdf", "sha256": "03a68bcddc4e3147b9d703d3c3b3f73c5f5668bc34158ef1ca4c59f53cd35cfa", "page": 1, "sourcePage": "https://uu.vlsu.ru/index.php?option=com_content&view=article&id=246:-20262027-&catid=35:2010-05-07-06-35-16" },
+    "ifksh-dot": { "url": "https://uu.vlsu.ru/images/stories/Files/ifksh_z_dot_2026.pdf", "sha256": "db61254642539bc7a35780bca5d270d52287367b66a3a68d6db76d7959eaac2f", "page": 1, "sourcePage": "https://uu.vlsu.ru/index.php?option=com_content&view=article&id=246:-20262027-&catid=35:2010-05-07-06-35-16" }
   },
   "groups": [
     { "name": "ЗЭЭ-123", "nrec": "751fe4ad3947f2ea2f0a8ea1e54f3357", "sourceId": "ias", "periods": [
@@ -257,6 +258,33 @@
     { "name": "ЗРВмд-126", "nrec": "631146e822927fb2b13fa2abb788249a", "sourceId": "gi-dot-first", "periods": [
       { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
       { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗАФКд-126", "nrec": "d23c5b2ab5a6dd9ffe945e577726ad1e", "sourceId": "ifksh-dot", "periods": [
+      { "kind": "session", "start": "2027-01-25", "end": "2027-02-05" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗАФКуд-126", "nrec": "528772b60492bcd830c8ed12ba7af01f", "sourceId": "ifksh-dot", "periods": [
+      { "kind": "practice", "start": "2026-12-14", "end": "2026-12-26" },
+      { "kind": "session", "start": "2027-01-25", "end": "2027-02-05" },
+      { "kind": "practice", "start": "2027-05-24", "end": "2027-06-05" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗФСд-126", "nrec": "42520f0bd2748186d7feaec7edc291e9", "sourceId": "ifksh-dot", "periods": [
+      { "kind": "session", "start": "2027-01-25", "end": "2027-02-05" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗФСуд-126", "nrec": "097e138a65ef14db1e598441ef59c180", "sourceId": "ifksh-dot", "periods": [
+      { "kind": "practice", "start": "2026-12-14", "end": "2026-12-26" },
+      { "kind": "session", "start": "2027-01-25", "end": "2027-02-05" },
+      { "kind": "practice", "start": "2027-05-24", "end": "2027-06-05" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗФСд-122", "nrec": "09e5d59b4a6c048ceca6b5c3dd426293", "sourceId": "ifksh-dot", "periods": [
+      { "kind": "practice", "start": "2026-09-07", "end": "2026-10-17" },
+      { "kind": "session", "start": "2027-01-25", "end": "2027-02-05" },
+      { "kind": "session", "start": "2027-04-05", "end": "2027-04-16" },
+      { "kind": "practice", "start": "2027-04-19", "end": "2027-05-18" },
+      { "kind": "final", "start": "2027-05-19", "end": "2027-06-30" }
     ] }
   ]
 }

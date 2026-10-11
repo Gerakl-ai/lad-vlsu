@@ -444,7 +444,7 @@ export function SmartCalendarSheet({ lessons, scheduleAvailable = true, schedule
                 <article className="calendar-event lesson" key={event.id}>{contents}</article>
               );
             }) : (
-              <div className="calendar-empty-day"><CalendarDays size={22} /><span>{selectedScheduleKnown ? "На эту дату пока ничего не запланировано." : "Расписание занятий на эту дату пока не получено."}</span></div>
+              <div className="calendar-empty-day"><CalendarDays size={22} /><span>{selectedScheduleKnown ? selectedPeriods.length ? "Других событий на эту дату нет." : "На эту дату пока ничего не запланировано." : "Расписание занятий на эту дату пока не получено."}</span></div>
             )}
           </div>
         </section>

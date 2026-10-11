@@ -31,7 +31,9 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
         if (tab === 'Сегодня') {
           await page.locator('.upcoming-study').waitFor();
           assert.match(await page.locator('.upcoming-study').innerText(), /6 октября/);
-          assert.match(await page.locator('.upcoming-lesson strong').first().innerText(), /искусственного интеллекта\s\/\s.*архитектуры/i);
+          const upcomingSubject = await page.locator('.upcoming-lesson strong').first().innerText();
+          assert.match(upcomingSubject, /искусственного интеллекта/i);
+          assert.doesNotMatch(upcomingSubject, /архитектуры/i);
         }
         if (tab === 'Неделя') {
           await page.locator('.week-list .lesson-choice-hint').first().waitFor();
