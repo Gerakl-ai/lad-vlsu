@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "academicYear": "2026/27",
-  "reviewedAt": "2026-10-09",
+  "reviewedAt": "2026-10-11",
   "sourcePage": "https://uu.vlsu.ru/index.php?catid=35%3A2010-05-07-06-35-16&id=245%3A-20262027-&option=com_content&view=article",
   "sources": {
     "ias": { "url": "https://uu.vlsu.ru/images/stories/Files/iase_z_2026.pdf", "sha256": "cb54232d12793c947ccfe470ac8a9d2ecccf83f5c6082947bcc3a28c7c651470", "page": 1 },
@@ -9,7 +9,8 @@
     "ui": { "url": "https://uu.vlsu.ru/images/stories/Files/ui_z_2026.pdf", "sha256": "67964903be023a40881866021830b048261de32698baf6af3fb867ca0b6eb88a", "page": 1 },
     "fk": { "url": "https://uu.vlsu.ru/images/stories/Files/ifksh_z_2026.pdf", "sha256": "c0b3fa49e844836df48b96cba8a788da4121749edf8c8a290eefd26fe6ebb779", "page": 1 },
     "music": { "url": "https://uu.vlsu.ru/images/stories/Files/vshmt_z_2026.pdf", "sha256": "97df3d1048b5d086c760999beb838f762a36e7c86fd0d0ee551df81c6200b48c", "page": 1 },
-    "iite-dot": { "url": "https://uu.vlsu.ru/images/stories/Files/iite_z_dot_2026.pdf", "sha256": "9249a5ef677fa80e4a00558a1056c0f623a7e8cfb1bd0fb41f7659ba330b3439", "page": 1, "sourcePage": "https://uu.vlsu.ru/index.php?option=com_content&view=article&id=246:-20262027-&catid=35:2010-05-07-06-35-16" }
+    "iite-dot": { "url": "https://uu.vlsu.ru/images/stories/Files/iite_z_dot_2026.pdf", "sha256": "9249a5ef677fa80e4a00558a1056c0f623a7e8cfb1bd0fb41f7659ba330b3439", "page": 1, "sourcePage": "https://uu.vlsu.ru/index.php?option=com_content&view=article&id=246:-20262027-&catid=35:2010-05-07-06-35-16" },
+    "gi-dot-first": { "url": "https://uu.vlsu.ru/images/stories/Files/gi_z_dot_2026_1k.pdf", "sha256": "03a68bcddc4e3147b9d703d3c3b3f73c5f5668bc34158ef1ca4c59f53cd35cfa", "page": 1, "sourcePage": "https://uu.vlsu.ru/index.php?option=com_content&view=article&id=246:-20262027-&catid=35:2010-05-07-06-35-16" }
   },
   "groups": [
     { "name": "ЗЭЭ-123", "nrec": "751fe4ad3947f2ea2f0a8ea1e54f3357", "sourceId": "ias", "periods": [
@@ -204,6 +205,58 @@
       { "kind": "session", "start": "2027-03-22", "end": "2027-04-02" },
       { "kind": "practice", "start": "2027-04-19", "end": "2027-05-18" },
       { "kind": "final", "start": "2027-05-19", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗКПд-126", "nrec": "aa5d14ef738d51b1c17110321becd667", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗКПуд-126", "nrec": "dee8ab858f4ea3150830b22a38904d67", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗКПуд-226", "nrec": "95163d5958eaa390ec6af5195d8ffa4b", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗКЛд-126", "nrec": "b65b32368d0c9e714d613981f95ee6d9", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗКЛуд-126", "nrec": "a1b8530253ac17170e9eae15f6e7f5ca", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗЛГмд-126", "nrec": "80ae992c7a9ef6784340fe1a938a7367", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗКЛмд-126", "nrec": "25a9befbd8149fa61518a5498537504a", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗСРд-126", "nrec": "1c379938dc8c8d654cefd351dd5fd1c0", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗСРуд-126", "nrec": "38ba7f2304456103ef94bec28f6278d5", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗСЛд-126", "nrec": "0cbe4bec96d1254491c1f54d5a06e342", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗСЛмд-126", "nrec": "cf306da88b14b545a8757673aadfd4b9", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗФЛд-126", "nrec": "2df566f50f1b415eb9020dee242a0fcf", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
+    ] },
+    { "name": "ЗРВмд-126", "nrec": "631146e822927fb2b13fa2abb788249a", "sourceId": "gi-dot-first", "periods": [
+      { "kind": "session", "start": "2027-01-18", "end": "2027-01-29" },
+      { "kind": "session", "start": "2027-06-21", "end": "2027-06-30" }
     ] }
   ]
 }

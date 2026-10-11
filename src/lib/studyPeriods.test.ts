@@ -7,8 +7,8 @@ import { schedulePeriodContains } from "./schedulePeriod";
 describe("официальный учебный календарь", () => {
   it("сопоставляет каждую сверенную группу с каталогом и источником", () => {
     const known = catalog.institutes.flatMap((institute) => institute.groups);
-    expect(reviewed.groups).toHaveLength(41);
-    expect(new Set(reviewed.groups.map((group) => group.nrec)).size).toBe(41);
+    expect(reviewed.groups).toHaveLength(54);
+    expect(new Set(reviewed.groups.map((group) => group.nrec)).size).toBe(54);
     for (const group of reviewed.groups) {
       expect(known.find((entry) => entry.nrec === group.nrec)?.name).toBe(group.name);
       const source = reviewed.sources[group.sourceId as keyof typeof reviewed.sources];
@@ -56,5 +56,17 @@ describe("официальный учебный календарь", () => {
     expect(pi.periods.find((period) => period.kind === "session" && period.start === "2027-03-22")?.end).toBe("2027-03-31");
     expect(groupStudyCalendar("638ac902af6655c9c0396fce84f6ed7c")?.periods.find((period) => period.kind === "final")?.end).toBe("2027-02-27");
     expect(groupStudyCalendar("9ebff683431e93bb6ff1b1b3e445d704")).toBeNull();
+  });
+
+  it("показывает проверенные сессии первокурсников ГИ без выдуманных практик", () => {
+    const firstYear = reviewed.groups.filter((group) => group.sourceId === "gi-dot-first");
+    expect(firstYear).toHaveLength(13);
+    for (const group of firstYear) {
+      expect(group.periods).toEqual([
+        { kind: "session", start: "2027-01-18", end: "2027-01-29" },
+        { kind: "session", start: "2027-06-21", end: "2027-06-30" }
+      ]);
+    }
+    expect(studyPeriodsOnDate(groupStudyCalendar(firstYear[0].nrec)!.periods, "2027-01-30")).toHaveLength(0);
   });
 });

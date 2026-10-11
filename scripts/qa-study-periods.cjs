@@ -58,7 +58,7 @@ const groupUrl = (nrec) => {
         const page = await context.newPage();
         await page.route('https://**/*', (route) => new URL(route.request().url()).origin === appOrigin ? route.continue() : route.abort());
         await page.clock.setFixedTime(new Date('2026-10-09T12:00:00+03:00'));
-        await page.goto(groupUrl('296ccc855693c856f385c4e4153d1943'), { waitUntil: 'domcontentloaded' });
+        await page.goto(groupUrl('aa5d14ef738d51b1c17110321becd667'), { waitUntil: 'domcontentloaded' });
         const panel = page.getByRole('region', { name: 'Учебный календарь' });
         await panel.waitFor({ timeout: 15000 });
         await panel.locator('.study-period-list button').first().scrollIntoViewIfNeeded();
@@ -96,6 +96,11 @@ const groupUrl = (nrec) => {
         assert.match(await page.locator('.calendar-study-period').first().innerText(), /Практика/);
         await page.screenshot({ path: 'artifacts/qa/study-periods/offline-402.png' });
         console.log(JSON.stringify({ offline: true, group: 'ЗМТИ-122', calendarOpened: true }));
+        await page.goto(groupUrl('aa5d14ef738d51b1c17110321becd667'), { waitUntil: 'domcontentloaded' });
+        const giPanel = page.getByRole('region', { name: 'Учебный календарь' });
+        await giPanel.waitFor({ timeout: 15000 });
+        assert.match(await giPanel.innerText(), /18 января 2027 - 29 января 2027/);
+        console.log(JSON.stringify({ offline: true, group: 'ЗКПд-126', sessionsVisible: true }));
       } finally { await context.close(); }
     }
   } finally { await browser.close(); }
