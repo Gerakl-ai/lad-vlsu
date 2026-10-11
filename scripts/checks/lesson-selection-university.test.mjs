@@ -59,6 +59,7 @@ describe('выбор пары в расписаниях университета
 
   it('чередует все реальные слоты с двумя одинаковыми альтернативами', () => {
     let checkedSlots = 0;
+    let reversedSlots = 0;
     const checkedGroups = new Set();
 
     for (const file of readdirSync(scheduleDir).filter((name) => /^[a-f\d]{32}\.json$/i.test(name))) {
@@ -77,6 +78,12 @@ describe('выбор пары в расписаниях университета
           const secondWeek = denominatorVariants.map((variant) => variantIdentity(variant, denominatorVariants));
           if (new Set(firstWeek).size !== 2 || !firstWeek.every((key) => secondWeek.includes(key))) continue;
 
+          if (firstWeek[0] === secondWeek[1]) {
+            expect(selectedLessonVariant(numerator, 'numerator', {}, denominator), `${file}: numerator default`).toBe(0);
+            expect(selectedLessonVariant(denominator, 'denominator', {}, numerator), `${file}: denominator default`).toBe(0);
+            reversedSlots += 1;
+          }
+
           const selections = setLessonSelection({}, numerator, 'numerator', 0);
           const selectedIndex = selectedLessonVariant(denominator, 'denominator', selections, numerator);
           expect(selectedIndex, `${file}: day ${dayOffset + 1}, pair ${pairIndex}`).not.toBe('all');
@@ -89,5 +96,6 @@ describe('выбор пары в расписаниях университета
 
     expect(checkedSlots).toBeGreaterThan(100);
     expect(checkedGroups.size).toBeGreaterThan(50);
+    expect(reversedSlots).toBeGreaterThan(20);
   });
 });

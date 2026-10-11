@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { parseLessonText } from "./scheduleApi";
+import { normalizeSchedule, parseLessonText } from "./scheduleApi";
 import s424Snapshot from "../../public/data/schedule/0107a80d5bdd182f4b2609a637266fb7.json";
+import pi124Snapshot from "../../public/data/schedule/7936a2a43b11b20b01d30f5b00c73166.json";
+import ib125Snapshot from "../../public/data/schedule/05f189c025a7ea913397401598195430.json";
 import { lessonWithSelectedVariant, readLessonSelections, selectedLessonVariant, setLessonSelection, writeLessonSelections } from "./lessonSelection";
 import type { LessonSlot } from "../types";
 
@@ -36,6 +38,35 @@ describe("выбор конкретной пары", () => {
     expect(lessonWithSelectedVariant(tuesday, 1).subject).toContain("искусственного интеллекта");
     writeLessonSelections(group, 5, choices);
     expect(selectedLessonVariant(tuesday, "denominator", readLessonSelections(group, 5))).toBe(1);
+  });
+
+  it("без старого номера подгруппы показывает первые варианты каждой проверенной недели ПИ-124", () => {
+    const lessons = normalizeSchedule(pi124Snapshot.schedule as Parameters<typeof normalizeSchedule>[0]);
+    const bySlot = (dayIndex: number, weekMode: "numerator" | "denominator") => {
+      const found = lessons.find((item) => item.dayIndex === dayIndex && item.pairIndex === 1 && item.weekMode === weekMode);
+      if (!found) throw new Error(`Missing ${dayIndex} ${weekMode}`);
+      return found;
+    };
+    const tuesday6 = bySlot(2, "denominator");
+    const tuesday13 = bySlot(2, "numerator");
+    const friday9 = bySlot(5, "denominator");
+    const friday16 = bySlot(5, "numerator");
+    expect(lessonWithSelectedVariant(tuesday6, selectedLessonVariant(tuesday6, "denominator", {}, tuesday13)).subject).toContain("искусственного интеллекта");
+    expect(lessonWithSelectedVariant(tuesday13, selectedLessonVariant(tuesday13, "numerator", {}, tuesday6)).subject).toContain("архитектуры");
+    expect(lessonWithSelectedVariant(friday9, selectedLessonVariant(friday9, "denominator", {}, friday16)).subject).toContain("backend");
+    expect(lessonWithSelectedVariant(friday16, selectedLessonVariant(friday16, "numerator", {}, friday9)).subject).toContain("безопасность");
+  });
+
+  it("применяет тот же выбор по предмету к другим группам", () => {
+    const lessons = normalizeSchedule(ib125Snapshot.schedule as Parameters<typeof normalizeSchedule>[0]);
+    const numerator = lessons.find((item) => item.dayIndex === 3 && item.pairIndex === 4 && item.weekMode === "numerator");
+    const denominator = lessons.find((item) => item.dayIndex === 3 && item.pairIndex === 4 && item.weekMode === "denominator");
+    if (!numerator || !denominator) throw new Error("ИБ-125: missing Wednesday pair");
+    expect(selectedLessonVariant(numerator, "numerator", {}, denominator)).toBe(0);
+    expect(selectedLessonVariant(denominator, "denominator", {}, numerator)).toBe(0);
+    const choices = setLessonSelection({}, numerator, "numerator", 1);
+    expect(selectedLessonVariant(numerator, "numerator", choices, denominator)).toBe(1);
+    expect(selectedLessonVariant(denominator, "denominator", choices, numerator)).toBe(1);
   });
 
   it("на реальном порядке ПИ-124 показывает ИИ 6-го и архитектуру 13-го, а в пятницу backend затем ИБ", () => {

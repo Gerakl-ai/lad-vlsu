@@ -71,21 +71,25 @@ export function selectedLessonVariant(
   if (variants.length < 2 || week === "all") return "all";
   const selected = selections[lessonSelectionKey(lesson)];
   if (selected?.showAll) return "all";
+  const keys = variants.map((variant) => variantIdentity(variant, variants));
+  const partnerKeys = counterpart?.variants?.map((variant) => variantIdentity(variant, counterpart.variants!));
+  const sameAlternatives = variants.length === 2 && partnerKeys?.length === 2
+    && keys[0] !== keys[1] && keys.every((key) => partnerKeys.includes(key));
   const identity = selected?.[week];
-  const exact = identity && variants.findIndex((variant) => variantIdentity(variant, variants) === identity);
+  const exact = identity && keys.indexOf(identity);
   if (typeof exact === "number" && exact >= 0) return exact;
 
   const otherWeek = week === "numerator" ? "denominator" : "numerator";
   const opposite = selected?.[otherWeek];
   if (opposite && variants.length === 2) {
-    const keys = variants.map((variant) => variantIdentity(variant, variants));
-    const partnerKeys = counterpart?.variants?.map((variant) => variantIdentity(variant, counterpart.variants!));
-    const sameAlternatives = partnerKeys?.length === 2 && keys.every((key) => partnerKeys.includes(key));
     if (sameAlternatives || (!counterpart && lesson.weekMode === "all")) {
       const index = keys.findIndex((key) => key !== opposite);
       if (index >= 0 && keys.includes(opposite)) return index;
     }
   }
+  // Reversed source order is an explicit weekly pairing, independent of old
+  // device-wide subgroup numbers. A manual subject choice still takes priority.
+  if (!selected && sameAlternatives && keys[0] === partnerKeys[1]) return 0;
   return "all";
 }
 
