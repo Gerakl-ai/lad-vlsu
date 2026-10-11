@@ -65,6 +65,40 @@ fs.mkdirSync(output, { recursive: true });
       await page.screenshot({ path: path.join(output, `week-${viewport.width}.png`) });
       assert.deepEqual(errors, []);
       console.log(JSON.stringify({ viewport, initial, nextWeek, friday, nextFriday, saved: Boolean(stored), errors }));
+
+      if (viewport.width === 402) {
+        const legacyCache = await page.evaluate((nrec) => {
+          const key = `lad.schedule.v2:${nrec}`;
+          const state = JSON.parse(localStorage.getItem(key) || 'null');
+          if (!state?.allLessons?.length) return false;
+          for (const dayIndex of [2, 5]) {
+            const numerator = state.allLessons.find((lesson) => lesson.dayIndex === dayIndex && lesson.pairIndex === 1 && lesson.weekMode === 'numerator');
+            const denominator = state.allLessons.find((lesson) => lesson.dayIndex === dayIndex && lesson.pairIndex === 1 && lesson.weekMode === 'denominator');
+            if (!numerator || !denominator) return false;
+            numerator.weekMode = 'all';
+            state.allLessons = state.allLessons.filter((lesson) => lesson !== denominator);
+          }
+          state.fetchedAt = '2026-10-15T12:00:00Z';
+          localStorage.setItem(key, JSON.stringify(state));
+          localStorage.removeItem(`lad.lesson-selection.v1:${nrec}:5`);
+          localStorage.setItem(`lad.subgroup.v1:${nrec}`, '0');
+          return true;
+        }, group.nrec);
+        assert(legacyCache, 'expected an old combined schedule cache');
+        await page.route('**/data/**', (route) => route.abort());
+        await page.route('**/app-api/**', (route) => route.abort());
+        await page.clock.setFixedTime(new Date('2026-10-06T09:40:00+03:00'));
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        await row.waitFor({ timeout: 20000 });
+        const restored6 = await row.locator('.lesson-title').innerText();
+        assert.match(restored6, /искусственного интеллекта/i, `old offline cache, 6 October: ${restored6}`);
+        await page.clock.setFixedTime(new Date('2026-10-13T09:40:00+03:00'));
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        await row.waitFor({ timeout: 20000 });
+        const restored13 = await row.locator('.lesson-title').innerText();
+        assert.match(restored13, /архитектуры/i, `old offline cache, 13 October: ${restored13}`);
+        console.log(JSON.stringify({ oldDeviceCache: true, dataNetwork: 'blocked', restored6, restored13 }));
+      }
       await context.close();
     }
 
