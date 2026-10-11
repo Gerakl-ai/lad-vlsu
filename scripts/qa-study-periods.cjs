@@ -58,7 +58,7 @@ const groupUrl = (nrec) => {
         const page = await context.newPage();
         await page.route('https://**/*', (route) => new URL(route.request().url()).origin === appOrigin ? route.continue() : route.abort());
         await page.clock.setFixedTime(new Date('2026-10-09T12:00:00+03:00'));
-        await page.goto(groupUrl('751fe4ad3947f2ea2f0a8ea1e54f3357'), { waitUntil: 'domcontentloaded' });
+        await page.goto(groupUrl('296ccc855693c856f385c4e4153d1943'), { waitUntil: 'domcontentloaded' });
         const panel = page.getByRole('region', { name: 'Учебный календарь' });
         await panel.waitFor({ timeout: 15000 });
         await panel.locator('.study-period-list button').first().scrollIntoViewIfNeeded();

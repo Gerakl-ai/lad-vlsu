@@ -7,8 +7,8 @@ import { schedulePeriodContains } from "./schedulePeriod";
 describe("официальный учебный календарь", () => {
   it("сопоставляет каждую сверенную группу с каталогом и источником", () => {
     const known = catalog.institutes.flatMap((institute) => institute.groups);
-    expect(reviewed.groups).toHaveLength(14);
-    expect(new Set(reviewed.groups.map((group) => group.nrec)).size).toBe(14);
+    expect(reviewed.groups).toHaveLength(41);
+    expect(new Set(reviewed.groups.map((group) => group.nrec)).size).toBe(41);
     for (const group of reviewed.groups) {
       expect(known.find((entry) => entry.nrec === group.nrec)?.name).toBe(group.name);
       const source = reviewed.sources[group.sourceId as keyof typeof reviewed.sources];
@@ -47,5 +47,14 @@ describe("официальный учебный календарь", () => {
     expect(schedulePeriodContains("2026-12-31", "2026-09-01", "2026-12-31")).toBe(true);
     expect(schedulePeriodContains("2027-01-01", "2026-09-01", "2026-12-31")).toBe(false);
     expect(schedulePeriodContains("2026-08-31", "2026-09-01", "2026-12-31")).toBe(false);
+  });
+
+  it("сохраняет различия выпускных групп ИИТЭ и не придумывает отсутствующую группу", () => {
+    const ist = groupStudyCalendar("ccfede0a6161e83cf079475e02324ac5")!;
+    const pi = groupStudyCalendar("9e8a25a033119117261f01f3bc44ab4f")!;
+    expect(ist.periods.find((period) => period.kind === "session" && period.start === "2027-03-22")?.end).toBe("2027-04-02");
+    expect(pi.periods.find((period) => period.kind === "session" && period.start === "2027-03-22")?.end).toBe("2027-03-31");
+    expect(groupStudyCalendar("638ac902af6655c9c0396fce84f6ed7c")?.periods.find((period) => period.kind === "final")?.end).toBe("2027-02-27");
+    expect(groupStudyCalendar("9ebff683431e93bb6ff1b1b3e445d704")).toBeNull();
   });
 });
