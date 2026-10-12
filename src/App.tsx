@@ -77,7 +77,7 @@ import { backupSignature, markBackupMade, readBackupMade } from "./features/note
 import { alignSubgroupOrder, lessonView, type SubgroupChoice } from "./lib/subgroup";
 import { lessonWithSelectedVariant, readLessonSelections, selectedLessonVariant, setLessonSelection, writeLessonSelections } from "./lib/lessonSelection";
 import { lessonChangeMessage } from "./lib/lessonChange";
-import { resetUniversityBundleCache, warmUniversityScheduleBundle } from "./lib/staticData";
+import { primeUniversityScheduleCache, resetUniversityBundleCache } from "./lib/staticData";
 import { isSelectedScheduleUpdate } from "./lib/scheduleUpdate";
 import { readReminderSettings, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
@@ -820,7 +820,7 @@ export function App() {
       if (!navigator.serviceWorker.controller || timer) return;
       timer = setTimeout(() => {
         timer = undefined;
-        if (navigator.onLine) void warmUniversityScheduleBundle().catch(() => undefined);
+        if (navigator.onLine) void primeUniversityScheduleCache().catch(() => undefined);
       }, 3000);
     };
     prepare();

@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { chromium } = require('playwright');
+const { waitForAsyncCondition } = require('./qa-async-condition.cjs');
 
 const root = process.env.QA_URL || 'http://127.0.0.1:4173/';
 const catalog = JSON.parse(fs.readFileSync('public/data/catalog.json', 'utf8'));
@@ -58,6 +59,7 @@ const nav = (page, label) => page.locator('.bottom-nav').getByRole('button', { n
   const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe' });
   fs.mkdirSync(output, { recursive: true });
   try {
+    if (!process.env.QA_OFFLINE_ONLY) {
     for (const viewport of viewports) {
       const metadata = await controlledPage(browser, viewport, profile('ЗАФКд-126'));
       try {
@@ -159,6 +161,7 @@ const nav = (page, label) => page.locator('.bottom-nav').getByRole('button', { n
       assert.deepEqual(unknown.errors, []);
       console.log(JSON.stringify({ scenario: 'error-without-any-local-timetable', retryAvailable: true, falseFreeDay: false }));
     } finally { unknown.release(); await unknown.context.close(); }
+    }
 
     for (const viewport of viewports.slice(0, 2)) {
       const context = await browser.newContext({ viewport, timezoneId: 'Europe/Moscow' });
@@ -169,8 +172,15 @@ const nav = (page, label) => page.locator('.bottom-nav').getByRole('button', { n
         await prepare(page, profile('ЗАФКд-126'));
         await page.goto(root, { waitUntil: 'domcontentloaded' });
         await page.getByRole('region', { name: 'Учебный календарь' }).waitFor();
-        await page.waitForFunction(async () => Boolean(navigator.serviceWorker.controller
-          && await caches.match(new URL('.', location.href).href)), null, { timeout: 30000 });
+        await waitForAsyncCondition(page, async () => Boolean(navigator.serviceWorker.controller?.state === 'activated'
+          && await caches.match(new URL('.', location.href).href)));
+        console.log(JSON.stringify(await page.evaluate(async () => {
+          const shell = await caches.match(new URL('.', location.href).href);
+          return { scenario: 'offline-installation-ready', controller: navigator.serviceWorker.controller?.scriptURL,
+            state: navigator.serviceWorker.controller?.state, caches: await caches.keys(),
+            shell: shell && { url: shell.url, redirected: shell.redirected, status: shell.status,
+              encoding: shell.headers.get('content-encoding'), length: shell.headers.get('content-length') } };
+        })));
         await context.setOffline(true);
         await page.reload({ waitUntil: 'domcontentloaded' });
         const panel = page.getByRole('region', { name: 'Учебный календарь' });

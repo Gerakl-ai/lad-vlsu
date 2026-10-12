@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { chromium } = require('playwright');
+const { waitForAsyncCondition } = require('./qa-async-condition.cjs');
 const reviewed = JSON.parse(fs.readFileSync('src/data/studyPeriods.json', 'utf8'));
 const catalog = JSON.parse(fs.readFileSync('public/data/catalog.json', 'utf8'));
 const root = process.env.QA_URL || 'http://127.0.0.1:4173/';
@@ -98,8 +99,8 @@ const groupUrl = (nrec) => {
         await page.clock.setFixedTime(new Date('2026-10-09T12:00:00+03:00'));
         await page.goto(groupUrl('b7348799e3b73ea57b363d1edcf9a30a'), { waitUntil: 'domcontentloaded' });
         await page.getByRole('region', { name: 'Учебный календарь' }).waitFor({ timeout: 15000 });
-        await page.waitForFunction(async () => Boolean(navigator.serviceWorker.controller
-          && await caches.match(new URL('./data/university-schedule.json', location.href).href)), null, { timeout: 30000 });
+        await waitForAsyncCondition(page, async () => Boolean(navigator.serviceWorker.controller?.state === 'activated'
+          && await caches.match(new URL('./data/university-schedule.json', location.href).href)));
         await context.setOffline(true);
         await page.reload({ waitUntil: 'domcontentloaded' });
         const panel = page.getByRole('region', { name: 'Учебный календарь' });

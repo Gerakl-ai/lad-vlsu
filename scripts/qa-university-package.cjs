@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
 const assert = require('node:assert/strict');
+const { waitForAsyncCondition } = require('./qa-async-condition.cjs');
 
 const dist = path.resolve('dist');
 const data = path.resolve('artifacts/live-snapshot-20261001');
@@ -48,7 +49,7 @@ const server = http.createServer((request, response) => {
           if (!navigator.serviceWorker.controller) await new Promise((resolve) => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
           await (await fetch('./data/university-schedule.json')).arrayBuffer();
         });
-        await page.waitForFunction(async () => Boolean(await caches.match('./data/university-schedule.json')));
+        await waitForAsyncCondition(page, async () => Boolean(await caches.match('./data/university-schedule.json')));
         await context.setOffline(true);
         await page.evaluate((group) => {
           for (const key of Object.keys(localStorage)) if (key.startsWith('lad.schedule.v2')) localStorage.removeItem(key);

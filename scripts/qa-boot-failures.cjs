@@ -2,6 +2,7 @@ const { chromium } = require('playwright');
 const { mkdirSync, readFileSync } = require('node:fs');
 const { Script } = require('node:vm');
 const assert = require('node:assert/strict');
+const { waitForAsyncCondition } = require('./qa-async-condition.cjs');
 
 const url = process.env.QA_URL || 'http://127.0.0.1:5182/';
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_PATH;
@@ -47,7 +48,7 @@ assert(!readFileSync('dist/sw.js', 'utf8').includes('/* __BUILD_ASSETS__ */ null
       const registration = await navigator.serviceWorker.register('sw.js?release=legacy-broken', { updateViaCache: 'none' });
       await registration.update();
     });
-    await page.waitForFunction(async (expected) => (await caches.keys()).some((name) => name.endsWith(':' + expected)), release);
+    await waitForAsyncCondition(page, async (expected) => (await caches.keys()).some((name) => name.endsWith(':' + expected)), release);
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.locator('.phone-frame').waitFor();
     await context.setOffline(true);

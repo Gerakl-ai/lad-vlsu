@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { normalizeSchedule } from "./scheduleApi";
 import { vlsuWeekModeForDate, vlsuWeekTypeForDate } from "./academicWeek";
@@ -10,6 +10,7 @@ import {
   fetchOcrScheduleCoverage,
   fetchStaticSnapshot,
   resetUniversityBundleCache,
+  primeUniversityScheduleCache,
   warmUniversityScheduleBundle,
   normalizeStaticCatalog,
   normalizeStaticSnapshot,
@@ -262,6 +263,74 @@ describe("university offline bundle", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0]).toContain("university-schedule.json");
     vi.unstubAllGlobals();
+  });
+});
+
+describe("persistent university package warmup", () => {
+  beforeEach(() => {
+    vi.stubGlobal("navigator", { serviceWorker: { controller: { state: "activated" } } });
+    vi.stubGlobal("caches", { match: vi.fn(async (url: string) =>
+      url.endsWith("university-schedule.json") || url.endsWith("ocr-schedule/bundle.json")
+        ? undefined : new Response("cached metadata")) });
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("fetches through the worker even after a pre-control read was memoized", async () => {
+    const responses: Response[] = [];
+    const fetchMock = vi.fn(async () => {
+      const response = new Response(JSON.stringify({ schemaVersion: 1,
+        groups: { [snapshotPayload.group.nrec]: snapshotPayload } }));
+      responses.push(response);
+      return response;
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const memory = await warmUniversityScheduleBundle();
+    await primeUniversityScheduleCache();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(responses[1].bodyUsed).toBe(true);
+    expect(await warmUniversityScheduleBundle()).toBe(memory);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not repeat a download once the persistent package exists", async () => {
+    vi.stubGlobal("caches", { match: vi.fn().mockResolvedValue(new Response("cached")) });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    await primeUniversityScheduleCache();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("waits for an active controller before priming the package", async () => {
+    vi.stubGlobal("navigator", { serviceWorker: { controller: null } });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    await primeUniversityScheduleCache();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("primes the catalog and quality metadata independently of the package", async () => {
+    vi.stubGlobal("caches", { match: vi.fn(async (url: string) =>
+      url.endsWith("university-schedule.json") ? new Response("cached package") : undefined) });
+    const fetchMock = vi.fn(async (_url: string) => new Response("metadata"));
+    vi.stubGlobal("fetch", fetchMock);
+    await primeUniversityScheduleCache();
+    expect(fetchMock.mock.calls.map((call) => call[0]).sort()).toEqual([
+      staticDataUrl("catalog.json"), staticDataUrl("coverage.json"), staticDataUrl("quality.json")
+    ].sort());
+  });
+
+  it("drains the published fallback when the university package fails", async () => {
+    const fallback = new Response(JSON.stringify({ schemaVersion: 1,
+      groups: { [snapshotPayload.group.nrec]: snapshotPayload } }));
+    const fetchMock = vi.fn().mockResolvedValueOnce(new Response("unavailable", { status: 503 }))
+      .mockResolvedValueOnce(fallback);
+    vi.stubGlobal("fetch", fetchMock);
+    await primeUniversityScheduleCache();
+    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
+      staticDataUrl("university-schedule.json"), staticDataUrl("ocr-schedule/bundle.json")
+    ]);
+    expect(fallback.bodyUsed).toBe(true);
   });
 });
 

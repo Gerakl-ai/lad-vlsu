@@ -33,7 +33,13 @@
 Команды: `pnpm run check`, `node --check public/sw.js`.
 Сценарии: `scripts/qa-desktop-layout.cjs`, `scripts/qa-desktop-surfaces.cjs`,
 `scripts/qa-study-periods.cjs`, `scripts/qa-lesson-selection.cjs`,
-`scripts/qa-group-header.cjs`, `scripts/qa-group-startup.cjs`.
+`scripts/qa-group-header.cjs`, `scripts/qa-group-startup.cjs`,
+`scripts/qa-university-cache-race.cjs`.
+
+Для асинхронных условий CacheStorage использовать `waitForAsyncCondition` из
+`scripts/qa-async-condition.cjs`. В установленном Playwright 1.63 асинхронный
+predicate у `waitForFunction` не подтверждает истинность результата. Перед
+офлайн-перезапуском проверять активированный controller и реально записанные файлы.
 
 Состояние реального iPhone не считать проверенным по эмулятору. После публикации
 сверять версию HTML и service worker с коммитом и повторять затронутый сценарий

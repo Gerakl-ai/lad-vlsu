@@ -453,6 +453,32 @@ export function resetUniversityBundleCache() {
   universityBundlePromise = null;
 }
 
+export async function primeUniversityScheduleCache(): Promise<void> {
+  if (typeof navigator === "undefined" || navigator.serviceWorker?.controller?.state !== "activated") return;
+  const prime = async (resource: string) => {
+    const url = staticDataUrl(resource);
+    if (typeof caches !== "undefined" && await caches.match(url)) return true;
+    // A memoized read may have completed before the worker controlled this page.
+    const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!response.ok) return false;
+    await response.arrayBuffer();
+    return true;
+  };
+  const metadata = Promise.allSettled(["catalog.json", "coverage.json", "quality.json"].map(prime));
+  try {
+    for (const resource of ["university-schedule.json", "ocr-schedule/bundle.json"]) {
+      try {
+        if (await prime(resource)) return;
+      } catch {
+        // Keep the in-memory package while trying the published fallback.
+      }
+    }
+    throw new Error("Offline schedule package is not available yet");
+  } finally {
+    await metadata;
+  }
+}
+
 export async function warmUniversityScheduleBundle(): Promise<Record<string, unknown>> {
   universityBundlePromise ??= fetchJson(staticDataUrl("university-schedule.json"), AbortSignal.timeout(8000))
     .catch(() => fetchJson(staticDataUrl("ocr-schedule/bundle.json"), AbortSignal.timeout(8000)))
