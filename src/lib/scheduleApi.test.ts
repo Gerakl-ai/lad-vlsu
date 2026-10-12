@@ -214,6 +214,18 @@ describe("normalizeSchedule", () => {
       fetchedAt: "2026-09-16T04:00:00.000Z"
     })).toBeNull();
   });
+
+  it("rejects empty cached timetables instead of reporting a free week", () => {
+    const base = {
+      groupNrec: "group", fetchedAt: "2026-10-12T08:00:00Z",
+      currentInfo: { currentLesson: "", currentWeekType: 1, name: "Группа", semester: 5 }
+    };
+    expect(normalizeCachedSchedule({ ...base, allLessons: [] })).toBeNull();
+    expect(normalizeCachedSchedule({ ...base, allLessons: [{
+      id: "empty", dayIndex: 1, dayName: "Понедельник", pairIndex: 1,
+      start: "08:30", end: "10:00", subject: "", rawText: " \n ", weekMode: "all"
+    }] })).toBeNull();
+  });
 });
 
 describe("schedule snapshot v2", () => {

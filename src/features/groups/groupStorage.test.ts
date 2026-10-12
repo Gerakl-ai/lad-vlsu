@@ -12,6 +12,12 @@ import {
   writeSelectedGroup
 } from "./groupStorage";
 
+const lessons: ScheduleState["allLessons"] = [{
+  id: "test-lesson", dayIndex: 1, dayName: "Понедельник", pairIndex: 1,
+  start: "08:30", end: "10:00", subject: "Тестовый предмет",
+  rawText: "Тестовый предмет", weekMode: "all"
+}];
+
 function storageMock() {
   const values = new Map<string, string>();
   return {
@@ -35,7 +41,7 @@ describe("group storage", () => {
     const schedule: ScheduleState = {
       groupNrec: LEGACY_PI124_GROUP.nrec,
       currentInfo: { currentLesson: "", currentWeekType: 1, name: "ПИ-124", semester: 5 },
-      allLessons: [],
+      allLessons: lessons,
       fetchedAt: "2026-09-15T08:00:00.000Z"
     };
     localStorage.setItem("pi124.schedule.cache", JSON.stringify(schedule));
@@ -62,7 +68,7 @@ describe("group storage", () => {
     writeGroupScheduleCache({
       groupNrec: other.nrec,
       currentInfo: { currentLesson: "", currentWeekType: 2, name: other.name, semester: 1 },
-      allLessons: [],
+      allLessons: lessons,
       fetchedAt: "2026-09-15T09:00:00.000Z"
     });
 
@@ -75,7 +81,7 @@ describe("group storage", () => {
     const recent = {
       groupNrec: LEGACY_PI124_GROUP.nrec,
       currentInfo: { currentLesson: "", currentWeekType: 1 as const, name: "ПИ-124", semester: 5 },
-      allLessons: [],
+      allLessons: lessons,
       fetchedAt: "2026-09-20T12:00:00Z"
     };
     writeGroupScheduleCache(recent);
@@ -96,7 +102,7 @@ describe("group storage", () => {
     writeGroupScheduleCache({
       groupNrec: LEGACY_PI124_GROUP.nrec,
       currentInfo: { currentLesson: "", currentWeekType: 1, name: "ПИ-124", semester: 5 },
-      allLessons: [],
+      allLessons: lessons,
       fetchedAt: "2026-09-28T08:00:00Z"
     });
     expect(readGroupScheduleCache(LEGACY_PI124_GROUP)?.fetchedAt).toBe("2026-09-28T08:00:00Z");
@@ -114,6 +120,22 @@ describe("group storage", () => {
 
     expect(readGroupScheduleCache(other)).toBeNull();
     expect(localStorage.getItem("lad.schedule.v2:other")).toBeTruthy();
+  });
+
+  it("replaces an empty newer cache with lessons and protects them from empty updates", () => {
+    const state: ScheduleState = {
+      groupNrec: LEGACY_PI124_GROUP.nrec,
+      currentInfo: { currentLesson: "", currentWeekType: 1, name: "ПИ-124", semester: 5 },
+      allLessons: lessons, fetchedAt: "2026-10-01T08:00:00Z"
+    };
+    const key = `lad.schedule.v2:${state.groupNrec}`;
+    localStorage.setItem(key, JSON.stringify({ ...state, allLessons: [], fetchedAt: "2099-01-01T00:00:00Z" }));
+    writeGroupScheduleCache(state);
+    expect(readGroupScheduleCache(LEGACY_PI124_GROUP)).toEqual(state);
+    writeGroupScheduleCache({ ...state, allLessons: [], fetchedAt: "2026-10-12T08:00:00Z" });
+    expect(readGroupScheduleCache(LEGACY_PI124_GROUP)).toEqual(state);
+    writeGroupScheduleCache({ ...state, allLessons: [{ ...lessons[0], rawText: " " }], fetchedAt: "2026-10-12T08:00:00Z" });
+    expect(readGroupScheduleCache(LEGACY_PI124_GROUP)).toEqual(state);
   });
 
   it("does not migrate a legacy snapshot that belongs to another group", () => {

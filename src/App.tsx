@@ -71,6 +71,7 @@ import {
 import { activeWeekMode, loadSchedule, normalizeCachedSchedule } from "./lib/scheduleApi";
 import { heroCopy } from "./lib/heroCopy";
 import { scheduleNotice, preferNewerSchedule } from "./lib/freshness";
+import { groupStudyCalendar } from "./lib/studyPeriods";
 import { assetUrl } from "./lib/assetUrl";
 import { backupSignature, markBackupMade, readBackupMade } from "./features/notes/backupState";
 import { alignSubgroupOrder, lessonView, type SubgroupChoice } from "./lib/subgroup";
@@ -228,6 +229,7 @@ function syncStatusText(status: ApiStatus, refreshedAt?: string) {
   const updatedText = updatedAt ? `Обновлено ${updatedAt}` : "Кэш пуст";
 
   if (status === "loading") return "Подключение к ВлГУ";
+  if (status === "checking-without-cache") return "Проверяем расписание";
   if (status === "refreshing") return refreshedAt ? `${updatedText} · синхронизация` : "Синхронизация";
   if (status === "updated") return "Расписание обновлено";
   if (status === "stale") return updatedAt ? `Офлайн · ${updatedAt}` : "ВлГУ не отвечает";
@@ -426,7 +428,7 @@ export function App() {
     const startupBudget = window.setTimeout(() => {
       if (settled) return;
       if (requestSequence !== refreshSequenceRef.current || selectedGroupRef.current?.nrec !== group.nrec) return;
-      if (hasCache) setStatus("stale");
+      if (!hasCache) setStatus("checking-without-cache");
     }, STARTUP_NETWORK_BUDGET_MS);
 
     try {
@@ -434,7 +436,7 @@ export function App() {
       if (requestSequence !== refreshSequenceRef.current || selectedGroupRef.current?.nrec !== group.nrec) return;
       const preferred = alignSubgroupOrder(preferNewerSchedule(currentSchedule, loaded), loaded);
       const changed = scheduleContentSignature(currentSchedule) !== scheduleContentSignature(preferred);
-      if (hasCache && currentSchedule !== preferred) {
+      if (currentSchedule !== preferred) {
         dataUpdateScrollRef.current = [...document.querySelectorAll<HTMLElement>(
           ".content-scroll, .today-detail-scroll, .week-list, .notes-list, .settings-panels"
         )].map((element) => ({ element, top: element.scrollTop, left: element.scrollLeft }));
@@ -809,7 +811,8 @@ export function App() {
 
   const nextLabel = isSelectedToday ? "Сегодня новых пар нет" : "В этот день новых пар нет";
   const displayLessons = todayLessons;
-  const isLoading = status === "loading" && !schedule;
+  const hasStudyCalendar = Boolean(groupStudyCalendar(selectedGroup?.nrec));
+  const isLoading = status === "loading" && !schedule && !hasStudyCalendar;
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -829,7 +832,8 @@ export function App() {
       window.removeEventListener("online", prepare);
     };
   }, []);
-  const isScheduleUnavailable = status === "error-without-cache" && !schedule;
+  const isScheduleUnavailable = !schedule && (hasStudyCalendar
+    || status === "checking-without-cache" || status === "error-without-cache");
   const hasLoadedLessons = Boolean(schedule?.allLessons.length);
   const lightHero = themeId === "custom"
     ? customTheme.mode === "light"
@@ -875,7 +879,7 @@ export function App() {
           {isLoading && (activeTab === "today" || activeTab === "week") && <SkeletonView light={lightHero} />}
 
           {isScheduleUnavailable && (activeTab === "today" || activeTab === "week") && (
-            <ScheduleUnavailableView groupNrec={selectedGroup?.nrec} selectedDateKey={selectedDateKey} onRetry={() => refreshSchedule()} onGroupOpen={() => setGroupPickerOpen(true)} onRestore={lastAvailableGroupRef.current ? () => selectGroup(lastAvailableGroupRef.current!) : undefined}
+            <ScheduleAvailabilityView checking={status === "loading" || status === "checking-without-cache"} groupNrec={selectedGroup?.nrec} selectedDateKey={selectedDateKey} onRetry={() => refreshSchedule()} onGroupOpen={() => setGroupPickerOpen(true)} onRestore={lastAvailableGroupRef.current ? () => selectGroup(lastAvailableGroupRef.current!) : undefined}
               onOpenPeriodDate={(date) => { setSelectedDate(new Date(`${date}T12:00:00`)); setCalendarCreateOnOpen(false); setCalendarOpen(true); }} />
           )}
 
@@ -1043,7 +1047,7 @@ interface HeaderProps {
 }
 
 function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, onRefresh, onThemeOpen, onGroupOpen }: HeaderProps) {
-  const isBusy = status === "loading" || status === "refreshing";
+  const isBusy = status === "loading" || status === "checking-without-cache" || status === "refreshing";
   const connectionState = status === "stale" || status === "error-without-cache" ? "offline" : isBusy ? "syncing" : "ready";
   const badge = groupBadgeParts(group?.name ?? "ВлГУ");
   const groupName = group?.name ?? "Выберите группу";
@@ -2200,20 +2204,20 @@ function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange:
   );
 }
 
-function ScheduleUnavailableView({ groupNrec, selectedDateKey, onRetry, onGroupOpen, onRestore, onOpenPeriodDate }: { groupNrec?: string; selectedDateKey: string; onRetry: () => void; onGroupOpen: () => void; onRestore?: () => void; onOpenPeriodDate: (date: string) => void }) {
+function ScheduleAvailabilityView({ checking, groupNrec, selectedDateKey, onRetry, onGroupOpen, onRestore, onOpenPeriodDate }: { checking: boolean; groupNrec?: string; selectedDateKey: string; onRetry: () => void; onGroupOpen: () => void; onRestore?: () => void; onOpenPeriodDate: (date: string) => void }) {
   return (
     <div className="view-stack unavailable-view">
     <section className="schedule-unavailable" role="status" aria-live="polite">
-      <span className="schedule-unavailable-icon" aria-hidden="true"><CalendarX2 size={27} /></span>
+      <span className="schedule-unavailable-icon" aria-hidden="true">{checking ? <CalendarDays size={27} /> : <CalendarX2 size={27} />}</span>
       <span className="schedule-unavailable-copy">
-        <small>Данных для группы пока нет</small>
-        <strong>Расписание не получено</strong>
-        <p>Для этой группы пока нет доступного расписания. Попробуй обновить данные или проверь официальный источник.</p>
+        <small>{checking ? "Получаем данные ВлГУ" : "Данных для группы пока нет"}</small>
+        <strong>{checking ? "Проверяем расписание" : "Расписание не получено"}</strong>
+        <p>{checking ? "Предметы и время занятий появятся после получения данных." : "Для этой группы пока нет доступного расписания. Попробуй обновить данные или проверь официальный источник."}</p>
       </span>
       {onRestore && <button type="button" onClick={onRestore}>Вернуться к прошлой группе</button>}
-      <button type="button" onClick={onRetry}>
+      <button type="button" onClick={onRetry} disabled={checking}>
         <RefreshCw size={17} />
-        Повторить
+        {checking ? "Проверяем" : "Повторить"}
       </button>
       <button type="button" className="secondary" onClick={onGroupOpen}>Выбрать другую группу</button>
       <a href="https://www.vlsu.ru/studentu/raspisanie-zanjatii/" target="_blank" rel="noopener noreferrer">

@@ -125,15 +125,21 @@ export function readGroupScheduleCache(group: GroupProfile): ScheduleState | nul
   return legacy;
 }
 
+function hasUsableLessons(state: ScheduleState) {
+  return Array.isArray(state.allLessons) && state.allLessons.length > 0
+    && state.allLessons.every((lesson) => typeof lesson?.id === "string"
+      && typeof lesson.subject === "string" && typeof lesson.rawText === "string"
+      && lesson.rawText.trim().length > 0);
+}
+
 export function writeGroupScheduleCache(state: ScheduleState) {
+  if (!hasUsableLessons(state)) return;
   const existing = readJson<ScheduleState>(scheduleCacheKey(state.groupNrec));
   const usable = existing?.groupNrec === state.groupNrec
     && typeof existing.fetchedAt === "string" && Number.isFinite(Date.parse(existing.fetchedAt))
     && typeof existing.currentInfo?.name === "string"
     && (existing.currentInfo.currentWeekType === 1 || existing.currentInfo.currentWeekType === 2)
-    && Array.isArray(existing.allLessons)
-    && existing.allLessons.every((lesson) => typeof lesson?.id === "string"
-      && typeof lesson.subject === "string" && typeof lesson.rawText === "string")
+    && hasUsableLessons(existing)
     ? existing : null;
   writeJson(scheduleCacheKey(state.groupNrec), preferNewerSchedule(usable, state));
 }

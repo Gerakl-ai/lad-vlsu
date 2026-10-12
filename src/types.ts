@@ -5,6 +5,7 @@ export type AppTab = "today" | "week" | "notes" | "settings";
 export type ApiStatus =
   | "hydrating-from-cache"
   | "loading"
+  | "checking-without-cache"
   | "ready"
   | "refreshing"
   | "updated"

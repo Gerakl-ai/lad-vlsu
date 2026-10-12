@@ -560,6 +560,7 @@ function isCachedLesson(value: unknown): value is LessonSlot {
     && typeof value.end === "string"
     && typeof value.subject === "string"
     && typeof value.rawText === "string"
+    && value.rawText.trim().length > 0
     && ["all", "numerator", "denominator"].includes(String(value.weekMode));
 }
 
@@ -572,6 +573,7 @@ export function normalizeCachedSchedule(state: unknown): ScheduleState | null {
     || typeof state.currentInfo.name !== "string"
     || typeof state.currentInfo.semester !== "number"
     || !Array.isArray(state.allLessons)
+    || state.allLessons.length === 0
     || state.allLessons.some((lesson) => !isCachedLesson(lesson))
     || typeof state.fetchedAt !== "string"
     || Number.isNaN(Date.parse(state.fetchedAt))) {

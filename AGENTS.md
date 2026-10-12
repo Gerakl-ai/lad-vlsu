@@ -33,7 +33,7 @@
 Команды: `pnpm run check`, `node --check public/sw.js`.
 Сценарии: `scripts/qa-desktop-layout.cjs`, `scripts/qa-desktop-surfaces.cjs`,
 `scripts/qa-study-periods.cjs`, `scripts/qa-lesson-selection.cjs`,
-`scripts/qa-group-header.cjs`.
+`scripts/qa-group-header.cjs`, `scripts/qa-group-startup.cjs`.
 
 Состояние реального iPhone не считать проверенным по эмулятору. После публикации
 сверять версию HTML и service worker с коммитом и повторять затронутый сценарий
