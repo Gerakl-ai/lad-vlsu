@@ -7,10 +7,11 @@ import re
 from datetime import date
 from pathlib import Path
 
-import openpyxl
+from read_sheet import read_sheet
 
 CLOCK = r"(?:[01]?\d|2[0-3])[.:][0-5]\d"
-INTERVAL = re.compile(rf"({CLOCK})\s*[-\u2013\u2014]\s*({CLOCK})")
+COMPACT_CLOCK = r"(?:[01]\d|2[0-3])[0-5]\d"
+INTERVAL = re.compile(rf"({CLOCK})\s*[-\u2013\u2014]\s*({CLOCK}|{COMPACT_CLOCK})")
 DAY_PREFIXES = {"пн": 0, "понедельник": 0, "вт": 1, "вторник": 1,
                 "ср": 2, "среда": 2, "чт": 3, "четверг": 3,
                 "пт": 4, "пятница": 4, "сб": 5, "суббота": 5,
@@ -18,6 +19,8 @@ DAY_PREFIXES = {"пн": 0, "понедельник": 0, "вт": 1, "вторни
 
 
 def clock(value):
+    if re.fullmatch(COMPACT_CLOCK, value):
+        return f"{value[:2]}:{value[2:]}"
     hours, minutes = re.split(r"[.:]", value)
     return f"{int(hours):02}:{minutes}"
 
@@ -60,20 +63,23 @@ def dated_label(text, academic_year):
     return result
 
 
-def lesson_text(raw):
+def lesson_text(raw, allow_missing_room=False):
     # Excel sometimes splits a surname, or its initials, across wrapped lines.
     raw = re.sub(r"([А-ЯЁ][а-яё]{2,})\s*\n\s*([а-яё]{1,4})\s+([А-ЯЁ]\s*\.\s*[А-ЯЁ]\s*\.)", r"\1\2 \3", raw)
     text = re.sub(r"\s+", " ", INTERVAL.sub("", raw)).strip()
-    teachers = list(re.finditer(r"[А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?\s+[А-ЯЁ]\s*\.\s*[А-ЯЁ]\s*\.", text))
+    text = re.sub(r"(?<!\w)ст\s*\.\s*пр(?:еп)?\s*\.", "", text, flags=re.I)
+    teachers = list(re.finditer(r"[А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?\s*[А-ЯЁ]\s*\.\s*[А-ЯЁ]\s*\.", text))
     rooms = list(re.finditer(r"(?<![\w-])(?:\d{1,4}|[А-ЯЁ])-\d{1,2}(?![\w-])", text))
-    if len(teachers) != 1 or len(rooms) != 1:
+    online = re.search(r"(?<!\w)онлайн(?!\w)", text, flags=re.I)
+    if len(teachers) != 1 or len(rooms) > 1 or (not rooms and not online and not allow_missing_room):
         raise ValueError("Subject, room or teacher requires a manual source review")
     teacher = re.sub(r"\s*\.\s*", ".", teachers[0][0])
-    room = rooms[0][0]
+    teacher = re.sub(r"(?<=[а-яё])(?=[А-ЯЁ]\.)", " ", teacher)
+    room = rooms[0][0] if rooms else "онлайн" if online else ""
     kinds = re.findall(r"(?<!\w)(лк|лек|пр|лб)\.?(?!\w)", text, flags=re.I)
     kinds = list(dict.fromkeys("лк" if value.lower() == "лек" else value.lower() for value in kinds))
     subject = text
-    for match in sorted([teachers[0], rooms[0]], key=lambda value: value.start(), reverse=True):
+    for match in sorted([teachers[0], *rooms, *([online] if online else [])], key=lambda value: value.start(), reverse=True):
         subject = subject[:match.start()] + subject[match.end():]
     subject = re.sub(r"(?<!\w)(лк|лек|пр|лб|доц|проф)\.?(?!\w)", "", subject, flags=re.I)
     subject = re.sub(r"\s+", " ", subject).strip(" ,;")
@@ -82,11 +88,24 @@ def lesson_text(raw):
     return f"{room}, {'/'.join(kinds)}, {teacher}, {subject}"
 
 
-def stage(source, sheet_name, group_name, source_url, header_row=18, time_row=19, period_row=12):
-    workbook = openpyxl.load_workbook(source, data_only=True)
-    sheet = workbook[sheet_name]
+def stage(source, sheet_name, group_name, source_url, header_row=18, time_row=19, period_row=12, allow_missing_room=False):
+    sheet = read_sheet(source, sheet_name)
+    merges = list(sheet.merged_cells.ranges)
+    merge_at = {(row, column): merge for merge in merges
+                for row in range(merge.min_row, merge.max_row + 1)
+                for column in range(merge.min_col, merge.max_col + 1)}
+
+    def bounds(cell):
+        merge = merge_at.get((cell.row, cell.column))
+        return merge.bounds if merge else (cell.column, cell.row, cell.column, cell.row)
+
+    def visible(cell):
+        left, top, right, bottom = bounds(cell)
+        return any(row not in sheet.hidden_rows for row in range(top, bottom + 1)) and any(
+            column not in sheet.hidden_columns for column in range(left, right + 1))
+
     group_pattern = re.compile(r"(?<![\w-])" + re.escape(group_name) + r"(?![\w-])")
-    headers = [cell for cell in sheet[header_row] if cell.value and group_pattern.search(str(cell.value))]
+    headers = [cell for cell in sheet[header_row] if cell.value and visible(cell) and group_pattern.search(str(cell.value))]
     if not headers:
         raise ValueError(f"Group is not present in the sheet: {group_name}")
     period_cells = [cell for cell in sheet[period_row] if cell.value and re.search(r"20\d{2}\s*-\s*20\d{2}", str(cell.value))]
@@ -103,15 +122,6 @@ def stage(source, sheet_name, group_name, source_url, header_row=18, time_row=19
             raise ValueError("Group period is outside the document")
         valid_from, valid_through = start, end
 
-    merges = list(sheet.merged_cells.ranges)
-    merge_at = {(row, column): merge for merge in merges
-                for row in range(merge.min_row, merge.max_row + 1)
-                for column in range(merge.min_col, merge.max_col + 1)}
-
-    def bounds(cell):
-        merge = merge_at.get((cell.row, cell.column))
-        return merge.bounds if merge else (cell.column, cell.row, cell.column, cell.row)
-
     def cell_at(row, column):
         merge = merge_at.get((row, column))
         return sheet.cell(merge.min_row, merge.min_col) if merge else sheet.cell(row, column)
@@ -120,8 +130,10 @@ def stage(source, sheet_name, group_name, source_url, header_row=18, time_row=19
     seen = set()
     errors = []
     for header in headers:
+        group_column = next(column for column in range(bounds(header)[0], bounds(header)[2] + 1)
+                            if column not in sheet.hidden_columns)
         time_headers = [cell for cell in sheet[time_row] if cell.column < header.column
-                        and str(cell.value or "").strip().lower() == "часы"]
+                        and visible(cell) and str(cell.value or "").strip().lower() == "часы"]
         if not time_headers:
             raise ValueError(f"Time column is absent for {header.coordinate}")
         time_column = time_headers[-1].column
@@ -131,7 +143,7 @@ def stage(source, sheet_name, group_name, source_url, header_row=18, time_row=19
                 if cell.value is None or cell.coordinate in seen:
                     continue
                 left, top, right, bottom = bounds(cell)
-                if not left <= header.column <= right:
+                if not visible(cell) or not left <= group_column <= right:
                     continue
                 seen.add(cell.coordinate)
                 try:
@@ -153,7 +165,7 @@ def stage(source, sheet_name, group_name, source_url, header_row=18, time_row=19
                     times = own_times or shared_times
                     if not times:
                         raise ValueError("No explicit time interval for this lesson")
-                    name = lesson_text(raw)
+                    name = lesson_text(raw, allow_missing_room)
                     for start, end in sorted(set(times)):
                         entries.append({"date": lesson_date.isoformat(), "start": start, "end": end, "name": name,
                                         "evidence": {"lessonCell": cell.coordinate, "rawText": raw,
@@ -166,7 +178,7 @@ def stage(source, sheet_name, group_name, source_url, header_row=18, time_row=19
                 except ValueError as error:
                     errors.append({"cell": cell.coordinate, "message": str(error)})
     entries.sort(key=lambda entry: (entry["date"], entry["start"], entry["name"]))
-    if not entries:
+    if not entries and not errors:
         raise ValueError("No lessons were extracted")
     return {"schemaVersion": 1, "purpose": "dated-spreadsheet-staging", "groupName": group_name,
             "sheet": sheet_name, "source": {"url": source_url, "sha256": hashlib.sha256(Path(source).read_bytes()).hexdigest(),
@@ -182,8 +194,12 @@ def main():
     parser.add_argument("--group", required=True)
     parser.add_argument("--source-url", required=True)
     parser.add_argument("--out", required=True)
+    parser.add_argument("--header-row", type=int, default=18)
+    parser.add_argument("--time-row", type=int, default=19)
+    parser.add_argument("--period-row", type=int, default=12)
+    parser.add_argument("--allow-missing-room", action="store_true")
     args = parser.parse_args()
-    result = stage(args.source, args.sheet, args.group, args.source_url)
+    result = stage(args.source, args.sheet, args.group, args.source_url, args.header_row, args.time_row, args.period_row, args.allow_missing_room)
     Path(args.out).write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"group": result["groupName"], "lessons": len(result["lessons"]), "errors": result["errors"]}, ensure_ascii=False))
     if result["errors"]:

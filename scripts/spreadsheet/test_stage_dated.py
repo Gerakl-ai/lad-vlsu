@@ -1,6 +1,11 @@
 import unittest
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
+from openpyxl.worksheet.cell_range import CellRange
 
-from stage_dated import dated_label, intervals, lesson_text, period
+from stage_dated import dated_label, intervals, lesson_text, period, stage
+from read_sheet import SourceCell, SourceSheet
 
 
 class DatedSourceTests(unittest.TestCase):
@@ -39,6 +44,53 @@ class DatedSourceTests(unittest.TestCase):
     def test_ambiguous_metadata_needs_review(self):
         with self.assertRaises(ValueError):
             lesson_text('Текст предмета 148-4 223-3 Рева Д.В.')
+
+    def test_online_is_explicit_location_and_staff_role_is_not_lesson_type(self):
+        self.assertEqual(lesson_text('Суд и правосудие лк. онлайн ст.пр. Гагин С.В.'),
+                         'онлайн, лк, Гагин С.В., Суд и правосудие')
+
+    def test_unknown_room_is_not_guessed(self):
+        self.assertEqual(lesson_text('Суд и правосудие лк. Гагин С.В.', allow_missing_room=True),
+                         ', лк, Гагин С.В., Суд и правосудие')
+        with self.assertRaises(ValueError):
+            lesson_text('Суд и правосудие лк. Гагин С.В.')
+
+    def test_initials_attached_to_surname(self):
+        self.assertEqual(lesson_text('История лк. 107-5 ст.пр. ОшмаринА.А.'),
+                         '107-5, лк, Ошмарин А.А., История')
+
+    def test_compact_clock_is_not_an_academic_year_range(self):
+        self.assertEqual(intervals('19.30-2100'), [('19:30', '21:00')])
+        self.assertEqual(intervals('2025-2026'), [])
+
+    def test_hidden_duplicate_header_and_lesson_are_excluded(self):
+        values = {(12, 1): '2.02-08.06 2025-2026', (18, 3): 'TEST-124', (18, 5): 'TEST-124',
+                  (19, 2): 'часы', (20, 1): 'ПН. 02.02', (20, 2): '15.50-19.10',
+                  (20, 3): 'Hidden subject лк 111-3 Пример А.Б.', (20, 5): 'Текст предмета лк 111-3 Пример А.Б.'}
+        cells = {position: SourceCell(*position, value) for position, value in values.items()}
+        sheet = SourceSheet(cells, 20, 5, [], set(), {3})
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'source.xls'
+            source.write_bytes(b'read-only source fixture')
+            with patch('stage_dated.read_sheet', return_value=sheet):
+                result = stage(source, 'Sheet', 'TEST-124', 'https://www.vlsu.ru/source.xls')
+        self.assertEqual(list(result['headers']), ['E18'])
+        self.assertEqual(len(result['lessons']), 1)
+        self.assertEqual(result['lessons'][0]['evidence']['lessonCell'], 'E20')
+
+    def test_hidden_merge_anchor_remains_visible_when_it_spans_a_visible_column(self):
+        values = {(12, 1): '2.02-08.06 2025-2026', (18, 3): 'TEST-124', (19, 2): 'часы',
+                  (20, 1): 'ПН. 02.02', (20, 2): '15.50-19.10',
+                  (20, 3): 'Текст предмета лк 111-3 Пример А.Б.'}
+        cells = {position: SourceCell(*position, value) for position, value in values.items()}
+        sheet = SourceSheet(cells, 21, 4, [CellRange('C18:D19'), CellRange('C20:D21'), CellRange('A20:A21'), CellRange('B20:B21')], set(), {3})
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'source.xls'
+            source.write_bytes(b'read-only source fixture')
+            with patch('stage_dated.read_sheet', return_value=sheet):
+                result = stage(source, 'Sheet', 'TEST-124', 'https://www.vlsu.ru/source.xls')
+        self.assertEqual(len(result['lessons']), 1)
+        self.assertEqual(result['lessons'][0]['evidence']['lessonCell'], 'C20')
 
 
 if __name__ == '__main__':
