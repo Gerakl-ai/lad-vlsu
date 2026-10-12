@@ -39,6 +39,8 @@ describe('six official dated archives', () => {
     expect(result.report.rejected).toEqual([]);
     expect(Object.values(result.bundle.groups).reduce((sum, snapshot) => sum + snapshot.schedule.length, 0)).toBe(341);
     expect(snapshots.reduce((sum, snapshot) => sum + snapshot.sourceCells.distinctLessons, 0)).toBe(281);
+    expect(new Set(snapshots.flatMap((snapshot) => snapshot.sourceCells.lessons.map((cell) =>
+      `${snapshot.sourceDocument.url}:${snapshot.sourceCells.sheet}:${cell.lesson}`))).size).toBe(263);
   });
 
   it('keeps a subject-specific time printed inside the cell instead of the neighbouring group time', () => {
