@@ -184,12 +184,13 @@ function parseCurrentInfoLesson(text: string) {
   return { subject: match[1], room: match[2] };
 }
 
-function formatLessonCount(count: number) {
+function formatLessonCount(count: number, unit: "pair" | "class" = "pair") {
   const mod10 = count % 10;
   const mod100 = count % 100;
-  if (mod10 === 1 && mod100 !== 11) return `${count} пара`;
-  if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return `${count} пары`;
-  return `${count} пар`;
+  const forms = unit === "class" ? ["занятие", "занятия", "занятий"] : ["пара", "пары", "пар"];
+  if (mod10 === 1 && mod100 !== 11) return `${count} ${forms[0]}`;
+  if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return `${count} ${forms[1]}`;
+  return `${count} ${forms[2]}`;
 }
 
 function formatVariantCount(count: number) {
@@ -413,7 +414,9 @@ export function App() {
   const progress = current ? lessonProgress(current, nowDate) : dayCompleted || freeStudyDay ? 100 : 0;
   const remaining = heroLesson && current ? minutesUntilEnd(heroLesson, nowDate) : 0;
   const nextStudyDay = schedule ? findNextStudyDay(schedule.allLessons, selectedWeekMode, selectedDate, nowDate) : null;
-  const isSessionSchedule = Boolean(schedule?.allLessons.length && hasDatedLessons(schedule.allLessons));
+  const datedScheduleLabel = schedule?.allLessons.length && hasDatedLessons(schedule.allLessons)
+    ? schedule.allLessons.some((lesson) => lesson.scheduleKind === "classes") ? "Даты" : "Сессия"
+    : undefined;
 
   const refreshSchedule = useCallback(async (): Promise<void> => {
     const group = selectedGroupRef.current;
@@ -848,7 +851,7 @@ export function App() {
         <Header
           group={selectedGroup}
           currentWeek={currentWeek}
-          isSessionSchedule={isSessionSchedule}
+          datedScheduleLabel={datedScheduleLabel}
           status={status}
           refreshedAt={schedule?.fetchedAt}
           onRefresh={() => refreshSchedule()}
@@ -924,6 +927,7 @@ export function App() {
               scheduleValidFrom={schedule?.validFrom}
               scheduleValidThrough={schedule?.validThrough}
               schedulePeriodEstimated={schedule?.periodEstimated}
+              savedScheduleDate={schedule?.allLessons.reduce((latest, lesson) => lesson.date && lesson.date > latest ? lesson.date : latest, "")}
             />
           )}
 
@@ -1038,7 +1042,7 @@ export function App() {
 interface HeaderProps {
   group: GroupProfile | null;
   currentWeek: WeekMode;
-  isSessionSchedule: boolean;
+  datedScheduleLabel?: "Даты" | "Сессия";
   status: ApiStatus;
   refreshedAt?: string;
   onRefresh: () => void;
@@ -1046,7 +1050,7 @@ interface HeaderProps {
   onGroupOpen: () => void;
 }
 
-function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, onRefresh, onThemeOpen, onGroupOpen }: HeaderProps) {
+function Header({ group, currentWeek, datedScheduleLabel, status, refreshedAt, onRefresh, onThemeOpen, onGroupOpen }: HeaderProps) {
   const isBusy = status === "loading" || status === "checking-without-cache" || status === "refreshing";
   const connectionState = status === "stale" || status === "error-without-cache" ? "offline" : isBusy ? "syncing" : "ready";
   const badge = groupBadgeParts(group?.name ?? "ВлГУ");
@@ -1071,7 +1075,7 @@ function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, on
         <button className="week-chip" type="button" onClick={onRefresh} aria-label="Обновить расписание">
           {/* Иконка календаря убрана: рядом стоит само слово «Числ.»/«Знам.»,
               а место в шапке нужнее названию группы. */}
-          <span>{isSessionSchedule ? "Сессия" : formatWeekChip(currentWeek)}</span>
+          <span>{datedScheduleLabel ?? formatWeekChip(currentWeek)}</span>
           <i className={`week-chip-health ${connectionState}`} title={syncStatusText(status, refreshedAt)} aria-hidden="true" />
           <RefreshCw className={isBusy ? "spin" : ""} size={16} />
         </button>
@@ -1136,7 +1140,8 @@ function TodayView({
   outsideSchedulePeriod,
   scheduleValidFrom,
   scheduleValidThrough,
-  schedulePeriodEstimated
+  schedulePeriodEstimated,
+  savedScheduleDate
 }: {
   getLessonChoice: LessonChoiceResolver;
   onChooseLesson: LessonChoiceSetter;
@@ -1177,6 +1182,7 @@ function TodayView({
   scheduleValidFrom?: string;
   scheduleValidThrough?: string;
   schedulePeriodEstimated?: boolean;
+  savedScheduleDate?: string;
 }) {
   const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
   const personalEvents = usePersonalEvents();
@@ -1253,7 +1259,10 @@ function TodayView({
             <p>{schedulePeriodEstimated
               ? "Есть только расписание этого семестра. Для выбранной даты пары пока не подтверждены."
               : `Расписание действует с ${scheduleValidFrom ? formatScheduleDate(scheduleValidFrom) : "начала семестра"} по ${scheduleValidThrough ? formatScheduleDate(scheduleValidThrough) : "конец семестра"}. Выбери дату в его пределах или другую группу.`}</p>
-            <button type="button" onClick={onOpenCalendar}>Выбрать дату <ChevronRight size={17} /></button>
+            <button type="button" onClick={() => {
+              if (savedScheduleDate) onSelectDate(new Date(`${savedScheduleDate}T12:00:00`));
+              else onOpenCalendar();
+            }}>{savedScheduleDate ? "Открыть сохранённые занятия" : "Выбрать дату"} <ChevronRight size={17} /></button>
           </section>
         ) : <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
           <img className="hero-visual hero-visual-backdrop" src={heroVisual} alt="" aria-hidden="true" />
@@ -1530,7 +1539,7 @@ function LessonRow({
       </button>
       {isExpanded && (
         <div className="lesson-detail">
-          <span>{formatWeekMode(weekMode)}</span>
+          <span>{lesson.date ? formatScheduleDate(lesson.date) : formatWeekMode(weekMode)}</span>
           {lesson.variants && lesson.variants.length > 1 ? (
             <LessonVariantPicker lesson={lesson} choice={choice} onChoose={onChoose} />
           ) : view.teacher ? <span>{view.teacher}</span> : null}
@@ -1649,7 +1658,7 @@ function WeekView({
     return () => media.removeEventListener("change", onChange);
   }, []);
   if (hasDatedLessons(lessons)) {
-    return <SessionScheduleView lessons={lessons} notes={notes} groupNrec={groupNrec} onToggleNote={onToggleNote} onOpenCalendar={onOpenCalendar} onCreateLessonNote={onCreateLessonNote} />;
+    return <SessionScheduleView lessons={lessons} notes={notes} groupNrec={groupNrec} onToggleNote={onToggleNote} onOpenCalendar={onOpenCalendar} onCreateLessonNote={onCreateLessonNote} onSelectDate={onSelectDate} validFrom={validFrom} validThrough={validThrough} />;
   }
 
   const dayLoads = buildWeekLoads(lessons, weekMode, validFrom, validThrough);
@@ -1773,18 +1782,24 @@ function WeekView({
   );
 }
 
-function SessionScheduleView({ lessons, notes, groupNrec, onToggleNote, onOpenCalendar, onCreateLessonNote }: {
+function SessionScheduleView({ lessons, notes, groupNrec, onToggleNote, onOpenCalendar, onCreateLessonNote, onSelectDate, validFrom, validThrough }: {
   lessons: LessonSlot[];
   notes: SmartNote[];
   groupNrec?: string;
   onToggleNote: (noteId: string) => void;
   onOpenCalendar: () => void;
+  onSelectDate: (date: Date) => void;
+  validFrom?: string;
+  validThrough?: string;
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
 }) {
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
   const todayKey = dateKeyFromDate();
+  const hasClasses = lessons.some((lesson) => lesson.scheduleKind === "classes");
+  const countUnit = hasClasses ? "class" : "pair";
   const upcoming = lessons.filter((lesson) => !lesson.date || lesson.date >= todayKey);
-  const visibleLessons = (upcoming.length ? upcoming : lessons).sort((a, b) => `${a.date ?? ""} ${a.start}`.localeCompare(`${b.date ?? ""} ${b.start}`, "ru"));
+  const archived = !upcoming.length;
+  const visibleLessons = [...(upcoming.length ? upcoming : lessons)].sort((a, b) => `${a.date ?? ""} ${a.start}`.localeCompare(`${b.date ?? ""} ${b.start}`, "ru"));
   const groups = visibleLessons.reduce<Array<{ key: string; title: string; lessons: LessonSlot[] }>>((items, lesson) => {
     const key = lesson.date ?? lesson.dayName;
     const existing = items.find((item) => item.key === key);
@@ -1802,8 +1817,11 @@ function SessionScheduleView({ lessons, notes, groupNrec, onToggleNote, onOpenCa
         <section className="week-toolbar">
           <div className="week-toolbar-copy">
             <span><Activity size={13} /> Расписание</span>
-            <h2>Сессия</h2>
-            <p>{formatLessonCount(visibleLessons.length)} в ближайшем плане</p>
+            <h2>{hasClasses ? "Занятия" : "Сессия"}</h2>
+            <p className="session-summary-label">{archived ? "Архив" : "План"} · {formatLessonCount(visibleLessons.length, countUnit)}</p>
+            {validFrom && validThrough && <p className="session-period-label" aria-label={`${formatScheduleDate(validFrom)} - ${formatScheduleDate(validThrough)}`}>
+              <time dateTime={validFrom}>{validFrom.split("-").reverse().join(".")}</time> - <time dateTime={validThrough}>{validThrough.split("-").reverse().join(".")}</time>
+            </p>}
           </div>
           <div className="week-index-visual" aria-label={`${groups.length} дат в расписании`}>
             <ShieldCheck size={18} />
@@ -1815,18 +1833,18 @@ function SessionScheduleView({ lessons, notes, groupNrec, onToggleNote, onOpenCa
           </button>
         </section>
 
-        <section className="week-map session-map" aria-label="Карта сессии">
+        <section className="week-map session-map" aria-label={hasClasses ? "Даты занятий" : "Карта сессии"}>
           <div className="week-map-head">
-            <span>Ближайшие даты</span>
-            <strong>{formatLessonCount(visibleLessons.length)}</strong>
+            <span>{archived ? "Даты в расписании" : "Ближайшие даты"}</span>
+            <strong>{formatLessonCount(visibleLessons.length, countUnit)}</strong>
           </div>
           <div className="session-map-grid">
             {groups.slice(0, 6).map((group) => (
-              <div className="session-date-card" key={group.key}>
+              <button className="session-date-card" type="button" key={group.key} onClick={() => onSelectDate(new Date(`${group.key}T12:00:00`))} aria-label={`Открыть день: ${group.title}`}>
                 <strong>{group.title}</strong>
-                <span>{formatLessonCount(group.lessons.length)}</span>
+                <span>{formatLessonCount(group.lessons.length, countUnit)}</span>
                 <small>{group.lessons[0] ? `${group.lessons[0].start}–${group.lessons[0].end}` : ""}</small>
-              </div>
+              </button>
             ))}
           </div>
         </section>
@@ -1835,10 +1853,10 @@ function SessionScheduleView({ lessons, notes, groupNrec, onToggleNote, onOpenCa
       <section className="week-list">
         {groups.map((group) => (
           <article className="day-block" key={group.key}>
-            <div className="day-title">
+            <button className="day-title" type="button" onClick={() => onSelectDate(new Date(`${group.key}T12:00:00`))} aria-label={`Открыть день: ${group.title}`}>
               <h3>{group.title}</h3>
-              <span>{formatLessonCount(group.lessons.length)}</span>
-            </div>
+              <span>{formatLessonCount(group.lessons.length, countUnit)}</span>
+            </button>
             {group.lessons.map((lesson) => {
               const lessonDate = lesson.date ? new Date(`${lesson.date}T00:00:00`) : new Date();
               const linkedNotes = notesLinkedToLesson(lesson, notes, lessonDate, groupNrec);

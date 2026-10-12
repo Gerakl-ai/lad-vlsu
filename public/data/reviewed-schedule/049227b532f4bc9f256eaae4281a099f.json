@@ -1,0 +1,1307 @@
+{
+  "schemaVersion": 3,
+  "group": {
+    "course": "3 курс",
+    "forms": [
+      "part-time"
+    ],
+    "name": "ВПЛм-124",
+    "nrec": "049227b532f4bc9f256eaae4281a099f",
+    "instituteId": "c22ac11fe7a7799355b1b90ba6957321",
+    "instituteName": "Гуманитарный институт",
+    "instituteShortName": "ГИ"
+  },
+  "semester": null,
+  "schedule": [
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-02",
+      "start": "15:50",
+      "end": "19:10",
+      "name": "223-3, лк/пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-07",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-07",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-07",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-07",
+      "start": "15:50",
+      "end": "17:20",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-09",
+      "start": "15:50",
+      "end": "19:10",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-14",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-14",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-14",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, лк, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-14",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-18",
+      "start": "14:00",
+      "end": "17:20",
+      "name": "223-3, лк/пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-21",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, лк, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-21",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-21",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-21",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-28",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-28",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-28",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, лк, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-28",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-02",
+      "start": "15:50",
+      "end": "17:20",
+      "name": "223-3, лк, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-07",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-07",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-07",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-07",
+      "start": "15:50",
+      "end": "17:20",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-14",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-14",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-14",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, лк, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-14",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, лк, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-21",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-21",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-21",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-21",
+      "start": "15:50",
+      "end": "17:20",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-28",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-28",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-28",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-28",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-04",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-04",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Блинова Е.Е., Актуальные проблемы теории и практики современной психологии"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-04",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-04",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-10",
+      "start": "14:00",
+      "end": "17:20",
+      "name": "401-3, пр, Литвинова Н.Ю., Коррекция эмоциональной сферы ребенка"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-11",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-11",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-11",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, пр, Литвинова Н.Ю., Коррекция эмоциональной сферы ребенка"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-11",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, пр, Литвинова Н.Ю., Коррекция эмоциональной сферы ребенка"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-17",
+      "start": "17:40",
+      "end": "21:00",
+      "name": "401-3, пр, Литвинова Н.Ю., Коррекция эмоциональной сферы ребенка"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-18",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, пр, Литвинова Н.Ю., Коррекция эмоциональной сферы ребенка"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-18",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Литвинова Н.Ю., Коррекция эмоциональной сферы ребенка"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-18",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, лк, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-18",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-25",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-25",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Абрамян Н.Г., Преподавание психологии в системе высшего и дополнительного образования"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-25",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, пр, Литвинова Н.Ю., Коррекция эмоциональной сферы ребенка"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-25",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, пр, Литвинова Н.Ю., Коррекция эмоциональной сферы ребенка"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-08",
+      "start": "14:00",
+      "end": "17:20",
+      "name": "401-3, пр, Литвинова Н.Ю., Коррекция эмоциональной сферы ребенка"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-08",
+      "start": "17:40",
+      "end": "21:00",
+      "name": "401-3, пр, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-15",
+      "start": "17:40",
+      "end": "21:00",
+      "name": "401-3, лк/пр, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-16",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, лк, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-16",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-16",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, пр, Литвинова Н.Ю., Психология совладающего поведения"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-16",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, пр, Литвинова Н.Ю., Психология совладающего поведения"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-22",
+      "start": "14:00",
+      "end": "17:20",
+      "name": "401-3, лк/пр, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-22",
+      "start": "17:40",
+      "end": "21:00",
+      "name": "401-3, пр, Литвинова Н.Ю., Психология совладающего поведения"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-23",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, лк, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-23",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-23",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, пр, Литвинова Н.Ю., Психология совладающего поведения"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-23",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, пр, Литвинова Н.Ю., Психология совладающего поведения"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-29",
+      "start": "14:00",
+      "end": "17:20",
+      "name": "401-3, пр, Литвинова Н.Ю., Психология совладающего поведения"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-29",
+      "start": "17:40",
+      "end": "21:00",
+      "name": "401-3, лк/пр, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-30",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, пр, Литвинова Н.Ю., Психология совладающего поведения"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-30",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Литвинова Н.Ю., Психология совладающего поведения"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-30",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, лк, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-30",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, пр, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-06-05",
+      "start": "14:00",
+      "end": "17:20",
+      "name": "401-3, пр, Литвинова Н.Ю., Психология совладающего поведения"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-06-05",
+      "start": "17:40",
+      "end": "21:00",
+      "name": "401-3, лк/пр, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-06-06",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "223-3, пр, Литвинова Н.Ю., Психология совладающего поведения"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-06-06",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "223-3, пр, Литвинова Н.Ю., Психология совладающего поведения"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-06-06",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "223-3, пр, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-06-06",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "223-3, пр, Шаманин Н.В., Информационные и коммуник. Технологии в деятельности психолога"
+    }
+  ],
+  "quality": {
+    "valid": true,
+    "scheduleEntries": 79,
+    "lessonDays": 27,
+    "examEntries": 0,
+    "warnings": [],
+    "datedEntries": 79
+  },
+  "scheduleHash": "f38f033a01740eda6dea0740d23d0f7ba20a412e22ae8ad2b3e28385f677d607",
+  "capturedAt": "2026-10-12T14:36:09Z",
+  "validFrom": "2026-02-02",
+  "validThrough": "2026-06-08",
+  "sourceDocument": {
+    "title": "ГИ, очно-заочное обучение, весна 2025-2026",
+    "url": "https://www.vlsu.ru/fileadmin/class-schedule/2025-2026/vesna/gumi_ozo.xlsx",
+    "sha256": "98bc63c8aa101164077f281e5f3fb13730ed200fb78fb6601853527a4937f523",
+    "reviewedAt": "2026-10-12T14:36:09Z"
+  },
+  "sourceCells": {
+    "sheet": "ВПЛ-124,ВПЛм-124",
+    "period": "A12",
+    "distinctLessons": 79,
+    "lessons": [
+      {
+        "lesson": "E20",
+        "date": "A20",
+        "group": "E18",
+        "times": [
+          "B20"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E32",
+        "date": "A30",
+        "group": "E18",
+        "times": [
+          "B32"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E34",
+        "date": "A30",
+        "group": "E18",
+        "times": [
+          "B34"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E36",
+        "date": "A30",
+        "group": "E18",
+        "times": [
+          "B36"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E38",
+        "date": "A30",
+        "group": "E18",
+        "times": [
+          "B38"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E40",
+        "date": "A40",
+        "group": "E18",
+        "times": [
+          "B40"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E50",
+        "date": "A50",
+        "group": "E18",
+        "times": [
+          "B50"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E52",
+        "date": "A50",
+        "group": "E18",
+        "times": [
+          "B52"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E54",
+        "date": "A50",
+        "group": "E18",
+        "times": [
+          "B54"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E56",
+        "date": "A50",
+        "group": "E18",
+        "times": [
+          "B56"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E64",
+        "date": "A64",
+        "group": "E18",
+        "times": [
+          "B64"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E70",
+        "date": "A70",
+        "group": "E18",
+        "times": [
+          "B70"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E72",
+        "date": "A70",
+        "group": "E18",
+        "times": [
+          "B72"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E74",
+        "date": "A70",
+        "group": "E18",
+        "times": [
+          "B74"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E76",
+        "date": "A70",
+        "group": "E18",
+        "times": [
+          "B76"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K20",
+        "date": "G20",
+        "group": "K18",
+        "times": [
+          "H20"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K22",
+        "date": "G20",
+        "group": "K18",
+        "times": [
+          "H22"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K24",
+        "date": "G20",
+        "group": "K18",
+        "times": [
+          "H24"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K26",
+        "date": "G20",
+        "group": "K18",
+        "times": [
+          "H26"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K30",
+        "date": "G30",
+        "group": "K18",
+        "times": [
+          "H30"
+        ],
+        "timeInsideLesson": true
+      },
+      {
+        "lesson": "K42",
+        "date": "G40",
+        "group": "K18",
+        "times": [
+          "H42"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K44",
+        "date": "G40",
+        "group": "K18",
+        "times": [
+          "H44"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K46",
+        "date": "G40",
+        "group": "K18",
+        "times": [
+          "H46"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K48",
+        "date": "G40",
+        "group": "K18",
+        "times": [
+          "H48"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K60",
+        "date": "G60",
+        "group": "K18",
+        "times": [
+          "H60"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K62",
+        "date": "G60",
+        "group": "K18",
+        "times": [
+          "H62"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K64",
+        "date": "G60",
+        "group": "K18",
+        "times": [
+          "H64"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K66",
+        "date": "G60",
+        "group": "K18",
+        "times": [
+          "H66"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K82",
+        "date": "G80",
+        "group": "K18",
+        "times": [
+          "H82"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K84",
+        "date": "G80",
+        "group": "K18",
+        "times": [
+          "H84"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K86",
+        "date": "G80",
+        "group": "K18",
+        "times": [
+          "H86"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "K88",
+        "date": "G80",
+        "group": "K18",
+        "times": [
+          "H88"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q30",
+        "date": "M30",
+        "group": "Q18",
+        "times": [
+          "N30"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q32",
+        "date": "M30",
+        "group": "Q18",
+        "times": [
+          "N32"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q34",
+        "date": "M30",
+        "group": "Q18",
+        "times": [
+          "N34"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q36",
+        "date": "M30",
+        "group": "Q18",
+        "times": [
+          "N36"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q50",
+        "date": "M50",
+        "group": "Q18",
+        "times": [
+          "N50"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q52",
+        "date": "M50",
+        "group": "Q18",
+        "times": [
+          "N52"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q54",
+        "date": "M50",
+        "group": "Q18",
+        "times": [
+          "N54"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q56",
+        "date": "M50",
+        "group": "Q18",
+        "times": [
+          "N56"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q68",
+        "date": "M68",
+        "group": "Q18",
+        "times": [
+          "N68"
+        ],
+        "timeInsideLesson": true
+      },
+      {
+        "lesson": "Q70",
+        "date": "M70",
+        "group": "Q18",
+        "times": [
+          "N70"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q72",
+        "date": "M70",
+        "group": "Q18",
+        "times": [
+          "N72"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q74",
+        "date": "M70",
+        "group": "Q18",
+        "times": [
+          "N74"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q76",
+        "date": "M70",
+        "group": "Q18",
+        "times": [
+          "N76"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q91",
+        "date": "M88",
+        "group": "Q18",
+        "times": [
+          "N91"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W20",
+        "date": "S20",
+        "group": "W18",
+        "times": [
+          "T20"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W22",
+        "date": "S20",
+        "group": "W18",
+        "times": [
+          "T22"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W24",
+        "date": "S20",
+        "group": "W18",
+        "times": [
+          "T24"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W26",
+        "date": "S20",
+        "group": "W18",
+        "times": [
+          "T26"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W40",
+        "date": "S40",
+        "group": "W18",
+        "times": [
+          "T40"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W42",
+        "date": "S40",
+        "group": "W18",
+        "times": [
+          "T42"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W44",
+        "date": "S40",
+        "group": "W18",
+        "times": [
+          "T44"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W46",
+        "date": "S40",
+        "group": "W18",
+        "times": [
+          "T46"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W68",
+        "date": "S68",
+        "group": "W18",
+        "times": [
+          "T68"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W69",
+        "date": "S68",
+        "group": "W18",
+        "times": [
+          "T69"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W79",
+        "date": "S78",
+        "group": "W18",
+        "times": [
+          "T79"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W80",
+        "date": "S80",
+        "group": "W18",
+        "times": [
+          "T80"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W82",
+        "date": "S80",
+        "group": "W18",
+        "times": [
+          "T82"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W84",
+        "date": "S80",
+        "group": "W18",
+        "times": [
+          "T84"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "W86",
+        "date": "S80",
+        "group": "W18",
+        "times": [
+          "T86"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC28",
+        "date": "Y28",
+        "group": "AC18",
+        "times": [
+          "Z28"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC29",
+        "date": "Y28",
+        "group": "AC18",
+        "times": [
+          "Z29"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC30",
+        "date": "Y30",
+        "group": "AC18",
+        "times": [
+          "Z30"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC32",
+        "date": "Y30",
+        "group": "AC18",
+        "times": [
+          "Z32"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC34",
+        "date": "Y30",
+        "group": "AC18",
+        "times": [
+          "Z34"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC36",
+        "date": "Y30",
+        "group": "AC18",
+        "times": [
+          "Z36"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC48",
+        "date": "Y48",
+        "group": "AC18",
+        "times": [
+          "Z48"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC49",
+        "date": "Y48",
+        "group": "AC18",
+        "times": [
+          "Z49"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC50",
+        "date": "Y50",
+        "group": "AC18",
+        "times": [
+          "Z50"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC52",
+        "date": "Y50",
+        "group": "AC18",
+        "times": [
+          "Z52"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC54",
+        "date": "Y50",
+        "group": "AC18",
+        "times": [
+          "Z54"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC56",
+        "date": "Y50",
+        "group": "AC18",
+        "times": [
+          "Z56"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC68",
+        "date": "Y68",
+        "group": "AC18",
+        "times": [
+          "Z68"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC69",
+        "date": "Y68",
+        "group": "AC18",
+        "times": [
+          "Z69"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC70",
+        "date": "Y70",
+        "group": "AC18",
+        "times": [
+          "Z70"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC72",
+        "date": "Y70",
+        "group": "AC18",
+        "times": [
+          "Z72"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC74",
+        "date": "Y70",
+        "group": "AC18",
+        "times": [
+          "Z74"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AC76",
+        "date": "Y70",
+        "group": "AC18",
+        "times": [
+          "Z76"
+        ],
+        "timeInsideLesson": false
+      }
+    ]
+  },
+  "provenance": null
+}

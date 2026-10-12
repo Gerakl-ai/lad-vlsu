@@ -76,6 +76,13 @@ describe("preferNewerSchedule", () => {
     expect(preferNewerSchedule(saved, fresh)).toBe(fresh);
     expect(preferNewerSchedule(saved, schedule("other", "2026-09-01T12:00:00Z")).groupNrec).toBe("other");
   });
+
+  it("keeps the active semester even if an archive was imported more recently", () => {
+    const current = { ...schedule("group", "2026-09-18T08:00:00Z"), validFrom: "2026-09-01", validThrough: "2026-12-31" };
+    const archive = { ...schedule("group", "2026-10-12T14:00:00Z"), validFrom: "2026-02-02", validThrough: "2026-06-08" };
+    expect(preferNewerSchedule(current, archive, NOW)).toBe(current);
+    expect(preferNewerSchedule(archive, current, NOW)).toBe(current);
+  });
 });
 
 describe("scheduleNotice", () => {

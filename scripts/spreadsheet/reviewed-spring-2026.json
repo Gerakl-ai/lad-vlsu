@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "verification": "Source cells, merged date/time/group boundaries and rendered control regions checked. Source wording preserved; missing lesson type left empty.",
+  "groups": [
+    {
+      "status": "approved",
+      "groupName": "ВПЛм-124",
+      "groupNrec": "049227b532f4bc9f256eaae4281a099f",
+      "sheet": "ВПЛ-124,ВПЛм-124",
+      "title": "ГИ, очно-заочное обучение, весна 2025-2026",
+      "sourceUrl": "https://www.vlsu.ru/fileadmin/class-schedule/2025-2026/vesna/gumi_ozo.xlsx",
+      "sourceSha256": "98bc63c8aa101164077f281e5f3fb13730ed200fb78fb6601853527a4937f523",
+      "validFrom": "2026-02-02",
+      "validThrough": "2026-06-08",
+      "lessonCount": 79,
+      "lessonsSha256": "e8fc9bf391806e3b8c1c4bd23d8fda6ccfdae353774585e83cea39e751a6a488",
+      "reviewedAt": "2026-10-12T14:36:09Z"
+    },
+    {
+      "status": "approved",
+      "groupName": "ВПЛ-121",
+      "groupNrec": "50a225b1fa48a69e2c0425d282622c63",
+      "sheet": "ВПЛ-121,ВКП-121",
+      "title": "ГИ, очно-заочное обучение, весна 2025-2026",
+      "sourceUrl": "https://www.vlsu.ru/fileadmin/class-schedule/2025-2026/vesna/gumi_ozo.xlsx",
+      "sourceSha256": "98bc63c8aa101164077f281e5f3fb13730ed200fb78fb6601853527a4937f523",
+      "validFrom": "2026-02-02",
+      "validThrough": "2026-04-11",
+      "lessonCount": 46,
+      "lessonsSha256": "4ca270e7a01d83c18bef42a3872266bcfc2f2662b506ce20796e92a4a1e198c8",
+      "reviewedAt": "2026-10-12T14:36:09Z"
+    },
+    {
+      "status": "approved",
+      "groupName": "ВС-121",
+      "groupNrec": "30f5c88737a0bb76b31b86898f6673ea",
+      "sheet": "ВС-5 курс",
+      "title": "ИАСЭ, очно-заочное обучение, весна 2025-2026",
+      "sourceUrl": "https://www.vlsu.ru/fileadmin/class-schedule/2025-2026/vesna/iase_ozo.xlsx",
+      "sourceSha256": "f6c7629d2927585af5ba9073d6979de7dfeed93b7d85c11c55c992c39f3e6eb8",
+      "validFrom": "2026-02-02",
+      "validThrough": "2026-04-11",
+      "lessonCount": 66,
+      "lessonsSha256": "6e8cf2a10f014e361f2b10df7f52a7951796d053abff9583e2ecec41fc6502a5",
+      "reviewedAt": "2026-10-12T14:36:09Z"
+    },
+    {
+      "status": "approved",
+      "groupName": "ВС-521",
+      "groupNrec": "37cbca4dc148c2747ef17b57149d159b",
+      "sheet": "ВС-5 курс",
+      "title": "ИАСЭ, очно-заочное обучение, весна 2025-2026",
+      "sourceUrl": "https://www.vlsu.ru/fileadmin/class-schedule/2025-2026/vesna/iase_ozo.xlsx",
+      "sourceSha256": "f6c7629d2927585af5ba9073d6979de7dfeed93b7d85c11c55c992c39f3e6eb8",
+      "validFrom": "2026-02-02",
+      "validThrough": "2026-04-11",
+      "lessonCount": 68,
+      "lessonsSha256": "90b2cdbe7eef76476caf632a6821115bd9a50f34369944cee76bf21be8954036",
+      "reviewedAt": "2026-10-12T14:36:09Z"
+    },
+    {
+      "status": "approved",
+      "groupName": "ВМН-121",
+      "groupNrec": "f8c200d49bb9111b1e706d0478b02165",
+      "sheet": "5 к.",
+      "title": "ИЭиТ, очно-заочное обучение, весна 2025-2026",
+      "sourceUrl": "https://www.vlsu.ru/fileadmin/class-schedule/2025-2026/vesna/ieit_ozo.xlsx",
+      "sourceSha256": "cf249bd0e81a939248649ee14cc51ec3c32e38aa73b6120574bfb7653b2dbe1c",
+      "validFrom": "2026-02-02",
+      "validThrough": "2026-04-11",
+      "lessonCount": 28,
+      "lessonsSha256": "ebaa1936d2cebb44397aa9a26ac8af1b70b7ce099cf8ae0e303be417e5e7fdf5",
+      "reviewedAt": "2026-10-12T14:36:09Z"
+    },
+    {
+      "status": "approved",
+      "groupName": "ВТДИм-124",
+      "groupNrec": "3caabf84a33ab8e22abcc6425c987f8a",
+      "sheet": "ВТДИм-125,ВТДИм-124",
+      "title": "ИЭиТ, очно-заочное обучение, весна 2025-2026",
+      "sourceUrl": "https://www.vlsu.ru/fileadmin/class-schedule/2025-2026/vesna/ieit_ozo.xlsx",
+      "sourceSha256": "cf249bd0e81a939248649ee14cc51ec3c32e38aa73b6120574bfb7653b2dbe1c",
+      "validFrom": "2026-02-02",
+      "validThrough": "2026-06-08",
+      "lessonCount": 54,
+      "lessonsSha256": "e12c3a778c884a7c02166f9d4568d14cd8d4cca34b2fbcc8c0b540b51c2045ea",
+      "reviewedAt": "2026-10-12T14:36:09Z"
+    }
+  ]
+}

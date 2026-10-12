@@ -69,7 +69,7 @@ jobs:
       - name: Собрать общий офлайн-пакет
         run: |
           if [ -f dist/data/catalog.json ]; then
-            node scripts/snapshot/buildUniversityBundle.mjs --data-dir dist/data --fallback-dir dist/data/ocr-schedule --publish-dir dist/data
+            node scripts/snapshot/buildUniversityBundle.mjs --data-dir dist/data --fallback-dir dist/data/ocr-schedule --fallback-dir public/data/reviewed-schedule --publish-dir dist/data
           fi
 
       - name: Сделать SPA-маршруты рабочими

@@ -2554,6 +2554,18 @@ select,
     rgba(255,255,255,0.025);
 }
 
+.session-view .week-toolbar-copy p {
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.session-period-label time {
+  white-space: nowrap;
+}
+
 .session-date-card strong,
 .session-date-card span,
 .session-date-card small {

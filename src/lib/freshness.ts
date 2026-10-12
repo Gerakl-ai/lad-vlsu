@@ -30,8 +30,15 @@ export const AGING_AFTER_MS = DAY;
 /** Трое суток — за это время успевают смениться замены и появиться новая неделя. */
 export const STALE_AFTER_MS = 3 * DAY;
 
-export function preferNewerSchedule(existing: ScheduleState | null, incoming: ScheduleState): ScheduleState {
+export function preferNewerSchedule(existing: ScheduleState | null, incoming: ScheduleState, now = Date.now()): ScheduleState {
   if (!existing || existing.groupNrec !== incoming.groupNrec) return incoming;
+  const date = new Date(now);
+  const today = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const period = (state: ScheduleState) => state.validFrom && state.validThrough
+    ? state.validFrom <= today && today <= state.validThrough ? "within" : "outside"
+    : "unknown";
+  if (period(existing) === "within" && period(incoming) === "outside") return existing;
+  if (period(incoming) === "within" && period(existing) === "outside") return incoming;
   const existingAt = Date.parse(existing.fetchedAt);
   const incomingAt = Date.parse(incoming.fetchedAt);
   return Number.isFinite(existingAt) && (!Number.isFinite(incomingAt) || existingAt > incomingAt)

@@ -139,7 +139,7 @@ function variantAppliesToTeachingWeek(variant: LessonVariant, weekNumber: number
 }
 
 function lessonForTeachingWeek(lesson: LessonSlot, date: Date): LessonSlot | null {
-  if (lesson.scheduleKind === "exam") return lesson;
+  if (lesson.date) return lesson;
   const weekNumber = autumnTeachingWeekNumber(date);
   if (weekNumber === null) return lesson;
   const variants = lesson.variants ?? parseLessonText(lesson.rawText).variants;

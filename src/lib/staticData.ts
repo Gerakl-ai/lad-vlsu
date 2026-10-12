@@ -13,6 +13,7 @@ import type { GroupOption, InstituteOption, StudyFormKey } from "../features/gro
 import { STUDY_FORM_KEYS } from "../features/groups/groupTypes";
 import { instituteShortName, instituteVisualKey } from "../features/groups/instituteVisuals";
 import { withEstimatedSemesterPeriod } from "./schedulePeriod";
+import { isDatedLesson } from "./datedLesson";
 
 export const STATIC_SCHEMA_VERSION = 3;
 
@@ -366,8 +367,8 @@ export function normalizeStaticSnapshot(payload: unknown, expectedNrec: string):
     || payload.schedule.length === 0
     || !payload.schedule.every((item: unknown) => isRecord(item)
       && typeof item.name === "string"
-      && (item.type === "Lessons" || item.type === "ExamSession"))
-    || !payload.schedule.some((item: Record<string, unknown>) => item.type === "ExamSession"
+      && (item.type === "Lessons" || item.type === "ExamSession" || isDatedLesson(item)))
+    || !payload.schedule.some((item: Record<string, unknown>) => item.type === "ExamSession" || isDatedLesson(item)
       || Array.from({ length: 8 }, (_, index) => index + 1)
         .some((pair) => String(item[`n${pair}`] ?? "").trim() || String(item[`z${pair}`] ?? "").trim()))
     || typeof payload.scheduleHash !== "string"
@@ -379,6 +380,9 @@ export function normalizeStaticSnapshot(payload: unknown, expectedNrec: string):
     || ((payload.validFrom !== undefined || payload.validThrough !== undefined)
       && (!validDateKey(payload.validFrom) || !validDateKey(payload.validThrough)
         || payload.validFrom > payload.validThrough))
+    || payload.schedule.some((item: Record<string, unknown>) => isDatedLesson(item)
+      && ((typeof payload.validFrom === "string" && item.date < payload.validFrom)
+        || (typeof payload.validThrough === "string" && item.date > payload.validThrough)))
     || (payload.extraction !== undefined && (!isRecord(payload.extraction)
       || payload.extraction.method !== "ocr" || payload.extraction.status !== "unreviewed"
       || typeof payload.extraction.sourceUrl !== "string"

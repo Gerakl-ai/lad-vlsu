@@ -4,6 +4,7 @@ import { preferNewerSchedule } from "./freshness";
 import { alignSubgroupOrder, correctVerifiedSubgroups } from "./subgroup";
 import { withEstimatedSemesterPeriod } from "./schedulePeriod";
 import { vlsuWeekTypeForDate } from "./academicWeek";
+import { isDatedLesson, type DatedLessonDto } from "./datedLesson";
 import {
   catalogGroups,
   catalogInstitutes,
@@ -466,7 +467,26 @@ function hasScheduleContent(days: Array<ScheduleDayDto | ExamSessionDto>): boole
   });
 }
 
-export function normalizeSchedule(days: Array<ScheduleDayDto | ExamSessionDto>): LessonSlot[] {
+function createDatedLesson(entry: DatedLessonDto, index: number): LessonSlot {
+  const date = new Date(`${entry.date}T12:00:00`);
+  const standardPair = PAIR_TIMES.findIndex(([start]) => start === entry.start);
+  return {
+    id: `dated-${entry.date}-${entry.start}-${entry.name}`,
+    dayIndex: dayIndexFromDate(date),
+    dayName: new Intl.DateTimeFormat("ru-RU", { weekday: "long" }).format(date),
+    date: entry.date,
+    dateLabel: new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit", weekday: "short" }).format(date),
+    scheduleKind: "classes",
+    pairIndex: standardPair < 0 ? index + 1 : standardPair + 1,
+    start: entry.start,
+    end: entry.end,
+    rawText: entry.name,
+    weekMode: "all",
+    ...parseLessonText(entry.name)
+  };
+}
+
+export function normalizeSchedule(days: Array<ScheduleDayDto | ExamSessionDto | DatedLessonDto>): LessonSlot[] {
   const classDays = days.filter(isScheduleDay);
   const sessions = days.filter(isExamSession);
   const lessons: LessonSlot[] = [];
@@ -490,7 +510,7 @@ export function normalizeSchedule(days: Array<ScheduleDayDto | ExamSessionDto>):
     });
   });
 
-  return lessons.concat(normalizeExamSchedule(sessions));
+  return lessons.concat(normalizeExamSchedule(sessions), days.filter(isDatedLesson).map(createDatedLesson));
 }
 
 export function normalizeGroupScheduleSnapshot(payload: unknown, expectedNrec: string): ScheduleState {

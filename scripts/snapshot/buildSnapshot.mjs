@@ -168,10 +168,20 @@ export function scheduleQuality(schedule) {
     item && typeof item === "object" && item.type === "Lessons" && typeof item.name === "string";
   const isExam = (item) =>
     item && typeof item === "object" && item.type === "ExamSession" && typeof item.name === "string";
+  const isDated = (item) => {
+    if (item?.type !== 'DatedLesson' || typeof item.name !== 'string' || !item.name.trim()
+      || !/^\d{4}-\d{2}-\d{2}$/.test(item.date ?? '')
+      || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.start ?? '')
+      || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.end ?? '') || item.start >= item.end) return false;
+    const date = new Date(`${item.date}T00:00:00Z`);
+    return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === item.date;
+  };
 
-  const lessonDays = schedule.filter(isDay).length;
+  const weeklyDays = schedule.filter(isDay).length;
+  const datedEntries = schedule.filter(isDated).length;
+  const lessonDays = weeklyDays + new Set(schedule.filter(isDated).map((item) => item.date)).size;
   const examEntries = schedule.filter(isExam).length;
-  if (lessonDays + examEntries !== schedule.length) return null;
+  if (weeklyDays + datedEntries + examEntries !== schedule.length) return null;
 
   const warnings = [];
   const hasAnyLesson = schedule.some(
@@ -183,9 +193,10 @@ export function scheduleQuality(schedule) {
   );
   // An all-blank timetable is indistinguishable from an upstream outage.
   // A genuine exam-only response remains useful even without weekly lessons.
-  if (lessonDays > 0 && !hasAnyLesson && examEntries === 0) return null;
+  if (weeklyDays > 0 && !hasAnyLesson && examEntries === 0 && datedEntries === 0) return null;
 
-  return { valid: true, scheduleEntries: schedule.length, lessonDays, examEntries, warnings };
+  return { valid: true, scheduleEntries: schedule.length, lessonDays, examEntries, warnings,
+    ...(datedEntries ? { datedEntries } : {}) };
 }
 
 export function isEmptyScheduleResponse(error) {

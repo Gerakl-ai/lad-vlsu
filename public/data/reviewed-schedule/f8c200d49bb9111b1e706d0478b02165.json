@@ -1,0 +1,491 @@
+{
+  "schemaVersion": 3,
+  "group": {
+    "course": "5 курс",
+    "forms": [
+      "part-time"
+    ],
+    "name": "ВМН-121",
+    "nrec": "f8c200d49bb9111b1e706d0478b02165",
+    "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+    "instituteName": "Институт экономики и туризма",
+    "instituteShortName": "ИЭиТ"
+  },
+  "semester": null,
+  "schedule": [
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-07",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "309-6, лк, Захаров С.С., Управление эффект. результ."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-07",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "309-6, пр, Захаров С.С., Управление эффект. результ."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-14",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "309-6, лк, Захаров С.С., Управление эффект. результ."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-14",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "309-6, пр, Захаров С.С., Управление эффект. результ."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-21",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "309-6, лк, Захаров С.С., Управление эффект. результ."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-21",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "309-6, пр, Захаров С.С., Управление эффект. результ."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-28",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "309-6, лк, Захаров С.С., Управление эффект. результ."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-28",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "309-6, пр, Захаров С.С., Управление эффект. результ."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-07",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "309-6, лк, Захаров С.С., Управление эффект. результ."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-07",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "309-6, пр, Захаров С.С., Управление эффект. результ."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-14",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "204-6, лк, Марченко А.А., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-14",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "204-6, пр, Харитонов М.С., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-14",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "204-6, пр, Харитонов М.С., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-21",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "204-6, лк, Марченко А.А., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-21",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "204-6, лк, Марченко А.А., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-21",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "204-6, пр, Харитонов М.С., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-21",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "204-6, пр, Харитонов М.С., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-28",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "204-6, лк, Марченко А.А., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-28",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "204-6, лк, Марченко А.А., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-28",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "204-6, пр, Харитонов М.С., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-28",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "204-6, пр, Харитонов М.С., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-04",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "204-6, лк, Марченко А.А., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-04",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "204-6, лк, Марченко А.А., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-04",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "204-6, пр, Харитонов М.С., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-04",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "204-6, пр, Харитонов М.С., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-11",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "204-6, лк, Марченко А.А., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-11",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "204-6, лк, Марченко А.А., Маркетинг в проект. управл."
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-11",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "204-6, пр, Харитонов М.С., Маркетинг в проект. управл."
+    }
+  ],
+  "quality": {
+    "valid": true,
+    "scheduleEntries": 28,
+    "lessonDays": 10,
+    "examEntries": 0,
+    "warnings": [],
+    "datedEntries": 28
+  },
+  "scheduleHash": "bf5401d83de5ea7ca3023b1a3ed2d7ba89e560e0ce2b81edaf91c4bf084ac3f5",
+  "capturedAt": "2026-10-12T14:36:09Z",
+  "validFrom": "2026-02-02",
+  "validThrough": "2026-04-11",
+  "sourceDocument": {
+    "title": "ИЭиТ, очно-заочное обучение, весна 2025-2026",
+    "url": "https://www.vlsu.ru/fileadmin/class-schedule/2025-2026/vesna/ieit_ozo.xlsx",
+    "sha256": "cf249bd0e81a939248649ee14cc51ec3c32e38aa73b6120574bfb7653b2dbe1c",
+    "reviewedAt": "2026-10-12T14:36:09Z"
+  },
+  "sourceCells": {
+    "sheet": "5 к.",
+    "period": "J12",
+    "distinctLessons": 28,
+    "lessons": [
+      {
+        "lesson": "E24",
+        "date": "A24",
+        "group": "E18",
+        "times": [
+          "B24"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E26",
+        "date": "A24",
+        "group": "E18",
+        "times": [
+          "B26"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E36",
+        "date": "A36",
+        "group": "E18",
+        "times": [
+          "B36"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E38",
+        "date": "A36",
+        "group": "E18",
+        "times": [
+          "B38"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E48",
+        "date": "A48",
+        "group": "E18",
+        "times": [
+          "B48"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E50",
+        "date": "A48",
+        "group": "E18",
+        "times": [
+          "B50"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E60",
+        "date": "A60",
+        "group": "E18",
+        "times": [
+          "B60"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E62",
+        "date": "A60",
+        "group": "E18",
+        "times": [
+          "B62"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E72",
+        "date": "A72",
+        "group": "E18",
+        "times": [
+          "B72"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E74",
+        "date": "A72",
+        "group": "E18",
+        "times": [
+          "B74"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E84",
+        "date": "A84",
+        "group": "E18",
+        "times": [
+          "B84"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E86",
+        "date": "A84",
+        "group": "E18",
+        "times": [
+          "B86"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E88",
+        "date": "A84",
+        "group": "E18",
+        "times": [
+          "B88"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O24",
+        "date": "K24",
+        "group": "O18",
+        "times": [
+          "L24"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O26",
+        "date": "K24",
+        "group": "O18",
+        "times": [
+          "L26"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O28",
+        "date": "K24",
+        "group": "O18",
+        "times": [
+          "L28"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O30",
+        "date": "K24",
+        "group": "O18",
+        "times": [
+          "L30"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O36",
+        "date": "K36",
+        "group": "O18",
+        "times": [
+          "L36"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O38",
+        "date": "K36",
+        "group": "O18",
+        "times": [
+          "L38"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O40",
+        "date": "K36",
+        "group": "O18",
+        "times": [
+          "L40"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O42",
+        "date": "K36",
+        "group": "O18",
+        "times": [
+          "L42"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O48",
+        "date": "K48",
+        "group": "O18",
+        "times": [
+          "L48"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O50",
+        "date": "K48",
+        "group": "O18",
+        "times": [
+          "L50"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O52",
+        "date": "K48",
+        "group": "O18",
+        "times": [
+          "L52"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O54",
+        "date": "K48",
+        "group": "O18",
+        "times": [
+          "L54"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O56",
+        "date": "K56",
+        "group": "O18",
+        "times": [
+          "L56"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O58",
+        "date": "K56",
+        "group": "O18",
+        "times": [
+          "L58"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O60",
+        "date": "K56",
+        "group": "O18",
+        "times": [
+          "L60"
+        ],
+        "timeInsideLesson": false
+      }
+    ]
+  },
+  "provenance": null
+}

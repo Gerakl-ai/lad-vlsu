@@ -1,0 +1,1191 @@
+{
+  "schemaVersion": 3,
+  "group": {
+    "course": "5 курс",
+    "forms": [
+      "part-time"
+    ],
+    "name": "ВС-521",
+    "nrec": "37cbca4dc148c2747ef17b57149d159b",
+    "instituteId": "b175b4e482d0e83192900749ffba202c",
+    "instituteName": "Институт архитектуры, строительства и энергетики",
+    "instituteShortName": "ИАС"
+  },
+  "semester": null,
+  "schedule": [
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-03",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-03",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-04",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "506-2, лк, Щитко В.С., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-04",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "506-2, лк, Щитко В.С., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-05",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "523-2, лк, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-05",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, лк, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-10",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-10",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-11",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "506-2, лк, Щитко В.С., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-11",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "506-2, лк, Щитко В.С., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-12",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "523-2, лк, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-12",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, лк, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-17",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-17",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "506-2, пр, Гах И.Н., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-18",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "506-2, лк, Щитко В.С., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-18",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "506-2, лк, Щитко В.С., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-19",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-19",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-24",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-24",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-25",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "506-2, лк, Щитко В.С., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-25",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "506-2, пр, Гах И.Н., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-26",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-26",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-03",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-03",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-04",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "506-2, пр, Гах И.Н., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-04",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "506-2, пр, Гах И.Н., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-05",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-05",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-10",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-10",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-11",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "506-2, пр, Гах И.Н., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-11",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "506-2, пр, Гах И.Н., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-12",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-12",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-13",
+      "start": "15:50",
+      "end": "19:10",
+      "name": "523-2, лк, Фёдоров В.В., Экспертиза и управление проектами"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-13",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, лк, Фёдоров В.В., Экспертиза и управление проектами"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-17",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-17",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Лисятников М.С., Конструкции из дерева и пласмасс"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-18",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "523-2, лк, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-18",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, лк, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-19",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-19",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-20",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "523-2, лк, Фёдоров В.В., Экспертиза и управление проектами"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-20",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, лк, Фёдоров В.В., Экспертиза и управление проектами"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-24",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "523-2, лк, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-24",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, пр, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-25",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "523-2, пр, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-25",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, пр, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-26",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-26",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-27",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "523-2, лк, Фёдоров В.В., Экспертиза и управление проектами"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-27",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, лк, Фёдоров В.В., Экспертиза и управление проектами"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-31",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "523-2, пр, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-31",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, пр, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-01",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "523-2, пр, Фёдоров В.В., Экспертиза и управление проектами"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-01",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, пр, Фёдоров В.В., Экспертиза и управление проектами"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-02",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-02",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "148-4, лк, Акимов В.Б., Организация, планирование и управление в строительстве"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-03",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "523-2, пр, Фёдоров В.В., Экспертиза и управление проектами"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-03",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, пр, Фёдоров В.В., Экспертиза и управление проектами"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-07",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "523-2, пр, Фёдоров В.В., Экспертиза и управление проектами"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-07",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, пр, Фёдоров В.В., Экспертиза и управление проектами"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-08",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "523-2, пр, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-08",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, пр, Семёнов А.С., Технология возведения энергоэффективных зданий"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-09",
+      "start": "17:40",
+      "end": "19:10",
+      "name": "506-2, пр, Гах И.Н., Социология"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-09",
+      "start": "19:30",
+      "end": "21:00",
+      "name": "523-2, лк, Фёдоров В.В., Экспертиза и управление проектами"
+    }
+  ],
+  "quality": {
+    "valid": true,
+    "scheduleEntries": 68,
+    "lessonDays": 34,
+    "examEntries": 0,
+    "warnings": [],
+    "datedEntries": 68
+  },
+  "scheduleHash": "e7c5fcce29c0ef2a9165881993679ebbf7b5704bc586d254b6674ccc823595d1",
+  "capturedAt": "2026-10-12T14:36:09Z",
+  "validFrom": "2026-02-02",
+  "validThrough": "2026-04-11",
+  "sourceDocument": {
+    "title": "ИАСЭ, очно-заочное обучение, весна 2025-2026",
+    "url": "https://www.vlsu.ru/fileadmin/class-schedule/2025-2026/vesna/iase_ozo.xlsx",
+    "sha256": "f6c7629d2927585af5ba9073d6979de7dfeed93b7d85c11c55c992c39f3e6eb8",
+    "reviewedAt": "2026-10-12T14:36:09Z"
+  },
+  "sourceCells": {
+    "sheet": "ВС-5 курс",
+    "period": "J12",
+    "distinctLessons": 38,
+    "lessons": [
+      {
+        "lesson": "C20",
+        "date": "A20",
+        "group": "E18",
+        "times": [
+          "B20",
+          "B22"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C20",
+        "date": "A20",
+        "group": "E18",
+        "times": [
+          "B20",
+          "B22"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C24",
+        "date": "A24",
+        "group": "E18",
+        "times": [
+          "B24",
+          "B26"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C24",
+        "date": "A24",
+        "group": "E18",
+        "times": [
+          "B24",
+          "B26"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E28",
+        "date": "A28",
+        "group": "E18",
+        "times": [
+          "B28",
+          "B30"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E28",
+        "date": "A28",
+        "group": "E18",
+        "times": [
+          "B28",
+          "B30"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C32",
+        "date": "A32",
+        "group": "E18",
+        "times": [
+          "B32",
+          "B34"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C32",
+        "date": "A32",
+        "group": "E18",
+        "times": [
+          "B32",
+          "B34"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C36",
+        "date": "A36",
+        "group": "E18",
+        "times": [
+          "B36",
+          "B38"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C36",
+        "date": "A36",
+        "group": "E18",
+        "times": [
+          "B36",
+          "B38"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E40",
+        "date": "A40",
+        "group": "E18",
+        "times": [
+          "B40",
+          "B42"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E40",
+        "date": "A40",
+        "group": "E18",
+        "times": [
+          "B40",
+          "B42"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C44",
+        "date": "A44",
+        "group": "E18",
+        "times": [
+          "B44"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E46",
+        "date": "A44",
+        "group": "E18",
+        "times": [
+          "B46"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C48",
+        "date": "A48",
+        "group": "E18",
+        "times": [
+          "B48",
+          "B50"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C48",
+        "date": "A48",
+        "group": "E18",
+        "times": [
+          "B48",
+          "B50"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C52",
+        "date": "A52",
+        "group": "E18",
+        "times": [
+          "B52",
+          "B54"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C52",
+        "date": "A52",
+        "group": "E18",
+        "times": [
+          "B52",
+          "B54"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C56",
+        "date": "A56",
+        "group": "E18",
+        "times": [
+          "B56",
+          "B58"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C56",
+        "date": "A56",
+        "group": "E18",
+        "times": [
+          "B56",
+          "B58"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C60",
+        "date": "A60",
+        "group": "E18",
+        "times": [
+          "B60"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E62",
+        "date": "A60",
+        "group": "E18",
+        "times": [
+          "B62"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C64",
+        "date": "A64",
+        "group": "E18",
+        "times": [
+          "B64",
+          "B66"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C64",
+        "date": "A64",
+        "group": "E18",
+        "times": [
+          "B64",
+          "B66"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C68",
+        "date": "A68",
+        "group": "E18",
+        "times": [
+          "B68",
+          "B70"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C68",
+        "date": "A68",
+        "group": "E18",
+        "times": [
+          "B68",
+          "B70"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E72",
+        "date": "A72",
+        "group": "E18",
+        "times": [
+          "B72",
+          "B74"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E72",
+        "date": "A72",
+        "group": "E18",
+        "times": [
+          "B72",
+          "B74"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C76",
+        "date": "A76",
+        "group": "E18",
+        "times": [
+          "B76",
+          "B78"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C76",
+        "date": "A76",
+        "group": "E18",
+        "times": [
+          "B76",
+          "B78"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C84",
+        "date": "A84",
+        "group": "E18",
+        "times": [
+          "B84",
+          "B86"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "C84",
+        "date": "A84",
+        "group": "E18",
+        "times": [
+          "B84",
+          "B86"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E88",
+        "date": "A88",
+        "group": "E18",
+        "times": [
+          "B88",
+          "B90"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "E88",
+        "date": "A88",
+        "group": "E18",
+        "times": [
+          "B88",
+          "B90"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "M20",
+        "date": "K20",
+        "group": "O18",
+        "times": [
+          "L20",
+          "L22"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "M20",
+        "date": "K20",
+        "group": "O18",
+        "times": [
+          "L20",
+          "L22"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O24",
+        "date": "K24",
+        "group": "O18",
+        "times": [
+          "L24",
+          "L26"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O24",
+        "date": "K24",
+        "group": "O18",
+        "times": [
+          "L24",
+          "L26"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "M28",
+        "date": "K28",
+        "group": "O18",
+        "times": [
+          "L28",
+          "L30"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "M28",
+        "date": "K28",
+        "group": "O18",
+        "times": [
+          "L28",
+          "L30"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O32",
+        "date": "K32",
+        "group": "O18",
+        "times": [
+          "L32",
+          "L34"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O32",
+        "date": "K32",
+        "group": "O18",
+        "times": [
+          "L32",
+          "L34"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "M36",
+        "date": "K36",
+        "group": "O18",
+        "times": [
+          "L36",
+          "L38"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "M36",
+        "date": "K36",
+        "group": "O18",
+        "times": [
+          "L36",
+          "L38"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O40",
+        "date": "K40",
+        "group": "O18",
+        "times": [
+          "L40",
+          "L42"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O40",
+        "date": "K40",
+        "group": "O18",
+        "times": [
+          "L40",
+          "L42"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O48",
+        "date": "K48",
+        "group": "O18",
+        "times": [
+          "L48"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O50",
+        "date": "K48",
+        "group": "O18",
+        "times": [
+          "L50"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O52",
+        "date": "K52",
+        "group": "O18",
+        "times": [
+          "L52",
+          "L54"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O52",
+        "date": "K52",
+        "group": "O18",
+        "times": [
+          "L52",
+          "L54"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "M56",
+        "date": "K56",
+        "group": "O18",
+        "times": [
+          "L56",
+          "L58"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "M56",
+        "date": "K56",
+        "group": "O18",
+        "times": [
+          "L56",
+          "L58"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O60",
+        "date": "K60",
+        "group": "O18",
+        "times": [
+          "L60",
+          "L62"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O60",
+        "date": "K60",
+        "group": "O18",
+        "times": [
+          "L60",
+          "L62"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O68",
+        "date": "K68",
+        "group": "O18",
+        "times": [
+          "L68",
+          "L70"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O68",
+        "date": "K68",
+        "group": "O18",
+        "times": [
+          "L68",
+          "L70"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O72",
+        "date": "K72",
+        "group": "O18",
+        "times": [
+          "L72",
+          "L74"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O72",
+        "date": "K72",
+        "group": "O18",
+        "times": [
+          "L72",
+          "L74"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "M76",
+        "date": "K76",
+        "group": "O18",
+        "times": [
+          "L76",
+          "L78"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "M76",
+        "date": "K76",
+        "group": "O18",
+        "times": [
+          "L76",
+          "L78"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O80",
+        "date": "K80",
+        "group": "O18",
+        "times": [
+          "L80",
+          "L82"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O80",
+        "date": "K80",
+        "group": "O18",
+        "times": [
+          "L80",
+          "L82"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O88",
+        "date": "K88",
+        "group": "O18",
+        "times": [
+          "L88",
+          "L90"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "O88",
+        "date": "K88",
+        "group": "O18",
+        "times": [
+          "L88",
+          "L90"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Y20",
+        "date": "U20",
+        "group": "Y18",
+        "times": [
+          "V20",
+          "V22"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Y20",
+        "date": "U20",
+        "group": "Y18",
+        "times": [
+          "V20",
+          "V22"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Y24",
+        "date": "U24",
+        "group": "Y18",
+        "times": [
+          "V24"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Y26",
+        "date": "U24",
+        "group": "Y18",
+        "times": [
+          "V26"
+        ],
+        "timeInsideLesson": false
+      }
+    ]
+  },
+  "provenance": null
+}

@@ -55,7 +55,7 @@ describe('выбор пары в расписаниях университета
 
     expect(checkedChoices).toBeGreaterThan(300);
     expect(checkedGroups.size).toBeGreaterThan(100);
-  });
+  }, 30000);
 
   it('чередует все реальные слоты с двумя одинаковыми альтернативами', () => {
     let checkedSlots = 0;

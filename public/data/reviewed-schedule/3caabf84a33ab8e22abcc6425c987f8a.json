@@ -1,0 +1,907 @@
+{
+  "schemaVersion": 3,
+  "group": {
+    "course": "3 курс",
+    "forms": [
+      "part-time"
+    ],
+    "name": "ВТДИм-124",
+    "nrec": "3caabf84a33ab8e22abcc6425c987f8a",
+    "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+    "instituteName": "Институт экономики и туризма",
+    "instituteShortName": "ИЭиТ"
+  },
+  "semester": null,
+  "schedule": [
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-07",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "212-6, лк, Паньшин И.В., Бизнес-проектирование коммерческой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-07",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "212-6, пр, Паньшин И.В., Бизнес-проектирование коммерческой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-07",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, лк, Жуковская И.Ф., Налогообложене внешнеэкономической деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-07",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Жуковская И.Ф., Налогообложене внешнеэкономической деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-14",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "212-6, лк, Паньшин И.В., Бизнес-проектирование коммерческой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-14",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "212-6, пр, Паньшин И.В., Бизнес-проектирование коммерческой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-14",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, лк, Жуковская И.Ф., Налогообложене внешнеэкономической деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-14",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Жуковская И.Ф., Налогообложене внешнеэкономической деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-21",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "213-6, лк, Изюмова Н.Ю., Управление цепями поставок в международной торговле"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-21",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "213-6, пр, Изюмова Н.Ю., Управление цепями поставок в международной торговле"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-28",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "213-6, пр, Наумова И.В., Самоменеджмент"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-28",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "213-6, пр, Наумова И.В., Самоменеджмент"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-28",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, лк, Изюмова Н.Ю., Управление цепями поставок в международной торговле"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-02-28",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Изюмова Н.Ю., Управление цепями поставок в международной торговле"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-14",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "212-6, лк, Паньшин И.В., Бизнес-проектирование коммерческой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-14",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "212-6, пр, Паньшин И.В., Бизнес-проектирование коммерческой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-14",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, лк, Жуковская И.Ф., Налогообложене внешнеэкономической деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-14",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Жуковская И.Ф., Налогообложене внешнеэкономической деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-21",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "213-6, пр, Наумова И.В., Самоменеджмент"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-21",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "213-6, пр, Наумова И.В., Самоменеджмент"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-21",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, лк, Панина Е.Е., Правовое регулирование внешнеторговой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-21",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Панина Е.Е., Правовое регулирование внешнеторговой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-28",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "213-6, пр, Наумова И.В., Самоменеджмент"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-28",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "213-6, пр, Наумова И.В., Самоменеджмент"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-28",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, лк, Изюмова Н.Ю., Управление цепями поставок в международной торговле"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-03-28",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Изюмова Н.Ю., Управление цепями поставок в международной торговле"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-04",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "212-6, лк, Паньшин И.В., Бизнес-проектирование коммерческой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-04",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "212-6, пр, Паньшин И.В., Бизнес-проектирование коммерческой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-04",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, лк, Жуковская И.Ф., Налогообложене внешнеэкономической деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-04",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Жуковская И.Ф., Налогообложене внешнеэкономической деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-11",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "213-6, пр, Наумова И.В., Самоменеджмент"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-11",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "213-6, пр, Наумова И.В., Самоменеджмент"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-11",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, лк, Панина Е.Е., Правовое регулирование внешнеторговой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-11",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Панина Е.Е., Правовое регулирование внешнеторговой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-18",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "213-6, лк, Жуковская И.Ф., Налогообложене внешнеэкономической деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-18",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "213-6, пр, Жуковская И.Ф., Налогообложене внешнеэкономической деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-18",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, лк, Изюмова Н.Ю., Управление цепями поставок в международной торговле"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-18",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Изюмова Н.Ю., Управление цепями поставок в международной торговле"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-25",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "213-6, лк, Паньшин И.В., Бизнес-проектирование коммерческой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-25",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "213-6, пр, Паньшин И.В., Бизнес-проектирование коммерческой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-25",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, лк, Панина Е.Е., Правовое регулирование внешнеторговой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-04-25",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Панина Е.Е., Правовое регулирование внешнеторговой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-16",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "212-6, лк, Паньшин И.В., Бизнес-проектирование коммерческой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-16",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "212-6, пр, Паньшин И.В., Бизнес-проектирование коммерческой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-16",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, пр, Наумова И.В., Самоменеджмент"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-16",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Наумова И.В., Самоменеджмент"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-23",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "213-6, пр, Наумова И.В., Самоменеджмент"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-23",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "213-6, пр, Наумова И.В., Самоменеджмент"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-23",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, лк, Панина Е.Е., Правовое регулирование внешнеторговой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-05-23",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Панина Е.Е., Правовое регулирование внешнеторговой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-06-06",
+      "start": "08:30",
+      "end": "10:00",
+      "name": "213-6, лк, Изюмова Н.Ю., Управление цепями поставок в международной торговле"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-06-06",
+      "start": "10:20",
+      "end": "11:50",
+      "name": "213-6, пр, Изюмова Н.Ю., Управление цепями поставок в международной торговле"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-06-06",
+      "start": "12:10",
+      "end": "13:40",
+      "name": "213-6, лк, Панина Е.Е., Правовое регулирование внешнеторговой деятельности"
+    },
+    {
+      "type": "DatedLesson",
+      "date": "2026-06-06",
+      "start": "14:00",
+      "end": "15:30",
+      "name": "213-6, пр, Панина Е.Е., Правовое регулирование внешнеторговой деятельности"
+    }
+  ],
+  "quality": {
+    "valid": true,
+    "scheduleEntries": 54,
+    "lessonDays": 14,
+    "examEntries": 0,
+    "warnings": [],
+    "datedEntries": 54
+  },
+  "scheduleHash": "8e57ca727a4b7ed482145c64d1e38ab74ed1c98df147bcea17c2342055b8f0f0",
+  "capturedAt": "2026-10-12T14:36:09Z",
+  "validFrom": "2026-02-02",
+  "validThrough": "2026-06-08",
+  "sourceDocument": {
+    "title": "ИЭиТ, очно-заочное обучение, весна 2025-2026",
+    "url": "https://www.vlsu.ru/fileadmin/class-schedule/2025-2026/vesna/ieit_ozo.xlsx",
+    "sha256": "cf249bd0e81a939248649ee14cc51ec3c32e38aa73b6120574bfb7653b2dbe1c",
+    "reviewedAt": "2026-10-12T14:36:09Z"
+  },
+  "sourceCells": {
+    "sheet": "ВТДИм-125,ВТДИм-124",
+    "period": "J12",
+    "distinctLessons": 54,
+    "lessons": [
+      {
+        "lesson": "G20",
+        "date": "A20",
+        "group": "G18",
+        "times": [
+          "B20"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G22",
+        "date": "A20",
+        "group": "G18",
+        "times": [
+          "B22"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G24",
+        "date": "A20",
+        "group": "G18",
+        "times": [
+          "B24"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G26",
+        "date": "A20",
+        "group": "G18",
+        "times": [
+          "B26"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G32",
+        "date": "A32",
+        "group": "G18",
+        "times": [
+          "B32"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G34",
+        "date": "A32",
+        "group": "G18",
+        "times": [
+          "B34"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G36",
+        "date": "A32",
+        "group": "G18",
+        "times": [
+          "B36"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G38",
+        "date": "A32",
+        "group": "G18",
+        "times": [
+          "B38"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G44",
+        "date": "A44",
+        "group": "G18",
+        "times": [
+          "B44"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G46",
+        "date": "A44",
+        "group": "G18",
+        "times": [
+          "B46"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G56",
+        "date": "A56",
+        "group": "G18",
+        "times": [
+          "B56"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G58",
+        "date": "A56",
+        "group": "G18",
+        "times": [
+          "B58"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G60",
+        "date": "A56",
+        "group": "G18",
+        "times": [
+          "B60"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G62",
+        "date": "A56",
+        "group": "G18",
+        "times": [
+          "B62"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G68",
+        "date": "A68",
+        "group": "G18",
+        "times": [
+          "B68"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G70",
+        "date": "A68",
+        "group": "G18",
+        "times": [
+          "B70"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G72",
+        "date": "A68",
+        "group": "G18",
+        "times": [
+          "B72"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G74",
+        "date": "A68",
+        "group": "G18",
+        "times": [
+          "B74"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G80",
+        "date": "A80",
+        "group": "G18",
+        "times": [
+          "B80"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G82",
+        "date": "A80",
+        "group": "G18",
+        "times": [
+          "B82"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G84",
+        "date": "A80",
+        "group": "G18",
+        "times": [
+          "B84"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "G86",
+        "date": "A80",
+        "group": "G18",
+        "times": [
+          "B86"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q20",
+        "date": "K20",
+        "group": "Q18",
+        "times": [
+          "L20"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q22",
+        "date": "K20",
+        "group": "Q18",
+        "times": [
+          "L22"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q24",
+        "date": "K20",
+        "group": "Q18",
+        "times": [
+          "L24"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q26",
+        "date": "K20",
+        "group": "Q18",
+        "times": [
+          "L26"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q32",
+        "date": "K32",
+        "group": "Q18",
+        "times": [
+          "L32"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q34",
+        "date": "K32",
+        "group": "Q18",
+        "times": [
+          "L34"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q36",
+        "date": "K32",
+        "group": "Q18",
+        "times": [
+          "L36"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q38",
+        "date": "K32",
+        "group": "Q18",
+        "times": [
+          "L38"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q44",
+        "date": "K44",
+        "group": "Q18",
+        "times": [
+          "L44"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q46",
+        "date": "K44",
+        "group": "Q18",
+        "times": [
+          "L46"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q48",
+        "date": "K44",
+        "group": "Q18",
+        "times": [
+          "L48"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q50",
+        "date": "K44",
+        "group": "Q18",
+        "times": [
+          "L50"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q56",
+        "date": "K56",
+        "group": "Q18",
+        "times": [
+          "L56"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q58",
+        "date": "K56",
+        "group": "Q18",
+        "times": [
+          "L58"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q60",
+        "date": "K56",
+        "group": "Q18",
+        "times": [
+          "L60"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q62",
+        "date": "K56",
+        "group": "Q18",
+        "times": [
+          "L62"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q68",
+        "date": "K68",
+        "group": "Q18",
+        "times": [
+          "L68"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q70",
+        "date": "K68",
+        "group": "Q18",
+        "times": [
+          "L70"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q72",
+        "date": "K68",
+        "group": "Q18",
+        "times": [
+          "L72"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q74",
+        "date": "K68",
+        "group": "Q18",
+        "times": [
+          "L74"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q80",
+        "date": "K80",
+        "group": "Q18",
+        "times": [
+          "L80"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q82",
+        "date": "K80",
+        "group": "Q18",
+        "times": [
+          "L82"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q84",
+        "date": "K80",
+        "group": "Q18",
+        "times": [
+          "L84"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "Q86",
+        "date": "K80",
+        "group": "Q18",
+        "times": [
+          "L86"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AA20",
+        "date": "U20",
+        "group": "AA18",
+        "times": [
+          "V20"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AA22",
+        "date": "U20",
+        "group": "AA18",
+        "times": [
+          "V22"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AA24",
+        "date": "U20",
+        "group": "AA18",
+        "times": [
+          "V24"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AA26",
+        "date": "U20",
+        "group": "AA18",
+        "times": [
+          "V26"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AA32",
+        "date": "U32",
+        "group": "AA18",
+        "times": [
+          "V32"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AA34",
+        "date": "U32",
+        "group": "AA18",
+        "times": [
+          "V34"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AA36",
+        "date": "U32",
+        "group": "AA18",
+        "times": [
+          "V36"
+        ],
+        "timeInsideLesson": false
+      },
+      {
+        "lesson": "AA38",
+        "date": "U32",
+        "group": "AA18",
+        "times": [
+          "V38"
+        ],
+        "timeInsideLesson": false
+      }
+    ]
+  },
+  "provenance": null
+}
