@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { universityDataPlugin } from "./scripts/snapshot/universityDataPlugin.mjs";
 
 // В CI берём коммит, локально — время сборки. Главное, чтобы значение менялось
 // каждый раз: от него зависит и адрес service worker, и имя кэша.
@@ -16,7 +17,7 @@ export default defineConfig({
   // из корня. Базовый путь задаётся переменной окружения при сборке, чтобы
   // один и тот же код работал в обоих случаях.
   base: process.env.PAGES_BASE ?? "/",
-  plugins: [react(), {
+  plugins: [react(), universityDataPlugin(), {
     name: "release-html",
     transformIndexHtml(html) {
       const boot = html.match(/    <script>\s*window\.__ladBootComplete = false;[\s\S]*?<\/script>/)?.[0];

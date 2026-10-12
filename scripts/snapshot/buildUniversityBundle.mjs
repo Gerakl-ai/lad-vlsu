@@ -241,22 +241,17 @@ async function readSnapshots(directory) {
   }));
 }
 
-async function main() {
-  const args = process.argv.slice(2);
-  const dataDir = args.includes('--data-dir') ? args[args.indexOf('--data-dir') + 1] : null;
-  if (!dataDir) throw new Error('Usage: --data-dir <catalog/schedule directory> [--fallback-dir <directory> ...]');
-  const directories = [path.join(dataDir, 'schedule'), ...args.flatMap((arg, i) => arg === '--fallback-dir' ? [args[i + 1]] : [])];
+export async function prepareUniversityData(dataDir, fallbackDirectories = [
+  path.join(dataDir, 'ocr-schedule'), path.join(dataDir, 'reviewed-schedule')
+], assessedAt = new Date()) {
+  const directories = [path.join(dataDir, 'schedule'), ...fallbackDirectories];
   const catalog = JSON.parse(await readFile(path.join(dataDir, 'catalog.json'), 'utf8'));
   const candidates = (await Promise.all(directories.map(readSnapshots))).flat();
-  const assessedAt = new Date();
   const { bundle, report } = buildUniversityBundle(catalog, candidates, assessedAt);
   if (!report.available) throw new Error('No valid schedules for university bundle');
-  const publishDir = args.includes('--publish-dir') ? args[args.indexOf('--publish-dir') + 1] : dataDir;
-  if (!publishDir) throw new Error('Missing --publish-dir value');
-  await mkdir(path.join(publishDir, 'schedule'), { recursive: true });
   const coverage = {
     schemaVersion: 1,
-    checkedAt: new Date().toISOString(),
+    checkedAt: assessedAt.toISOString(),
     catalogGroups: report.catalogGroups,
     available: report.available,
     groups: Object.fromEntries(Object.entries(bundle.groups).map(([id, snapshot]) => [id, {
@@ -266,16 +261,38 @@ async function main() {
       ...(snapshot.validFrom && snapshot.validThrough ? { validFrom: snapshot.validFrom, validThrough: snapshot.validThrough } : {})
     }]))
   };
-  const gaps = buildCoverageGapReport(catalog, bundle);
-  const qualityReport = buildDataQualityReport(catalog, bundle, assessedAt);
-  await Promise.all([
-    writeFile(path.join(publishDir, 'catalog.json'), `${JSON.stringify(catalog)}\n`, 'utf8'),
-    writeFile(path.join(publishDir, 'coverage.json'), `${JSON.stringify(coverage)}\n`, 'utf8'),
-    writeFile(path.join(publishDir, 'gaps.json'), `${JSON.stringify(gaps)}\n`, 'utf8'),
-    writeFile(path.join(publishDir, 'quality.json'), `${JSON.stringify(qualityReport)}\n`, 'utf8'),
-    writeFile(path.join(publishDir, 'university-schedule.json'), `${JSON.stringify(bundle)}\n`, 'utf8'),
-    ...Object.entries(bundle.groups).map(([id, snapshot]) => writeFile(path.join(publishDir, 'schedule', `${id}.json`), `${JSON.stringify(snapshot)}\n`, 'utf8'))
-  ]);
+  return {
+    report,
+    files: {
+      'catalog.json': catalog,
+      'coverage.json': coverage,
+      'gaps.json': buildCoverageGapReport(catalog, bundle),
+      'quality.json': buildDataQualityReport(catalog, bundle, assessedAt),
+      'university-schedule.json': bundle,
+      ...Object.fromEntries(Object.entries(bundle.groups).map(([id, snapshot]) => [`schedule/${id}.json`, snapshot]))
+    }
+  };
+}
+
+export async function writeUniversityData(prepared, publishDir) {
+  await mkdir(path.join(publishDir, 'schedule'), { recursive: true });
+  await Promise.all(Object.entries(prepared.files).map(([name, value]) => {
+    if (!/^(?:catalog|coverage|gaps|quality|university-schedule)\.json$/.test(name)
+      && !/^schedule\/[a-f\d]{32}\.json$/i.test(name)) throw new Error('Invalid compiled data filename');
+    return writeFile(path.join(publishDir, name), `${JSON.stringify(value)}\n`, 'utf8');
+  }));
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  const dataDir = args.includes('--data-dir') ? args[args.indexOf('--data-dir') + 1] : null;
+  if (!dataDir) throw new Error('Usage: --data-dir <catalog/schedule directory> [--fallback-dir <directory> ...]');
+  const fallbacks = args.flatMap((arg, i) => arg === '--fallback-dir' ? [args[i + 1]] : []);
+  const prepared = await prepareUniversityData(dataDir, fallbacks.length ? fallbacks : undefined);
+  const publishDir = args.includes('--publish-dir') ? args[args.indexOf('--publish-dir') + 1] : dataDir;
+  if (!publishDir) throw new Error('Missing --publish-dir value');
+  await writeUniversityData(prepared, publishDir);
+  const report = prepared.report;
   console.log(JSON.stringify({ ...report, missing: report.missing.length, rejected: report.rejected.length }, null, 2));
 }
 

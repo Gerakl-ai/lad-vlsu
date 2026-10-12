@@ -311,6 +311,7 @@ export function App() {
   const tabScrollPositionsRef = useRef<Record<AppTab, number>>({ today: 0, week: 0, notes: 0, settings: 0 });
   const scheduleRef = useRef<ScheduleState | null>(schedule);
   const selectedGroupRef = useRef<GroupProfile | null>(selectedGroup);
+  const groupSelectionRevisionRef = useRef(0);
   const lastAvailableGroupRef = useRef<GroupProfile | null>(INITIAL_FALLBACK_GROUP);
   const refreshInFlightGroupRef = useRef<string | null>(null);
   const refreshSequenceRef = useRef(0);
@@ -468,6 +469,7 @@ export function App() {
   }, []);
 
   function selectGroup(group: GroupProfile) {
+    groupSelectionRevisionRef.current += 1;
     if (selectedGroupRef.current?.nrec !== group.nrec && scheduleRef.current?.groupNrec === selectedGroupRef.current?.nrec) {
       lastAvailableGroupRef.current = selectedGroupRef.current;
     }
@@ -509,32 +511,45 @@ export function App() {
   }, [selectedGroup]);
 
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
-    const handleDataUpdate = (event: MessageEvent) => {
+    const applyDataUpdate = (data: unknown) => {
       const group = selectedGroupRef.current;
-      if (!group || !navigator.serviceWorker.controller || event.source !== navigator.serviceWorker.controller
-        || !isSelectedScheduleUpdate(event.data, group.nrec)) return;
+      if (!group || !isSelectedScheduleUpdate(data, group.nrec)) return;
       resetUniversityBundleCache();
       if (refreshInFlightGroupRef.current === group.nrec) pendingStaticRefreshRef.current = group.nrec;
       else void refreshSchedule();
     };
-    navigator.serviceWorker.addEventListener("message", handleDataUpdate);
-    return () => navigator.serviceWorker.removeEventListener("message", handleDataUpdate);
+    const handleDataUpdate = (event: MessageEvent) => {
+      if (navigator.serviceWorker?.controller && event.source === navigator.serviceWorker.controller) applyDataUpdate(event.data);
+    };
+    navigator.serviceWorker?.addEventListener("message", handleDataUpdate);
+    import.meta.hot?.on("lad-static-data-updated", applyDataUpdate);
+    return () => {
+      navigator.serviceWorker?.removeEventListener("message", handleDataUpdate);
+      import.meta.hot?.off("lad-static-data-updated", applyDataUpdate);
+    };
   }, [refreshSchedule]);
 
   useEffect(() => {
     if (groupLinkHandledRef.current || !INITIAL_GROUP_LINK) return;
-    groupLinkHandledRef.current = true;
-    if (selectedGroupRef.current?.nrec === INITIAL_GROUP_LINK.nrec) return;
+    if (selectedGroupRef.current?.nrec === INITIAL_GROUP_LINK.nrec) {
+      groupLinkHandledRef.current = true;
+      return;
+    }
+    const selectionRevision = groupSelectionRevisionRef.current;
     let active = true;
     void resolveGroupLink(INITIAL_GROUP_LINK)
       .then((group) => {
         if (!active) return;
+        groupLinkHandledRef.current = true;
+        if (groupSelectionRevisionRef.current !== selectionRevision) return;
         if (group) selectGroup(group);
         else setGroupPickerOpen(true);
       })
       .catch(() => {
-        if (active) setGroupPickerOpen(true);
+        if (active) {
+          groupLinkHandledRef.current = true;
+          if (groupSelectionRevisionRef.current === selectionRevision) setGroupPickerOpen(true);
+        }
       });
     return () => {
       active = false;
