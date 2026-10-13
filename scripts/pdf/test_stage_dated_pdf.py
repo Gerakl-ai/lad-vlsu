@@ -1,7 +1,7 @@
 import unittest
 from datetime import date
 
-from stage_dated_pdf import lesson_metadata, printed_date, printed_interval, printed_period
+from stage_dated_pdf import group_cells, lesson_metadata, printed_date, printed_interval, printed_period
 
 
 class DatedPdfTests(unittest.TestCase):
@@ -48,6 +48,34 @@ class DatedPdfTests(unittest.TestCase):
                     "Предмет лб 418-2 Примеров А.А. неизвестно", "Предмет лб 418-2 Примеров А.А. Предмет экз 418-2 Примеров А.А."]:
             with self.assertRaises(ValueError):
                 lesson_metadata(raw)
+
+    def test_explicit_meeting_has_a_room_but_no_invented_teacher(self):
+        self.assertEqual(lesson_metadata("Г-3 ОРГАНИЗАЦИОННОЕ СОБРАНИЕ"),
+                         ("Г-3, собрание, , Организационное собрание", "classes"))
+        with self.assertRaises(ValueError):
+            lesson_metadata("ОРГАНИЗАЦИОННОЕ СОБРАНИЕ")
+
+    def test_sports_building_and_reassessment_annotation_are_kept(self):
+        name, kind = lesson_metadata("Физическая культура и спорт зач 101-СК1 Миронова Ю.А.")
+        self.assertTrue(name.startswith("101-СК1, зач, Миронова Ю.А.,"))
+        self.assertEqual(kind, "exam")
+        name, kind = lesson_metadata("Иностранный язык зач 303 а-1 Попкова О.В. англ.+п/а")
+        self.assertEqual(name, "303 а-1, зач +п/а, Попкова О.В., Иностранный язык (англ.)")
+        self.assertEqual(kind, "exam")
+        name, kind = lesson_metadata("Вычислительные системы переат 117-3 Лиходеев С.И.")
+        self.assertIn(", переат,", name)
+        self.assertEqual(kind, "exam")
+
+    def test_split_column_keeps_both_parts_and_excludes_neighbouring_group(self):
+        header = (100, 0, 200, 20)
+        cells = [(0, 20, 100, 40), (100, 20, 150, 40), (150, 20, 200, 40), (200, 20, 300, 40)]
+        self.assertEqual(group_cells(cells, header, 30), cells[1:3])
+        self.assertEqual(group_cells([(100, 20, 300, 40)], header, 30), [(100, 20, 300, 40)])
+
+    def test_two_source_labs_remain_two_variants_in_the_same_interval(self):
+        name, kind = lesson_metadata("Физика лб 424-3 Струкова М.А.\nФизика лб 425-3 Струкова М.А.")
+        self.assertEqual(kind, "classes")
+        self.assertEqual(name.splitlines(), ["424-3, лб, Струкова М.А., Физика", "425-3, лб, Струкова М.А., Физика"])
 
 
 if __name__ == '__main__':

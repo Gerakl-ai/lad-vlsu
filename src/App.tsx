@@ -1019,6 +1019,7 @@ export function App() {
           <Suspense fallback={null}>
             <LazySmartCalendarSheet
               lessons={schedule?.allLessons ?? []}
+              getLessonChoice={getLessonChoice}
               scheduleAvailable={Boolean(schedule)}
               scheduleValidFrom={schedule?.validFrom}
               scheduleValidThrough={schedule?.validThrough}

@@ -21,9 +21,12 @@ import { PersonalEventForm } from "./PersonalEventForm";
 import { shiftCalendarMonth } from "./calendarMonth";
 import { groupStudyCalendar, studyPeriodRange, studyPeriodsOnDate, studyPeriodTitle } from "../../lib/studyPeriods";
 import { schedulePeriodContains } from "../../lib/schedulePeriod";
+import { lessonWithSelectedVariant } from "../../lib/lessonSelection";
+import type { SubgroupChoice } from "../../lib/subgroup";
 
 interface SmartCalendarSheetProps {
   lessons: LessonSlot[];
+  getLessonChoice?: (lesson: LessonSlot, weekMode: WeekMode) => SubgroupChoice;
   scheduleAvailable?: boolean;
   scheduleValidFrom?: string;
   scheduleValidThrough?: string;
@@ -72,8 +75,10 @@ function timeOnDate(date: Date, value: string) {
   return result;
 }
 
-function lessonsForDate(lessons: LessonSlot[], date: Date, currentMode: WeekMode) {
-  return selectDayLessons(lessons, currentDayIndex(date), weekModeForDate(date, currentMode), date);
+function lessonsForDate(lessons: LessonSlot[], date: Date, currentMode: WeekMode, getLessonChoice?: SmartCalendarSheetProps["getLessonChoice"]) {
+  const mode = weekModeForDate(date, currentMode);
+  return selectDayLessons(lessons, currentDayIndex(date), mode, date)
+    .map((lesson) => lessonWithSelectedVariant(lesson, getLessonChoice?.(lesson, mode) ?? "all"));
 }
 
 function notesForDate(notes: SmartNote[], date: Date) {
@@ -84,8 +89,8 @@ function notesForDate(notes: SmartNote[], date: Date) {
   ));
 }
 
-function eventsForDate(lessons: LessonSlot[], notes: SmartNote[], date: Date, weekMode: WeekMode, personalEvents: PersonalEvent[]): CalendarEvent[] {
-  const classEvents = lessonsForDate(lessons, date, weekMode).map((lesson) => ({
+export function eventsForDate(lessons: LessonSlot[], notes: SmartNote[], date: Date, weekMode: WeekMode, personalEvents: PersonalEvent[], getLessonChoice?: SmartCalendarSheetProps["getLessonChoice"]): CalendarEvent[] {
+  const classEvents = lessonsForDate(lessons, date, weekMode, getLessonChoice).map((lesson) => ({
     id: `lesson-${lesson.id}-${dateKeyFromDate(date)}`,
     title: lesson.subject,
     detail: [lesson.kind, lesson.teacher].filter(Boolean).join(" · ") || "Пара",
@@ -195,7 +200,7 @@ async function shareCalendar(events: CalendarEvent[], fileName: string, title: s
   return true;
 }
 
-export function SmartCalendarSheet({ lessons, scheduleAvailable = true, scheduleValidFrom, scheduleValidThrough, groupNrec, notes, open, initialCreateEvent = false, weekMode, initialDate, onClose, onCreateForDate, onOpenNote, onSelectDate }: SmartCalendarSheetProps) {
+export function SmartCalendarSheet({ lessons, getLessonChoice, scheduleAvailable = true, scheduleValidFrom, scheduleValidThrough, groupNrec, notes, open, initialCreateEvent = false, weekMode, initialDate, onClose, onCreateForDate, onOpenNote, onSelectDate }: SmartCalendarSheetProps) {
   const personalEvents = usePersonalEvents();
   const [editingEvent, setEditingEvent] = useState<PersonalEvent | "new" | null>(initialCreateEvent ? "new" : null);
   const swipe = useRef<{ pointerId: number; x: number; y: number } | null>(null);
@@ -210,15 +215,15 @@ export function SmartCalendarSheet({ lessons, scheduleAvailable = true, schedule
   const exportResetTimer = useRef<number | undefined>(undefined);
   const cells = useMemo(() => monthCells(month), [month]);
   const selectedEvents = useMemo(
-    () => eventsForDate(lessons, notes, selectedDate, weekMode, personalEvents),
-    [lessons, notes, selectedDate, weekMode, personalEvents]
+    () => eventsForDate(lessons, notes, selectedDate, weekMode, personalEvents, getLessonChoice),
+    [lessons, notes, selectedDate, weekMode, personalEvents, getLessonChoice]
   );
   const monthEvents = useMemo(
     () => cells
       .filter((date) => date.getMonth() === month.getMonth() && date.getFullYear() === month.getFullYear())
-      .flatMap((date) => eventsForDate(lessons, notes, date, weekMode, personalEvents))
+      .flatMap((date) => eventsForDate(lessons, notes, date, weekMode, personalEvents, getLessonChoice))
       .filter((event, index, all) => all.findIndex((item) => item.id === event.id) === index),
-    [cells, lessons, month, notes, weekMode, personalEvents]
+    [cells, lessons, month, notes, weekMode, personalEvents, getLessonChoice]
   );
 
   useEffect(() => {

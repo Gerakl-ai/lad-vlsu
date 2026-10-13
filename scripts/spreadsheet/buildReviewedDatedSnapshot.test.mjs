@@ -80,4 +80,19 @@ describe('reviewed dated PDF import', () => {
     staging.source.locations[0].validThrough = '2026-12-31';
     expect(() => buildReviewedDatedSnapshot(staging, catalog, review)).toThrow();
   });
+
+  it('retains and counts both printed cells in a divided group column', () => {
+    const { staging, catalog, review } = pdfFixtures();
+    const evidence = staging.lessons[0].evidence;
+    evidence.lessonBoxes = [evidence.lessonBox, [100, 20, 190, 40]];
+    evidence.rawTexts = ['First source variant', 'Second source variant'];
+    evidence.rawText = evidence.rawTexts.join('\n');
+    review.lessonsSha256 = sha256(staging.lessons);
+    const result = buildReviewedDatedSnapshot(staging, catalog, review);
+    expect(result.sourceCells.distinctLessons).toBe(2);
+    expect(result.sourceCells.lessons[0].lessonBoxes).toHaveLength(2);
+    evidence.rawTexts.pop();
+    review.lessonsSha256 = sha256(staging.lessons);
+    expect(() => buildReviewedDatedSnapshot(staging, catalog, review)).toThrow();
+  });
 });

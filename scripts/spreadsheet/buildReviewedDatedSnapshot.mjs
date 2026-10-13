@@ -24,7 +24,12 @@ function hasPdfEvidence(entry, groupName) {
     && Number.isInteger(evidence.table) && evidence.table > 0
     && ['lessonBox', 'timeBox', 'dayBox', 'headerBox'].every((key) => validBox(evidence[key]))
     && evidence.rawText?.trim() && evidence.timeText?.trim() && evidence.dayText?.trim()
-    && evidence.headerText === groupName;
+    && evidence.headerText === groupName
+    && (evidence.lessonBoxes === undefined && evidence.rawTexts === undefined || Array.isArray(evidence.lessonBoxes) && evidence.lessonBoxes.length > 1
+      && evidence.lessonBoxes.every(validBox) && Array.isArray(evidence.rawTexts)
+      && evidence.rawTexts.length === evidence.lessonBoxes.length && evidence.rawTexts.every((raw) => typeof raw === 'string' && raw.trim())
+      && JSON.stringify(evidence.lessonBox) === JSON.stringify(evidence.lessonBoxes[0])
+      && evidence.rawText === evidence.rawTexts.join('\n'));
 }
 
 export function buildReviewedDatedSnapshot(staging, catalog, review) {
@@ -79,7 +84,8 @@ export function buildReviewedDatedSnapshot(staging, catalog, review) {
     validFrom: review.validFrom, validThrough: review.validThrough,
     sourceDocument: { title: review.title, url: review.sourceUrl, sha256: review.sourceSha256, reviewedAt: review.reviewedAt },
     sourceCells: pdf ? { format: 'pdf-grid', locations: staging.source.locations,
-      distinctLessons: new Set(staging.lessons.map(({ evidence }) => `${evidence.page}:${evidence.table}:${evidence.lessonBox.join(',')}`)).size,
+      distinctLessons: new Set(staging.lessons.flatMap(({ evidence }) => (evidence.lessonBoxes ?? [evidence.lessonBox])
+        .map((box) => `${evidence.page}:${evidence.table}:${box.join(',')}`))).size,
       lessons: staging.lessons.map(({ evidence }) => evidence) } : { sheet: staging.sheet, period: staging.source.periodCell,
       distinctLessons: new Set(staging.lessons.map(({ evidence }) => evidence.lessonCell)).size,
       lessons: staging.lessons.map(({ evidence }) => ({ lesson: evidence.lessonCell, date: evidence.dateCell,

@@ -1,6 +1,7 @@
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const group = JSON.parse(fs.readFileSync('public/data/schedule/7936a2a43b11b20b01d30f5b00c73166.json', 'utf8')).group;
 
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH });
@@ -10,12 +11,12 @@ const fs = require('node:fs');
       const page = await browser.newPage({ viewport });
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
-      await page.addInitScript(() => {
-        localStorage.setItem('lad.selected-group.v2', JSON.stringify({ id: 'qa', nrec: 'qa', name: 'QA', instituteId: 'qa', instituteName: 'QA', instituteShortName: 'QA', visualKey: 'iite' }));
-        localStorage.setItem('lad.schedule.v2:qa', JSON.stringify({ groupNrec: 'qa', currentInfo: { currentLesson: '', currentWeekType: 1, name: 'QA', semester: 1 }, allLessons: [], fetchedAt: new Date().toISOString() }));
-      });
-      await page.goto(process.env.QA_URL || 'http://127.0.0.1:5182/', { waitUntil: 'domcontentloaded' });
+      await page.addInitScript((group) => {
+        localStorage.setItem('lad.selected-group.v2', JSON.stringify({ ...group, id: group.nrec, visualKey: 'iite' }));
+      }, group);
+      await page.goto(process.env.QA_URL || 'http://127.0.0.1:4173/', { waitUntil: 'domcontentloaded' });
       await page.getByTestId('today-calendar-launch').click();
+      const calendar = page.getByRole('dialog', { name: 'Календарь', exact: true });
       const month = await page.locator('.calendar-month-label strong').textContent();
       const grid = await page.locator('.calendar-grid').boundingBox();
       await page.mouse.move(grid.x + grid.width * .8, grid.y + grid.height * .5);
@@ -23,8 +24,8 @@ const fs = require('node:fs');
       await page.mouse.move(grid.x + grid.width * .2, grid.y + grid.height * .5, { steps: 12 });
       await page.mouse.up();
       await page.waitForFunction((previous) => document.querySelector('.calendar-month-label strong')?.textContent !== previous, month);
-      await page.getByRole('button', { name: 'Предыдущий месяц', exact: true }).click();
-      await page.getByRole('button', { name: 'Добавить событие', exact: true }).click();
+      await calendar.getByRole('button', { name: 'Предыдущий месяц', exact: true }).click();
+      await calendar.getByRole('button', { name: 'Добавить событие', exact: true }).click();
       await page.getByLabel('Название', { exact: true }).fill('Репетиция дуэта');
       const day = await page.evaluate(() => {
         const now = new Date();
