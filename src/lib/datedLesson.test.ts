@@ -34,4 +34,15 @@ describe("dated classes", () => {
     expect(normalizeSchedule([{ ...entry, name: "148-4, , Преподаватель А.Б., Проверка источника" }])[0])
       .toMatchObject({ kind: undefined, subject: "Проверка источника" });
   });
+
+  it("keeps a printed assessment interval without assigning a default exam duration", () => {
+    const assessment = { ...entry, start: "14:00", end: "15:30", scheduleKind: "exam" as const,
+      name: "308-1, экз, Преподаватель А.Б., Иностранный язык" };
+    expect(normalizeSchedule([assessment])[0]).toMatchObject({ scheduleKind: "exam", start: "14:00", end: "15:30" });
+    expect(isDatedLesson({ ...entry, scheduleKind: "meeting" })).toBe(false);
+  });
+
+  it.each([null, ["exam"], { toString: "exam" }])("rejects a non-string assessment kind: %j", (scheduleKind) => {
+    expect(isDatedLesson({ ...entry, scheduleKind })).toBe(false);
+  });
 });

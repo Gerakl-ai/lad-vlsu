@@ -1673,7 +1673,7 @@ function WeekView({
     return () => media.removeEventListener("change", onChange);
   }, []);
   if (hasDatedLessons(lessons)) {
-    return <SessionScheduleView lessons={lessons} notes={notes} groupNrec={groupNrec} onToggleNote={onToggleNote} onOpenCalendar={onOpenCalendar} onCreateLessonNote={onCreateLessonNote} onSelectDate={onSelectDate} validFrom={validFrom} validThrough={validThrough} />;
+    return <SessionScheduleView lessons={lessons} notes={notes} groupNrec={groupNrec} getLessonChoice={getLessonChoice} onChooseLesson={onChooseLesson} onToggleNote={onToggleNote} onOpenCalendar={onOpenCalendar} onCreateLessonNote={onCreateLessonNote} onSelectDate={onSelectDate} validFrom={validFrom} validThrough={validThrough} />;
   }
 
   const dayLoads = buildWeekLoads(lessons, weekMode, validFrom, validThrough);
@@ -1797,10 +1797,12 @@ function WeekView({
   );
 }
 
-function SessionScheduleView({ lessons, notes, groupNrec, onToggleNote, onOpenCalendar, onCreateLessonNote, onSelectDate, validFrom, validThrough }: {
+function SessionScheduleView({ lessons, notes, groupNrec, getLessonChoice, onChooseLesson, onToggleNote, onOpenCalendar, onCreateLessonNote, onSelectDate, validFrom, validThrough }: {
   lessons: LessonSlot[];
   notes: SmartNote[];
   groupNrec?: string;
+  getLessonChoice: LessonChoiceResolver;
+  onChooseLesson: LessonChoiceSetter;
   onToggleNote: (noteId: string) => void;
   onOpenCalendar: () => void;
   onSelectDate: (date: Date) => void;
@@ -1874,7 +1876,9 @@ function SessionScheduleView({ lessons, notes, groupNrec, onToggleNote, onOpenCa
             </button>
             {group.lessons.map((lesson) => {
               const lessonDate = lesson.date ? new Date(`${lesson.date}T00:00:00`) : new Date();
-              const linkedNotes = notesLinkedToLesson(lesson, notes, lessonDate, groupNrec);
+              const choice = getLessonChoice(lesson, "all");
+              const view = lessonView(lesson, choice, "all");
+              const linkedNotes = notesLinkedToLesson(lessonWithSelectedVariant(lesson, choice), notes, lessonDate, groupNrec);
               const expanded = expandedLessonId === lesson.id;
               return (
                 <article className={`mini-lesson ${expanded ? "expanded" : ""}`} key={lesson.id}>
@@ -1883,16 +1887,18 @@ function SessionScheduleView({ lessons, notes, groupNrec, onToggleNote, onOpenCa
                       <time dateTime={lesson.start}>{lesson.start}</time>
                       <time dateTime={lesson.end}>{lesson.end}</time>
                     </span>
-                    <strong>{lesson.subject}</strong>
+                    <strong>{view.subject}</strong>
                     <small className="mini-lesson-meta">
-                      <span>{[lesson.room, lesson.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
-                      <span className="mini-lesson-teacher">{lesson.teacher || "Преподаватель не указан"}</span>
+                      <span>{[view.room, view.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
+                      <span className="mini-lesson-teacher">{view.teacher || "Преподаватель не указан"}</span>
+                      {(lesson.variants?.length ?? 0) > 1 && <span className="lesson-choice-hint">{formatVariantCount(lesson.variants?.length ?? 0)} · выбрать</span>}
                     </small>
                     {linkedNotes.length > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedNotes.length}</span>}
                     <ChevronRight className="mini-lesson-chevron" size={18} aria-hidden="true" />
                   </button>
                   {expanded && (
                     <div className="mini-lesson-actions">
+                      {(lesson.variants?.length ?? 0) > 1 && <LessonVariantPicker lesson={lesson} choice={choice} onChoose={(nextChoice) => onChooseLesson(lesson, "all", nextChoice)} />}
                       <button type="button" onClick={() => onCreateLessonNote(lesson, lessonDate, "note")}><NotebookPen size={15} /> Записка</button>
                       <button type="button" onClick={() => onCreateLessonNote(lesson, lessonDate, "homework")}><BookCheck size={15} /> Добавить ДЗ</button>
                       {linkedNotes.map((note) => (

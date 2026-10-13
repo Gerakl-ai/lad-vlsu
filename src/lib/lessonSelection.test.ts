@@ -135,4 +135,26 @@ describe("выбор конкретной пары", () => {
     expect(selectedLessonVariant(tuesday, "numerator", choices)).toBe(1);
     expect(selectedLessonVariant(tuesday, "denominator", setLessonSelection(choices, tuesday, "denominator", "all"))).toBe("all");
   });
+
+  it("сохраняет выбор конкретной даты при любом режиме недели, не переносит его на другую дату", () => {
+    const dated = { ...lesson(3, `${architecture}\n${ai}`), date: "2025-12-03" };
+    const choices = setLessonSelection({}, dated, "all", 1);
+    writeLessonSelections(group, 0, choices);
+    const saved = readLessonSelections(group, 0);
+    for (const mode of ["all", "numerator", "denominator"] as const) {
+      expect(selectedLessonVariant(dated, mode, saved)).toBe(1);
+      expect(selectedLessonVariant({ ...dated, date: "2025-12-10" }, mode, saved)).toBe("all");
+      expect(selectedLessonVariant(dated, mode, setLessonSelection(saved, dated, mode, "all"))).toBe("all");
+    }
+  });
+
+  it("различает преподавателей одинакового предмета и сохраняет выбор при перестановке строк", () => {
+    const first = "408-1, экз, Первый А.А., Иностранный язык (англ.)";
+    const second = "418-1, экз, Второй А.А., Иностранный язык (англ.)";
+    const dated = { ...lesson(3, `${first}\n${second}`), date: "2025-12-03" };
+    const choices = setLessonSelection({}, dated, "numerator", 1);
+    const reordered = { ...dated, ...parseLessonText(`${second}\n${first}`) };
+    expect(selectedLessonVariant(reordered, "all", choices)).toBe(0);
+    expect(selectedLessonVariant(reordered, "denominator", choices)).toBe(0);
+  });
 });

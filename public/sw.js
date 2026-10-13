@@ -67,7 +67,8 @@ function validDatedLesson(day) {
   if (day?.type !== "DatedLesson" || typeof day.name !== "string" || !day.name.trim()
     || !/^\d{4}-\d{2}-\d{2}$/.test(day.date || "")
     || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(day.start || "")
-    || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(day.end || "") || day.start >= day.end) return false;
+    || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(day.end || "") || day.start >= day.end
+    || (day.scheduleKind !== undefined && !["classes", "exam"].includes(day.scheduleKind))) return false;
   const date = new Date(`${day.date}T00:00:00Z`);
   return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === day.date;
 }

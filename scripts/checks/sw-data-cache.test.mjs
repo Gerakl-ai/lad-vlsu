@@ -33,9 +33,10 @@ function worker(initial = {}, network = async () => { throw new Error('Offline')
   return { stores, listeners, caches, messages };
 }
 
-it('persists dated classes in the university package and serves them on an offline reload', async () => {
+it.each([undefined, 'classes', 'exam'])('persists dated entries with kind %s and explicit end on an offline reload', async (scheduleKind) => {
   const general = 'https://example.org/app/data/university-schedule.json';
-  const dated = { ...item, schedule: [{ type: 'DatedLesson', date: '2026-02-02', start: '15:50', end: '19:10', name: 'Subject' }] };
+  const dated = { ...item, schedule: [{ type: 'DatedLesson', date: '2026-02-02', start: '15:50', end: '19:10', name: 'Subject',
+    ...(scheduleKind ? { scheduleKind } : {}) }] };
   const bundle = { schemaVersion: 1, groups: { [nrec]: dated } };
   const state = worker({}, async () => json(bundle));
   let response;

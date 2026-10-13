@@ -40,3 +40,44 @@ describe('reviewed dated spreadsheet import', () => {
     expect(() => buildReviewedDatedSnapshot(broken, catalog, { ...review, lessonsSha256: sha256(broken.lessons) })).toThrow();
   });
 });
+
+function pdfFixtures() {
+  const result = fixtures();
+  const box = [10, 20, 100, 40];
+  result.staging.purpose = 'dated-pdf-grid-staging';
+  result.staging.sheet = result.review.sheet = 'PDF';
+  result.review.studyForm = 'extramural';
+  result.catalog.institutes[0].groups[0].forms = ['extramural'];
+  result.staging.source.locations = [{ page: 1, table: 1, headerBox: box, headerText: result.staging.groupName,
+    periodBox: box, periodText: 'Source period', validFrom: result.review.validFrom, validThrough: result.review.validThrough }];
+  const entry = result.staging.lessons[0];
+  entry.scheduleKind = 'exam';
+  entry.evidence = { page: 1, table: 1, lessonBox: box, headerBox: box, timeBox: box, dayBox: box,
+    headerText: result.staging.groupName, rawText: 'Subject exam', timeText: '15:50-19:10', dayText: 'Monday 02.02', printedInterval: [entry.start, entry.end] };
+  result.review.lessonsSha256 = sha256(result.staging.lessons);
+  return result;
+}
+
+describe('reviewed dated PDF import', () => {
+  it('keeps the assessment kind, explicit end and geometric evidence', () => {
+    const { staging, catalog, review } = pdfFixtures();
+    const result = buildReviewedDatedSnapshot(staging, catalog, review);
+    expect(result.schedule[0]).toMatchObject({ scheduleKind: 'exam', end: '19:10' });
+    expect(result.quality).toMatchObject({ datedEntries: 1, examEntries: 1 });
+    expect(result.sourceCells).toMatchObject({ format: 'pdf-grid', distinctLessons: 1 });
+  });
+
+  it.each(['lessonBox', 'headerBox', 'dayBox', 'timeBox', 'headerText', 'timeText'])('rejects missing %s even with a signed content hash', (key) => {
+    const { staging, catalog, review } = pdfFixtures();
+    delete staging.lessons[0].evidence[key];
+    review.lessonsSha256 = sha256(staging.lessons);
+    expect(() => buildReviewedDatedSnapshot(staging, catalog, review)).toThrow();
+  });
+
+  it('does not allow changing study form or losing the group period', () => {
+    const { staging, catalog, review } = pdfFixtures();
+    expect(() => buildReviewedDatedSnapshot(staging, catalog, { ...review, studyForm: 'part-time' })).toThrow();
+    staging.source.locations[0].validThrough = '2026-12-31';
+    expect(() => buildReviewedDatedSnapshot(staging, catalog, review)).toThrow();
+  });
+});

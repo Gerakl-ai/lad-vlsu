@@ -476,7 +476,7 @@ function createDatedLesson(entry: DatedLessonDto, index: number): LessonSlot {
     dayName: new Intl.DateTimeFormat("ru-RU", { weekday: "long" }).format(date),
     date: entry.date,
     dateLabel: new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit", weekday: "short" }).format(date),
-    scheduleKind: "classes",
+    scheduleKind: entry.scheduleKind ?? "classes",
     pairIndex: standardPair < 0 ? index + 1 : standardPair + 1,
     start: entry.start,
     end: entry.end,

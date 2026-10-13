@@ -13,8 +13,23 @@ function validDate(value) {
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
+function validBox(box) {
+  return Array.isArray(box) && box.length === 4 && box.every(Number.isFinite)
+    && box[0] >= 0 && box[1] >= 0 && box[0] < box[2] && box[1] < box[3];
+}
+
+function hasPdfEvidence(entry, groupName) {
+  const evidence = entry.evidence;
+  return evidence && Number.isInteger(evidence.page) && evidence.page > 0
+    && Number.isInteger(evidence.table) && evidence.table > 0
+    && ['lessonBox', 'timeBox', 'dayBox', 'headerBox'].every((key) => validBox(evidence[key]))
+    && evidence.rawText?.trim() && evidence.timeText?.trim() && evidence.dayText?.trim()
+    && evidence.headerText === groupName;
+}
+
 export function buildReviewedDatedSnapshot(staging, catalog, review) {
-  assert(staging?.schemaVersion === 1 && staging.purpose === 'dated-spreadsheet-staging', 'Unknown spreadsheet staging');
+  assert(staging?.schemaVersion === 1 && ['dated-spreadsheet-staging', 'dated-pdf-grid-staging'].includes(staging.purpose), 'Unknown dated staging');
+  const pdf = staging.purpose === 'dated-pdf-grid-staging';
   assert(catalog?.schemaVersion === 3 && review?.status === 'approved', 'Catalog or source review is missing');
   assert(Array.isArray(staging.errors) && !staging.errors.length, 'Source cells were not fully extracted');
   assert(staging.source?.sha256 === review.sourceSha256 && /^[a-f\d]{64}$/i.test(review.sourceSha256), 'Source hash mismatch');
@@ -26,12 +41,21 @@ export function buildReviewedDatedSnapshot(staging, catalog, review) {
   assert(typeof review.title === 'string' && review.title.trim(), 'Source title is missing');
   const institute = catalog.institutes.find((item) => item.groups.some((group) => group.nrec === review.groupNrec));
   const group = institute?.groups.find((item) => item.nrec === review.groupNrec);
-  assert(group?.name === review.groupName && group.forms?.includes('part-time'), 'Group or study form does not match the catalog');
+  const studyForm = pdf ? review.studyForm : 'part-time';
+  assert(['full-time', 'part-time', 'extramural'].includes(studyForm)
+    && group?.name === review.groupName && group.forms?.includes(studyForm), 'Group or study form does not match the catalog');
+  if (pdf) {
+    assert(Array.isArray(staging.source.locations) && staging.source.locations.length > 0
+      && staging.source.locations.every((location) => Number.isInteger(location.page) && location.page > 0
+        && Number.isInteger(location.table) && location.table > 0 && validBox(location.headerBox) && validBox(location.periodBox)
+        && location.headerText === review.groupName && location.periodText?.trim()
+        && location.validFrom === review.validFrom && location.validThrough === review.validThrough), 'PDF group period evidence is missing');
+  }
   assert(Array.isArray(staging.lessons) && staging.lessons.length === review.lessonCount
     && sha256(staging.lessons) === review.lessonsSha256, 'Reviewed lessons changed');
   const seen = new Set();
   const schedule = staging.lessons.map((entry) => {
-    assert(entry?.evidence?.lessonCell && entry.evidence.rawText?.trim()
+    assert(pdf ? hasPdfEvidence(entry, review.groupName) : entry?.evidence?.lessonCell && entry.evidence.rawText?.trim()
       && entry.evidence.dateCell && entry.evidence.headerCell && Object.keys(entry.evidence.timeCells ?? {}).length,
     'Lesson has no cell evidence');
     assert(validDate(entry.date) && entry.date >= review.validFrom && entry.date <= review.validThrough, 'Lesson is outside the declared period');
@@ -40,7 +64,9 @@ export function buildReviewedDatedSnapshot(staging, catalog, review) {
     const identity = `${entry.date}:${entry.start}:${entry.end}:${entry.name}`;
     assert(!seen.has(identity), 'Duplicate dated lesson');
     seen.add(identity);
-    return { type: 'DatedLesson', date: entry.date, start: entry.start, end: entry.end, name: entry.name };
+    assert(!pdf || ['classes', 'exam'].includes(entry.scheduleKind), 'Dated PDF lesson kind is missing');
+    return { type: 'DatedLesson', date: entry.date, start: entry.start, end: entry.end, name: entry.name,
+      ...(pdf ? { scheduleKind: entry.scheduleKind } : {}) };
   });
   const quality = scheduleQuality(schedule);
   assert(quality && quality.datedEntries === schedule.length, 'Invalid dates or explicit time intervals');
@@ -52,7 +78,9 @@ export function buildReviewedDatedSnapshot(staging, catalog, review) {
     capturedAt: review.reviewedAt,
     validFrom: review.validFrom, validThrough: review.validThrough,
     sourceDocument: { title: review.title, url: review.sourceUrl, sha256: review.sourceSha256, reviewedAt: review.reviewedAt },
-    sourceCells: { sheet: staging.sheet, period: staging.source.periodCell,
+    sourceCells: pdf ? { format: 'pdf-grid', locations: staging.source.locations,
+      distinctLessons: new Set(staging.lessons.map(({ evidence }) => `${evidence.page}:${evidence.table}:${evidence.lessonBox.join(',')}`)).size,
+      lessons: staging.lessons.map(({ evidence }) => evidence) } : { sheet: staging.sheet, period: staging.source.periodCell,
       distinctLessons: new Set(staging.lessons.map(({ evidence }) => evidence.lessonCell)).size,
       lessons: staging.lessons.map(({ evidence }) => ({ lesson: evidence.lessonCell, date: evidence.dateCell,
         group: evidence.headerCell, times: Object.keys(evidence.timeCells), timeInsideLesson: evidence.timeInsideLesson })) },

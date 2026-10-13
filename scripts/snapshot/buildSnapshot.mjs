@@ -172,7 +172,8 @@ export function scheduleQuality(schedule) {
     if (item?.type !== 'DatedLesson' || typeof item.name !== 'string' || !item.name.trim()
       || !/^\d{4}-\d{2}-\d{2}$/.test(item.date ?? '')
       || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.start ?? '')
-      || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.end ?? '') || item.start >= item.end) return false;
+      || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.end ?? '') || item.start >= item.end
+      || (item.scheduleKind !== undefined && !['classes', 'exam'].includes(item.scheduleKind))) return false;
     const date = new Date(`${item.date}T00:00:00Z`);
     return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === item.date;
   };
@@ -180,8 +181,9 @@ export function scheduleQuality(schedule) {
   const weeklyDays = schedule.filter(isDay).length;
   const datedEntries = schedule.filter(isDated).length;
   const lessonDays = weeklyDays + new Set(schedule.filter(isDated).map((item) => item.date)).size;
-  const examEntries = schedule.filter(isExam).length;
-  if (weeklyDays + datedEntries + examEntries !== schedule.length) return null;
+  const legacyExams = schedule.filter(isExam).length;
+  const examEntries = legacyExams + schedule.filter((item) => isDated(item) && item.scheduleKind === 'exam').length;
+  if (weeklyDays + datedEntries + legacyExams !== schedule.length) return null;
 
   const warnings = [];
   const hasAnyLesson = schedule.some(

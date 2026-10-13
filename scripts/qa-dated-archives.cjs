@@ -4,9 +4,9 @@ const { chromium } = require('playwright');
 const { waitForAsyncCondition } = require('./qa-async-condition.cjs');
 
 const root = process.env.QA_URL || 'http://127.0.0.1:4173/';
-const reviews = JSON.parse(fs.readFileSync('scripts/spreadsheet/reviewed-spring-2026.json', 'utf8')).groups;
+const reviews = JSON.parse(fs.readFileSync(process.env.QA_REVIEWS_FILE || 'scripts/spreadsheet/reviewed-spring-2026.json', 'utf8')).groups;
 const snapshots = reviews.map((group) => JSON.parse(fs.readFileSync(`public/data/reviewed-schedule/${group.groupNrec}.json`, 'utf8')));
-const output = 'artifacts/qa/dated-archives';
+const output = process.env.QA_OUTPUT || 'artifacts/qa/dated-archives';
 fs.mkdirSync(output, { recursive: true });
 const urlFor = (snapshot) => new URL(`?group=${snapshot.group.nrec}&institute=${snapshot.group.instituteId}`, root).href;
 const subject = (entry) => entry.name.split(',').slice(3).map((part) => part.trim()).join(', ');
@@ -35,7 +35,7 @@ async function geometry(page) {
         page.on('pageerror', (error) => errors.push(error.message));
         await page.clock.setFixedTime(new Date('2026-10-12T12:00:00+03:00'));
         await page.route('https://**/*', (route) => new URL(route.request().url()).origin === new URL(root).origin ? route.continue() : route.abort());
-        const selected = viewport.width === 402 ? snapshots : [snapshots[0], snapshots[2]];
+        const selected = viewport.width === 402 ? snapshots : [snapshots[0], snapshots[Math.min(2, snapshots.length - 1)]];
         for (const snapshot of selected) {
           await page.goto(urlFor(snapshot), { waitUntil: 'domcontentloaded' });
           await page.getByRole('button', { name: 'Открыть сохранённые занятия', exact: true }).waitFor();
@@ -64,7 +64,7 @@ async function geometry(page) {
           await page.getByRole('heading', { name: 'Занятия', exact: true }).waitFor();
           assert.equal(await page.locator('.mini-lesson-main').count(), snapshot.schedule.length);
           assert.match(await page.locator('.week-toolbar-copy').innerText(), /Архив/);
-          assert.match(await page.locator('.week-toolbar-copy').innerText(), /2026/);
+          assert.match(await page.locator('.week-toolbar-copy').innerText(), new RegExp(snapshot.validFrom.slice(0, 4)));
           assert.equal(await page.locator('.week-chip > span').first().innerText(), 'Даты');
           assert.equal(await page.locator('.session-period-label').evaluate((node) => node.scrollWidth <= node.clientWidth + 1), true, 'archive period is truncated');
           await page.screenshot({ path: `${output}/week-${snapshot.group.nrec}-${viewport.width}.png` });
@@ -91,12 +91,12 @@ async function geometry(page) {
         const initialGroup = JSON.parse(fs.readFileSync('public/data/schedule/7936a2a43b11b20b01d30f5b00c73166.json', 'utf8')).group;
         await page.goto(new URL(`?group=${initialGroup.nrec}&institute=${initialGroup.instituteId}`, root).href, { waitUntil: 'domcontentloaded' });
         await page.locator('.bottom-nav').waitFor();
-        await waitForAsyncCondition(page, async () => {
+        await waitForAsyncCondition(page, async (groupNrec) => {
           if (navigator.serviceWorker.controller?.state !== 'activated') return false;
           const response = await caches.match(new URL('./data/university-schedule.json', location.href).href);
           const data = response && await response.json();
-          return data?.groups?.['049227b532f4bc9f256eaae4281a099f']?.schedule?.some((entry) => entry.type === 'DatedLesson');
-        });
+          return data?.groups?.[groupNrec]?.schedule?.some((entry) => entry.type === 'DatedLesson');
+        }, snapshots[0].group.nrec);
         await context.setOffline(true);
         for (const snapshot of snapshots) {
           await page.locator('.brand-button').click();

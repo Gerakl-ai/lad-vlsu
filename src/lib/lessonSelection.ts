@@ -2,7 +2,7 @@ import type { LessonSlot, LessonVariant, WeekMode } from "../types";
 import { normalizeNoteText, normalizeSubjectKey } from "../features/notes/noteClassifier";
 import type { SubgroupChoice } from "./subgroup";
 
-export type LessonSelections = Record<string, { numerator?: string; denominator?: string; showAll?: boolean }>;
+export type LessonSelections = Record<string, { numerator?: string; denominator?: string; dated?: string; showAll?: boolean }>;
 
 const STORAGE_PREFIX = "lad.lesson-selection.v1";
 export function lessonSelectionKey(lesson: LessonSlot) {
@@ -25,6 +25,7 @@ export function readLessonSelections(groupNrec?: string, semester?: number): Les
       return [key, {
         ...(typeof pick.numerator === "string" ? { numerator: pick.numerator } : {}),
         ...(typeof pick.denominator === "string" ? { denominator: pick.denominator } : {}),
+        ...(typeof pick.dated === "string" ? { dated: pick.dated } : {}),
         ...(typeof pick.showAll === "boolean" ? { showAll: pick.showAll } : {})
       }];
     }));
@@ -54,10 +55,10 @@ export function setLessonSelection(selections: LessonSelections, lesson: LessonS
     return { ...selections, [key]: { showAll: true } };
   }
   const variant = lesson.variants?.[index];
-  if (!variant || week === "all") return selections;
+  if (!variant || (week === "all" && !lesson.date)) return selections;
   return {
     ...selections,
-    [key]: { ...selections[key], showAll: false, [week]: variantIdentity(variant, lesson.variants!) }
+    [key]: { ...selections[key], showAll: false, [lesson.date ? "dated" : week]: variantIdentity(variant, lesson.variants!) }
   };
 }
 
@@ -68,10 +69,16 @@ export function selectedLessonVariant(
   counterpart?: LessonSlot
 ): SubgroupChoice {
   const variants = lesson.variants ?? [];
-  if (variants.length < 2 || week === "all") return "all";
+  if (variants.length < 2) return "all";
   const selected = selections[lessonSelectionKey(lesson)];
   if (selected?.showAll) return "all";
   const keys = variants.map((variant) => variantIdentity(variant, variants));
+  if (lesson.date) {
+    const identity = selected?.dated ?? (week === "all" ? undefined : selected?.[week]);
+    const index = identity ? keys.indexOf(identity) : -1;
+    return index >= 0 ? index : "all";
+  }
+  if (week === "all") return "all";
   const partnerKeys = counterpart?.variants?.map((variant) => variantIdentity(variant, counterpart.variants!));
   const sameAlternatives = variants.length === 2 && partnerKeys?.length === 2
     && keys[0] !== keys[1] && keys.every((key) => partnerKeys.includes(key));

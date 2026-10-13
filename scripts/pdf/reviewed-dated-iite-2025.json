@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "groups": [
+    {
+      "status": "approved",
+      "groupName": "ЗИСТуд-124",
+      "groupNrec": "878b392229b6d070fc63567a83d2a4cb",
+      "studyForm": "extramural",
+      "sheet": "PDF",
+      "sourceUrl": "https://www.vlsu.ru/fileadmin/class-schedule/2025-2026/osen/exam/DO_IITEH_ZISTud.pdf",
+      "sourceSha256": "9733fab61500fd3f1ce2760b4d4da9b9045ca742e88f3cc70b25912c79612e8b",
+      "title": "Расписание ИИТЭ с ДОТ на осенний семестр 2025/2026",
+      "validFrom": "2025-12-01",
+      "validThrough": "2025-12-06",
+      "reviewedAt": "2026-10-13T15:18:57Z",
+      "lessonCount": 28,
+      "lessonsSha256": "42bfadfbe3a68e65aca148d5f661c72d7b49e160ac83827836b153c3e727086d"
+    },
+    {
+      "status": "approved",
+      "groupName": "ЗИСТуд-224",
+      "groupNrec": "aaaa3dc991bc7068e1dc6f726a04b38e",
+      "studyForm": "extramural",
+      "sheet": "PDF",
+      "sourceUrl": "https://www.vlsu.ru/fileadmin/class-schedule/2025-2026/osen/exam/DO_IITEH_ZISTud.pdf",
+      "sourceSha256": "9733fab61500fd3f1ce2760b4d4da9b9045ca742e88f3cc70b25912c79612e8b",
+      "title": "Расписание ИИТЭ с ДОТ на осенний семестр 2025/2026",
+      "validFrom": "2025-12-01",
+      "validThrough": "2025-12-06",
+      "reviewedAt": "2026-10-13T15:18:57Z",
+      "lessonCount": 28,
+      "lessonsSha256": "ee50cb7fae137ae62d0d37030fb7a70eeaf15715dbbb042d2113c17f575881a0"
+    }
+  ]
+}
