@@ -40,7 +40,7 @@ const urlFor = (snapshot) => new URL(`?group=${snapshot.group.nrec}&institute=${
           assert.match(await event.innerText(), /425-3/);
           assert.doesNotMatch(await event.innerText(), /424-3/);
           const [download] = await Promise.all([page.waitForEvent('download'), calendar.locator('.calendar-export-primary').click()]);
-          const ics = fs.readFileSync(await download.path(), 'utf8');
+          const ics = fs.readFileSync(await download.path(), 'utf8').replace(/\r\n[ \t]/g, '');
           const record = ics.split('BEGIN:VEVENT').find((part) => part.includes('DTSTART:20260129T091000Z'));
           assert(record, 'chosen dated event missing from month export');
           assert.match(record, /LOCATION:425-3\r?\n/);

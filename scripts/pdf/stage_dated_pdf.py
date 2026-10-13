@@ -11,12 +11,12 @@ from pathlib import Path
 CLOCK = r"(?:[01]?\d|2[0-3]):[0-5]\d"
 INTERVAL = re.compile(rf"^\s*({CLOCK})\s*[-\u2013\u2014]\s*({CLOCK})\s*$")
 WEEKDAYS = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
-TEACHER = r"[А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?\s*[А-ЯЁ]\s*\.\s*[А-ЯЁ]\s*\."
+TEACHER = r"[А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?\s*[А-ЯЁ][а-яё]?\s*\.\s*[А-ЯЁ][а-яё]?\s*\."
 ROOM = r"(?:\d{1,4}-СК\d{1,2}|\d{1,4}(?:\s+[а-яё])?-\d{1,2}|[А-ЯЁ]-\d{1,2})"
 VARIANT = re.compile(
     rf"(?P<subject>.+?)\s+(?P<kind>зач\s*\.\s*диф\s*\.|зач\.?|экз\.?|переат|лб\.?|лк\.?|пр\.?)\s+"
     rf"(?P<room>{ROOM})\s+(?P<teacher>{TEACHER})"
-    r"(?:\s*(?P<language>англ\.|нем\.))?(?:\s*(?P<annotation>\+\s*п\s*/\s*а))?\s*"
+    r"(?:\s*(?P<language>англ\.|нем\.))?(?:\s*(?P<annotation>(?:\+\s*)?п\s*/\s*а))?\s*"
 )
 
 
@@ -59,7 +59,7 @@ def printed_interval(text):
 
 def lesson_metadata(raw):
     text = re.sub(r"\s+", " ", raw).strip()
-    meeting = re.fullmatch(r"(?P<room>[А-ЯЁ]-\d{1,2})\s+ОРГАНИЗАЦИОННОЕ СОБРАНИЕ", text)
+    meeting = re.fullmatch(rf"(?P<room>{ROOM})\s+ОРГАНИЗАЦИОНН(?:ОЕ|ЫЕ) СОБРАНИЕ", text)
     if meeting:
         return f"{meeting['room']}, собрание, , Организационное собрание", "classes"
     entries = []
@@ -79,7 +79,7 @@ def lesson_metadata(raw):
         if match["language"]:
             subject += f" ({match['language']})"
         if match["annotation"]:
-            kind += " +п/а"
+            kind += " " + re.sub(r"\s+", "", match["annotation"])
         kinds.add("exam" if kind.startswith(("зач", "экз", "переат")) else "classes")
         entries.append(f"{room}, {kind}, {teacher}, {subject}")
         offset = match.end()
@@ -97,11 +97,34 @@ def group_cells(cells, group_box, y):
                    and min(box[2], group_box[2]) - max(box[0], group_box[0]) > 0.1), key=lambda box: box[0])
 
 
-def stage(source, group_name, source_url):
+def reviewed_metadata(corrections, stamp, interval, evidence):
+    for correction in corrections:
+        if (correction["date"], correction["start"], correction["end"], correction["page"]) != (stamp, *interval, evidence["page"]):
+            continue
+        if correction["expectedRawText"] != evidence["rawText"] or tuple(correction["lessonBox"]) != tuple(evidence["lessonBox"]):
+            raise ValueError(f"Reviewed source cell changed: {correction['id']}")
+        if correction["scheduleKind"] not in ["classes", "exam"] or not correction["reason"].strip():
+            raise ValueError("Invalid reviewed metadata")
+        lines = correction["name"].splitlines()
+        if not lines or any(len(line.split(',')) < 4 or not line.split(',')[3].strip() for line in lines):
+            raise ValueError("Invalid reviewed lesson transcription")
+        return correction["name"], correction["scheduleKind"], correction["id"]
+    return None
+
+
+def stage(source, group_name, source_url, metadata_review=None):
     import pdfplumber
     import pypdfium2 as pdfium
 
     lessons, errors, locations = [], [], []
+    source_hash = hashlib.sha256(Path(source).read_bytes()).hexdigest()
+    corrections = [entry for entry in (metadata_review or {}).get("corrections", []) if entry["groupName"] == group_name]
+    if any(entry["sourceSha256"] != source_hash for entry in corrections):
+        raise ValueError("Reviewed metadata source hash changed")
+    correction_ids = [entry["id"] for entry in corrections]
+    if len(set(correction_ids)) != len(correction_ids):
+        raise ValueError("Duplicate reviewed metadata IDs")
+    applied = set()
     with pdfplumber.open(source) as geometry, pdfium.PdfDocument(str(source)) as document:
         for page_index, page in enumerate(geometry.pages):
             with closing(document[page_index]) as pdf_page, closing(pdf_page.get_textpage()) as textpage:
@@ -141,14 +164,21 @@ def stage(source, group_name, source_url):
                             day_text = read(day_box)
                             stamp = printed_date(day_text, start, through)
                             interval = printed_interval(time_text)
-                            name, kind = lesson_metadata(raw)
-                            lessons.append({"date": stamp, "start": interval[0], "end": interval[1], "name": name, "scheduleKind": kind,
-                                            "evidence": {"page": page_index + 1, "table": table_index + 1, "row": row_index + 1,
+                            evidence = {"page": page_index + 1, "table": table_index + 1, "row": row_index + 1,
                                                          "lessonBox": lesson_box, "rawText": raw, "timeBox": time_box, "timeText": time_text,
                                                          "dayBox": day_box, "dayText": day_text, "headerBox": header_box, "headerText": group_name,
                                                          "printedInterval": interval,
                                                          **({"lessonBoxes": [box for box, _ in source_cells], "rawTexts": [value for _, value in source_cells]}
-                                                            if len(source_cells) > 1 else {})}})
+                                                            if len(source_cells) > 1 else {})}
+                            reviewed = reviewed_metadata(corrections, stamp, interval, evidence)
+                            if reviewed:
+                                name, kind, correction_id = reviewed
+                                evidence["metadataReviewId"] = correction_id
+                                applied.add(correction_id)
+                            else:
+                                name, kind = lesson_metadata(raw)
+                            lessons.append({"date": stamp, "start": interval[0], "end": interval[1], "name": name, "scheduleKind": kind,
+                                            "evidence": evidence})
                         except ValueError as error:
                             errors.append({"page": page_index + 1, "row": row_index + 1, "rawText": raw, "message": str(error)})
                     for box in table.cells:
@@ -156,13 +186,15 @@ def stage(source, group_name, source_url):
                             errors.append({"page": page_index + 1, "lessonBox": box, "rawText": read(box), "message": "Nonempty cell has no fully parsed interval"})
     if not locations or not lessons and not errors:
         raise ValueError("No matching dated group timetable")
+    if applied != set(correction_ids):
+        raise ValueError(f"Reviewed metadata was not applied: {sorted(set(correction_ids) - applied)}")
     periods = {(entry["validFrom"], entry["validThrough"]) for entry in locations}
     if len(periods) != 1:
         raise ValueError("Multiple group periods require separate source review")
     valid_from, valid_through = periods.pop()
     lessons.sort(key=lambda entry: (entry["date"], entry["start"], entry["name"]))
     return {"schemaVersion": 1, "purpose": "dated-pdf-grid-staging", "groupName": group_name, "sheet": "PDF",
-            "source": {"url": source_url, "sha256": hashlib.sha256(Path(source).read_bytes()).hexdigest(),
+            "source": {"url": source_url, "sha256": source_hash,
                        "validFrom": valid_from, "validThrough": valid_through, "locations": locations},
             "lessons": lessons, "errors": errors}
 
@@ -171,8 +203,10 @@ def main():
     parser = argparse.ArgumentParser()
     for name in ["source", "group", "source-url", "out"]:
         parser.add_argument(f"--{name}", required=True)
+    parser.add_argument("--metadata-review")
     args = parser.parse_args()
-    result = stage(args.source, args.group, args.source_url)
+    metadata_review = json.loads(Path(args.metadata_review).read_text(encoding="utf-8")) if args.metadata_review else None
+    result = stage(args.source, args.group, args.source_url, metadata_review)
     Path(args.out).write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"group": args.group, "lessons": len(result["lessons"]), "errors": result["errors"]}, ensure_ascii=False))
     if result["errors"]:

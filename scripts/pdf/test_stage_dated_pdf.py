@@ -1,7 +1,9 @@
 import unittest
 from datetime import date
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
-from stage_dated_pdf import group_cells, lesson_metadata, printed_date, printed_interval, printed_period
+from stage_dated_pdf import group_cells, lesson_metadata, printed_date, printed_interval, printed_period, reviewed_metadata, stage
 
 
 class DatedPdfTests(unittest.TestCase):
@@ -76,6 +78,43 @@ class DatedPdfTests(unittest.TestCase):
         name, kind = lesson_metadata("Физика лб 424-3 Струкова М.А.\nФизика лб 425-3 Струкова М.А.")
         self.assertEqual(kind, "classes")
         self.assertEqual(name.splitlines(), ["424-3, лб, Струкова М.А., Физика", "425-3, лб, Струкова М.А., Физика"])
+
+    def test_numeric_meeting_and_printed_initials_are_preserved(self):
+        self.assertEqual(lesson_metadata("426-1 ОРГАНИЗАЦИОННЫЕ СОБРАНИЕ"),
+                         ("426-1, собрание, , Организационное собрание", "classes"))
+        self.assertEqual(lesson_metadata("Физкультура переат 517-3 Денисов Ил.В."),
+                         ("517-3, переат, Денисов Ил.В., Физкультура", "exam"))
+        self.assertEqual(lesson_metadata("Математика экз 425-1 Петренко И.А. п/а"),
+                         ("425-1, экз п/а, Петренко И.А., Математика", "exam"))
+
+    def test_reviewed_incomplete_metadata_is_bound_to_raw_text_geometry_and_time(self):
+        evidence = {"page": 1, "lessonBox": (1, 2, 3, 4), "rawText": "Source with missing teacher"}
+        correction = {"id": "review", "page": 1, "date": "2026-01-21", "start": "15:50", "end": "17:20",
+                      "lessonBox": [1, 2, 3, 4], "expectedRawText": evidence["rawText"], "reason": "Checked image",
+                      "name": ", переат, , Subject", "scheduleKind": "exam"}
+        self.assertEqual(reviewed_metadata([correction], "2026-01-21", ("15:50", "17:20"), evidence),
+                         (", переат, , Subject", "exam", "review"))
+        self.assertIsNone(reviewed_metadata([correction], "2026-01-22", ("15:50", "17:20"), evidence))
+        for change in [{"rawText": "Changed source"}, {"lessonBox": [1, 2, 3, 5]}]:
+            with self.assertRaises(ValueError):
+                reviewed_metadata([correction], "2026-01-21", ("15:50", "17:20"), {**evidence, **change})
+
+    def test_bad_transcription_remains_blocked(self):
+        evidence = {"page": 1, "lessonBox": [1, 2, 3, 4], "rawText": "Source"}
+        correction = {"id": "review", "page": 1, "date": "2026-01-21", "start": "15:50", "end": "17:20",
+                      "lessonBox": [1, 2, 3, 4], "expectedRawText": "Source", "reason": "Checked",
+                      "name": ", переат, , Subject", "scheduleKind": "exam"}
+        for change in [{"reason": ""}, {"scheduleKind": "unknown"}, {"name": "Subject"}, {"name": ", переат, , "}]:
+            with self.assertRaises(ValueError):
+                reviewed_metadata([{**correction, **change}], "2026-01-21", ("15:50", "17:20"), evidence)
+
+    def test_correction_cannot_be_applied_to_a_different_source_hash(self):
+        with TemporaryDirectory() as directory:
+            source = Path(directory) / 'changed.pdf'
+            source.write_bytes(b'Changed official PDF')
+            with self.assertRaisesRegex(ValueError, 'source hash changed'):
+                stage(source, 'Group', 'https://www.vlsu.ru/file.pdf', {"corrections": [
+                    {"id": "checked", "groupName": "Group", "sourceSha256": 'a' * 64}]})
 
 
 if __name__ == '__main__':

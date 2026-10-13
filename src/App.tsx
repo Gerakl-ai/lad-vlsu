@@ -1861,7 +1861,9 @@ function SessionScheduleView({ lessons, notes, groupNrec, getLessonChoice, onCho
               <button className="session-date-card" type="button" key={group.key} onClick={() => onSelectDate(new Date(`${group.key}T12:00:00`))} aria-label={`Открыть день: ${group.title}`}>
                 <strong>{group.title}</strong>
                 <span>{formatLessonCount(group.lessons.length, countUnit)}</span>
-                <small>{group.lessons[0] ? `${group.lessons[0].start}–${group.lessons[0].end}` : ""}</small>
+                {group.lessons[0] && <small aria-label={`${group.lessons[0].start} - ${group.lessons[0].end}`}>
+                  <time>{group.lessons[0].start}</time><time>- {group.lessons[0].end}</time>
+                </small>}
               </button>
             ))}
           </div>

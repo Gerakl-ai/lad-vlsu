@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { eventsForDate } from "./SmartCalendarSheet";
+import { buildIcs, eventsForDate } from "./SmartCalendarSheet";
 import { normalizeSchedule } from "../../lib/scheduleApi";
 import { selectedLessonVariant, setLessonSelection } from "../../lib/lessonSelection";
 import type { WeekMode } from "../../types";
@@ -38,5 +38,35 @@ describe("calendar uses the same lesson choices as Today and Week", () => {
     const lessons = normalizeSchedule([{ type: "DatedLesson", date: "2026-01-29", start: "12:10", end: "13:40",
       name: "424-3, лб, Примеров А.А., Физика\n425-3, лб, Примеров А.А., Физика" }]);
     expect(eventsForDate(lessons, [], new Date("2026-01-29T12:00:00"), "all", [])[0].location).toBe("424-3 / 425-3");
+  });
+});
+
+describe("iCalendar serialization", () => {
+  const event = { id: "personal-1", title: "Встреча", detail: "Описание", location: "Аудитория",
+    start: new Date("2026-01-21T12:50:00Z"), end: new Date("2026-01-21T14:20:00Z"), type: "personal" as const };
+  const unfold = (value: string) => value.replace(/\r\n[ \t]/g, "");
+
+  it("folds long UTF-8 lines without breaking code points or truncating content", () => {
+    const title = "Технологические добавки " + "предмет\u{1f4da}".repeat(20);
+    const id = "dated-" + "исходное-расписание".repeat(20);
+    const content = buildIcs([{ ...event, title, id }], "Название календаря".repeat(10));
+    for (const line of content.split("\r\n")) expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75);
+    expect(content).not.toContain("\ufffd");
+    expect(unfold(content)).toContain(`SUMMARY:${title}\r\n`);
+    expect(unfold(content)).toContain(`UID:${id}@lad-vlsu\r\n`);
+    expect(content.endsWith("END:VCALENDAR\r\n")).toBe(true);
+  });
+
+  it("escapes Windows and Unix newlines without injecting content lines", () => {
+    const content = unfold(buildIcs([{ ...event, detail: "Строка 1\r\nBEGIN:VEVENT\rСтрока 3\nСтрока 4, ; \\" }], "ЛАД"));
+    expect(content.split("\r\n").filter((line) => line === "BEGIN:VEVENT")).toHaveLength(1);
+    expect(content).toContain("DESCRIPTION:Строка 1\\nBEGIN:VEVENT\\nСтрока 3\\nСтрока 4\\, \\; \\\\");
+  });
+
+  it("retains UTC boundaries and omits unknown locations", () => {
+    const content = unfold(buildIcs([{ ...event, location: undefined }], "ЛАД"));
+    expect(content).toContain("DTSTART:20260121T125000Z\r\n");
+    expect(content).toContain("DTEND:20260121T142000Z\r\n");
+    expect(content).not.toContain("LOCATION:");
   });
 });

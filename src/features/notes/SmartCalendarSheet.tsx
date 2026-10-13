@@ -131,7 +131,27 @@ function formatUtc(date: Date) {
 }
 
 function escapeIcs(value: string) {
-  return value.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+  return value.replace(/\\/g, "\\\\").replace(/\r\n?|\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+}
+
+function foldIcsLine(value: string) {
+  const encoder = new TextEncoder();
+  const lines: string[] = [];
+  let line = "";
+  let bytes = 0;
+  // RFC 5545 counts UTF-8 bytes, including the continuation space.
+  for (const character of value) {
+    const size = encoder.encode(character).length;
+    if (bytes + size > 75) {
+      lines.push(line);
+      line = " ";
+      bytes = 1;
+    }
+    line += character;
+    bytes += size;
+  }
+  lines.push(line);
+  return lines.join("\r\n");
 }
 
 function formatEventCount(count: number) {
@@ -159,7 +179,7 @@ function relativeMonthLabel(month: Date, today: Date) {
   return `${formatCount(Math.abs(distance), "месяц", "месяца", "месяцев")} назад`;
 }
 
-function buildIcs(events: CalendarEvent[], name: string) {
+export function buildIcs(events: CalendarEvent[], name: string) {
   const stamp = formatUtc(new Date());
   const rows = events.flatMap((event) => [
     "BEGIN:VEVENT",
@@ -181,7 +201,7 @@ function buildIcs(events: CalendarEvent[], name: string) {
     `X-WR-CALNAME:${escapeIcs(name)}`,
     ...rows,
     "END:VCALENDAR"
-  ].join("\r\n");
+  ].map(foldIcsLine).join("\r\n") + "\r\n";
 }
 
 async function shareCalendar(events: CalendarEvent[], fileName: string, title: string) {
