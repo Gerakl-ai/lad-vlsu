@@ -18,6 +18,11 @@ function fixtures() {
 }
 
 describe('reviewed dated spreadsheet import', () => {
+  it('never imports an inspection report even with an approved content signature', () => {
+    const { staging, review, catalog } = fixtures();
+    expect(() => buildReviewedDatedSnapshot({ ...staging, purpose: 'inspection-only' }, catalog, review)).toThrow('Unknown dated staging');
+  });
+
   it('preserves dates, long hours, exact group identity and source references', () => {
     const { staging, review, catalog } = fixtures();
     const result = buildReviewedDatedSnapshot(staging, catalog, review);

@@ -16,6 +16,7 @@ snapshot-data/
 /artifacts/pdf-staging/
 /artifacts/vlsu-sources/
 /artifacts/source-discovery/
+/artifacts/python-pdf/
 /artifacts/pdf-fallback-qa/
 /artifacts/live-snapshot-*/
 __pycache__/
