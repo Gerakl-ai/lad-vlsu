@@ -480,6 +480,7 @@ function createDatedLesson(entry: DatedLessonDto, index: number): LessonSlot {
     pairIndex: standardPair < 0 ? index + 1 : standardPair + 1,
     start: entry.start,
     end: entry.end,
+    ...(entry.timeStatus ? { timeStatus: entry.timeStatus } : {}),
     rawText: entry.name,
     weekMode: "all",
     ...parseLessonText(entry.name)
@@ -577,7 +578,9 @@ function isCachedLesson(value: unknown): value is LessonSlot {
     && typeof value.dayName === "string"
     && typeof value.pairIndex === "number"
     && typeof value.start === "string"
-    && typeof value.end === "string"
+    && (value.timeStatus === "unconfirmed" ? isDatedLesson({ type: "DatedLesson", date: value.date, start: value.start,
+      end: value.end, name: value.subject, timeStatus: value.timeStatus })
+      : value.timeStatus === undefined && typeof value.end === "string")
     && typeof value.subject === "string"
     && typeof value.rawText === "string"
     && value.rawText.trim().length > 0

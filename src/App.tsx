@@ -11,6 +11,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent
 } from "react";
+import { createPortal } from "react-dom";
 import {
   Activity,
   Bell,
@@ -26,10 +27,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
+  ClockAlert,
   CloudOff,
   Download,
   ExternalLink,
   Grid2X2,
+  GitCompareArrows,
   HardDrive,
   Info,
   MapPin,
@@ -43,7 +46,8 @@ import {
   Sparkles,
   Upload,
   Video,
-  Waves
+  Waves,
+  X
 } from "lucide-react";
 import type { AppTab, ApiStatus, LessonSlot, NotificationCapability, ReminderSettings, ScheduleState, WeekMode } from "./types";
 import { downloadNotesBackup, parseNotesArchive } from "./features/notes/noteBackup";
@@ -54,6 +58,7 @@ import { importDrafts, loadDraftsWithStatus, type NotesLoadStatus } from "./feat
 import { useSmartNotes } from "./features/notes/useSmartNotes";
 import { importPersonalEvents, personalEventsOnDate, usePersonalEvents } from "./features/notes/personalEvents";
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
+import "./features/groups/comparison.css";
 import { StudyCalendarPanel } from "./features/groups/StudyCalendarPanel";
 import { parseGroupLink, resolveGroupLink, syncGroupLink } from "./features/groups/groupLinks";
 import { groupBadgeParts, type GroupProfile } from "./features/groups/groupTypes";
@@ -95,6 +100,9 @@ import {
   formatUpdatedAt,
   formatWeekMode,
   hasDatedLessons,
+  hasConfirmedLessonTime,
+  lessonTimeLabel,
+  dayTimeLabel,
   lessonProgress,
   lessonTimingState,
   minutesFromTime,
@@ -139,6 +147,7 @@ const SCREEN_SWIPE_BLOCK_SELECTOR = [
 ].join(",");
 type NotesViewComponent = typeof import("./features/notes/NotesView")["NotesView"];
 const LazySmartCalendarSheet = lazy(async () => ({ default: (await import("./features/notes/SmartCalendarSheet")).SmartCalendarSheet }));
+const LazyScheduleComparisonSheet = lazy(async () => ({ default: (await import("./features/groups/ScheduleComparisonSheet")).ScheduleComparisonSheet }));
 
 let notesViewPromise: Promise<NotesViewComponent> | null = null;
 const loadNotesView = () => {
@@ -286,6 +295,7 @@ export function App() {
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
   const [groupPickerOpen, setGroupPickerOpen] = useState(() => !INITIAL_GROUP);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
   const [calendarCreateOnOpen, setCalendarCreateOnOpen] = useState(false);
   const [calendarRequestToken, setCalendarRequestToken] = useState(0);
   const [composerRequest, setComposerRequest] = useState<NoteComposerRequest | null>(null);
@@ -359,14 +369,15 @@ export function App() {
   const isSelectedPast = selectedDateKey < todayDateKey;
   // A manually previewed week must not change the actual timetable of a selected calendar date.
   const selectedWeekMode = selectedWeekModeForDate(selectedDate, currentWeek, "current", nowDate);
-  const { todayLessons, current, next } = useMemo(() => {
+  const { todayLessons, current, next, unconfirmed } = useMemo(() => {
     const allLessons = schedule?.allLessons ?? [];
     const selectedLessons = selectDayLessons(allLessons, currentDayIndex(selectedDate), selectedWeekMode, selectedDate);
     if (isSelectedToday) return findCurrentAndNext(allLessons, selectedWeekMode, nowDate);
     return {
       todayLessons: selectedLessons,
       current: undefined,
-      next: isSelectedPast ? undefined : selectedLessons[0]
+      next: isSelectedPast ? undefined : selectedLessons[0],
+      unconfirmed: isSelectedPast ? selectedLessons.find((lesson) => !hasConfirmedLessonTime(lesson)) : undefined
     };
   }, [isSelectedPast, isSelectedToday, nowDate, schedule?.allLessons, selectedDate, selectedWeekMode]);
 
@@ -391,13 +402,14 @@ export function App() {
   }, [selectedGroup?.nrec, schedule?.currentInfo.semester]);
 
   const heroFallback = schedule ? parseCurrentInfoLesson(schedule.currentInfo.currentLesson) : null;
-  const heroLesson = current ?? next;
+  const heroLesson = current ?? unconfirmed ?? next;
   const heroChoice = heroLesson ? getLessonChoice(heroLesson, selectedWeekMode) : "all";
   const heroView = heroLesson ? lessonView(heroLesson, heroChoice, selectedWeekMode) : null;
   const heroChange = lessonChangeMessage(selectedGroup?.nrec, selectedDateKey, heroLesson, heroChoice);
-  const dayCompleted = (isSelectedToday && !heroLesson && todayLessons.length > 0) || (isSelectedPast && todayLessons.length > 0);
+  const dayCompleted = (isSelectedToday && !heroLesson && todayLessons.length > 0) || (isSelectedPast && !unconfirmed && todayLessons.length > 0);
   const freeStudyDay = Boolean(schedule) && !heroLesson && !todayLessons.length;
-  const heroMode: HeroMode = current ? "current" : next ? "next" : dayCompleted ? "done" : freeStudyDay ? "free" : "loading";
+  const heroMode: HeroMode = heroLesson?.timeStatus === "unconfirmed" ? "unconfirmed"
+    : current ? "current" : next ? "next" : dayCompleted ? "done" : freeStudyDay ? "free" : "loading";
   const heroSubject = heroView?.subject ?? (dayCompleted ? "Все пары пройдены" : freeStudyDay ? (isSelectedToday ? "Сегодня без пар" : "В этот день без пар") : heroFallback?.subject ?? "Загрузка расписания");
   const heroRoom = heroView
     ? (heroChange && heroChoice !== "all" ? "Дистант" : heroView.room ?? "Аудитория уточняется")
@@ -406,9 +418,10 @@ export function App() {
       : heroFallback?.room ?? selectedGroup?.instituteShortName ?? "ВлГУ";
   const heroStart = heroLesson?.start ?? todayLessons[0]?.start ?? "08:30";
   const heroEnd = heroLesson?.end ?? todayLessons[todayLessons.length - 1]?.end ?? "10:00";
-  const heroTime = freeStudyDay ? "без пар" : `${heroStart}-${heroEnd}`;
+  const heroTime = freeStudyDay ? "без пар" : heroLesson?.timeStatus === "unconfirmed" ? "Время уточняется" : heroLesson ? lessonTimeLabel(heroLesson)
+    : todayLessons.length ? dayTimeLabel(todayLessons) : `${heroStart}-${heroEnd}`;
   const completedCount = isSelectedPast
-    ? todayLessons.length
+    ? todayLessons.filter(hasConfirmedLessonTime).length
     : isSelectedToday
       ? todayLessons.filter((lesson) => lessonTimingState(lesson, nowDate) === "past").length
       : 0;
@@ -859,7 +872,7 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <section className="phone-frame" aria-label={`${selectedGroup?.name ?? "ВлГУ"} расписание`}>
+      <section className="phone-frame" aria-label={`${selectedGroup?.name ?? "ВлГУ"} расписание`} inert={comparisonOpen || undefined}>
         <div className="ambient-grid" />
         <div className="light-sweep" />
         <MotionScene />
@@ -910,6 +923,7 @@ export function App() {
               lightHero={lightHero}
               heroRoom={heroRoom}
               heroTime={heroTime}
+              heroStart={heroStart}
               heroChange={heroChange}
               heroMode={heroMode}
               progress={progress}
@@ -959,11 +973,14 @@ export function App() {
               onToggleNote={smartNotes.toggleNote}
               onOpenCalendar={() => { setCalendarCreateOnOpen(false); setCalendarOpen(true); }}
               onSelectDate={showScheduleDate}
+              onCompareGroups={() => setComparisonOpen(true)}
               onCreateLessonNote={openLessonComposer}
               validFrom={schedule?.validFrom}
               validThrough={schedule?.validThrough}
             />
           )}
+
+          {isScheduleUnavailable && activeTab === "week" && selectedGroup && <CompareGroupsButton onClick={() => setComparisonOpen(true)} />}
 
           {activeTab === "notes" && (
             NotesView ? (
@@ -1015,6 +1032,15 @@ export function App() {
         </div>
 
         <BottomNav activeTab={activeTab} onTabChange={navigateToTab} />
+        {comparisonOpen && selectedGroup && <Suspense fallback={createPortal(
+          <div className="comparison-backdrop"><section className="comparison-sheet" role="dialog" aria-label="Открываем сравнение">
+            <header className="comparison-header"><div><h2>Сравнить группы</h2></div>
+              <button type="button" className="comparison-icon" onClick={() => setComparisonOpen(false)} aria-label="Закрыть сравнение" title="Закрыть"><X size={21} /></button>
+            </header><p className="comparison-empty" role="status">Открываем сравнение...</p>
+          </section></div>, document.body)}>
+          <LazyScheduleComparisonSheet group={selectedGroup} schedule={schedule} initialDate={selectedDate}
+            getLessonChoice={getLessonChoice} onClose={() => setComparisonOpen(false)} />
+        </Suspense>}
         {calendarOpen && (
           <Suspense fallback={null}>
             <LazySmartCalendarSheet
@@ -1125,6 +1151,7 @@ function TodayView({
   lightHero,
   heroRoom,
   heroTime,
+  heroStart,
   heroChange,
   heroMode,
   progress,
@@ -1166,6 +1193,7 @@ function TodayView({
   lightHero: boolean;
   heroRoom: string;
   heroTime: string;
+  heroStart: string;
   heroChange: string | null;
   heroMode: HeroMode;
   progress: number;
@@ -1212,7 +1240,7 @@ function TodayView({
     lessonProgress: progress,
     minutesToNext,
     minutesRemaining: remaining,
-    nextStart: next?.start,
+    nextStart: heroMode === "unconfirmed" ? heroStart : next?.start,
     completedCount,
     lessonCount: lessons.length,
     nextStudyDayLabel: nextStudyDay ? `${nextStudyDay.dayName}, ${nextStudyDay.firstLesson.start}` : undefined,
@@ -1357,7 +1385,7 @@ function TodayView({
             <div>
               <span>Следующая пара</span>
               <strong>{nextView?.subject ?? nextLabel}</strong>
-              {next && <small><Clock3 size={14} /> {next.start}–{next.end}</small>}
+              {next && <small><Clock3 size={14} /> {lessonTimeLabel(next)}</small>}
               {nextView?.room && <small><MapPin size={14} /> {nextView.room}</small>}
             </div>
           </section>
@@ -1420,7 +1448,7 @@ function Timeline({
   if (!lessons.length) return null;
 
   const completedCount = isSelectedPast
-    ? lessons.length
+    ? lessons.filter(hasConfirmedLessonTime).length
     : isSelectedToday
       ? lessons.filter((lesson) => lessonTimingState(lesson, now) === "past").length
       : 0;
@@ -1435,14 +1463,14 @@ function Timeline({
           <span>{timelineLabel}</span>
           <strong>{isSelectedToday || isSelectedPast ? `${completedCount}/${lessons.length} пройдено` : `Занятий: ${lessons.length}`}</strong>
         </div>
-        <p>{lessons[0].start}–{lessons[lessons.length - 1].end}</p>
+        <p>{dayTimeLabel(lessons)}</p>
       </div>
       {lessons.map((lesson, index) => {
         // Перерыв рисуется там, где он и происходит — между парами. Раньше окна
         // были сведены в отдельную строку наверху, и день не читался как форма:
         // непонятно, где он плотный, а где можно выдохнуть.
         const previous = lessons[index - 1];
-        const gapMinutes = previous
+        const gapMinutes = previous && hasConfirmedLessonTime(previous) && hasConfirmedLessonTime(lesson)
           ? minutesFromTime(lesson.start) - minutesFromTime(previous.end)
           : 0;
         const showGap = gapMinutes >= MIN_STUDY_WINDOW;
@@ -1459,7 +1487,7 @@ function Timeline({
           lesson={lesson}
           isCurrent={lesson.id === current?.id}
           isNext={lesson.id === next?.id}
-          isPast={isSelectedPast || (isSelectedToday && lessonTimingState(lesson, now) === "past")}
+          isPast={hasConfirmedLessonTime(lesson) && (isSelectedPast || (isSelectedToday && lessonTimingState(lesson, now) === "past"))}
           isExpanded={expandedId === lesson.id}
           onToggle={() => setExpandedId((value) => (value === lesson.id ? null : lesson.id))}
           linkedNotes={notesLinkedToLesson(lessonWithSelectedVariant(lesson, getLessonChoice(lesson, selectedWeekMode)), notes, selectedDate, groupNrec)}
@@ -1536,11 +1564,13 @@ function LessonRow({
       <button type="button" className="lesson-row-button" onClick={handleToggle} aria-expanded={isExpanded}>
         <span className="lesson-time">
           <strong>{lesson.start}</strong>
-          <span>{lesson.end}</span>
+          {lesson.end ? <span>{lesson.end}</span> : <ClockAlert size={14} aria-label="Время уточняется" />}
         </span>
         <span className="route-dot" aria-hidden="true" />
         <span className="lesson-title">{view.subject}</span>
-        {change && <span className="lesson-change lesson-row-change">{change}</span>}
+        {(change || lesson.timeStatus === "unconfirmed") && <span className="lesson-change lesson-row-change">
+          {[change, lesson.timeStatus === "unconfirmed" ? "Время уточняется" : undefined].filter(Boolean).join(" · ")}
+        </span>}
         <span className="lesson-place">
           {change && choice !== "all" ? <Video size={16} /> : <MapPin size={16} />}
           {change && choice !== "all" ? "Дистант" : view.room || "Аудитория уточняется"}
@@ -1633,6 +1663,12 @@ function buildWeekLoads(lessons: LessonSlot[], weekMode: WeekMode, validFrom?: s
   });
 }
 
+function CompareGroupsButton({ onClick }: { onClick: () => void }) {
+  return <button type="button" className="week-compare-button" onClick={onClick}>
+    <span><GitCompareArrows size={19} aria-hidden="true" />Сравнить группы</span><ChevronRight size={18} aria-hidden="true" />
+  </button>;
+}
+
 function WeekView({
   getLessonChoice,
   onChooseLesson,
@@ -1646,6 +1682,7 @@ function WeekView({
   groupNrec,
   onToggleNote,
   onOpenCalendar,
+  onCompareGroups,
   onSelectDate,
   onCreateLessonNote
 }: {
@@ -1661,6 +1698,7 @@ function WeekView({
   groupNrec?: string;
   onToggleNote: (noteId: string) => void;
   onOpenCalendar: () => void;
+  onCompareGroups: () => void;
   onSelectDate: (date: Date) => void;
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
 }) {
@@ -1674,7 +1712,7 @@ function WeekView({
     return () => media.removeEventListener("change", onChange);
   }, []);
   if (hasDatedLessons(lessons)) {
-    return <SessionScheduleView lessons={lessons} notes={notes} groupNrec={groupNrec} getLessonChoice={getLessonChoice} onChooseLesson={onChooseLesson} onToggleNote={onToggleNote} onOpenCalendar={onOpenCalendar} onCreateLessonNote={onCreateLessonNote} onSelectDate={onSelectDate} validFrom={validFrom} validThrough={validThrough} />;
+    return <SessionScheduleView lessons={lessons} notes={notes} groupNrec={groupNrec} getLessonChoice={getLessonChoice} onChooseLesson={onChooseLesson} onToggleNote={onToggleNote} onOpenCalendar={onOpenCalendar} onCompareGroups={onCompareGroups} onCreateLessonNote={onCreateLessonNote} onSelectDate={onSelectDate} validFrom={validFrom} validThrough={validThrough} />;
   }
 
   const dayLoads = buildWeekLoads(lessons, weekMode, validFrom, validThrough);
@@ -1698,6 +1736,7 @@ function WeekView({
           </button>
         </section>
 
+        <CompareGroupsButton onClick={onCompareGroups} />
         <details className="week-map-disclosure" open={loadMapOpen} onToggle={(event) => setLoadMapOpen(event.currentTarget.open)}>
           <summary><Activity size={15} aria-hidden="true" /> Карта нагрузки <ChevronDown size={17} aria-hidden="true" /></summary>
           <WeekMap dayLoads={dayLoads} onSelectDate={onSelectDate} />
@@ -1751,9 +1790,9 @@ function WeekView({
                   return (
                     <article className={`mini-lesson ${expanded ? "expanded" : ""}`} key={lesson.id}>
                       <button className="mini-lesson-main" type="button" onClick={() => setExpandedLessonId((value) => value === `${dateKeyFromDate(day.date)}-${lesson.id}` ? null : `${dateKeyFromDate(day.date)}-${lesson.id}`)} aria-expanded={expanded}>
-                        <span className="mini-lesson-time" aria-label={`С ${lesson.start} до ${lesson.end}`}>
+                        <span className="mini-lesson-time" aria-label={lessonTimeLabel(lesson)}>
                           <time dateTime={lesson.start}>{lesson.start}</time>
-                          <time dateTime={lesson.end}>{lesson.end}</time>
+                          {lesson.end ? <time dateTime={lesson.end}>{lesson.end}</time> : <ClockAlert size={14} aria-label="Время уточняется" />}
                         </span>
                         <strong>{view.subject}</strong>
                         <small className="mini-lesson-meta">
@@ -1798,7 +1837,7 @@ function WeekView({
   );
 }
 
-function SessionScheduleView({ lessons, notes, groupNrec, getLessonChoice, onChooseLesson, onToggleNote, onOpenCalendar, onCreateLessonNote, onSelectDate, validFrom, validThrough }: {
+function SessionScheduleView({ lessons, notes, groupNrec, getLessonChoice, onChooseLesson, onToggleNote, onOpenCalendar, onCompareGroups, onCreateLessonNote, onSelectDate, validFrom, validThrough }: {
   lessons: LessonSlot[];
   notes: SmartNote[];
   groupNrec?: string;
@@ -1806,6 +1845,7 @@ function SessionScheduleView({ lessons, notes, groupNrec, getLessonChoice, onCho
   onChooseLesson: LessonChoiceSetter;
   onToggleNote: (noteId: string) => void;
   onOpenCalendar: () => void;
+  onCompareGroups: () => void;
   onSelectDate: (date: Date) => void;
   validFrom?: string;
   validThrough?: string;
@@ -1851,6 +1891,7 @@ function SessionScheduleView({ lessons, notes, groupNrec, getLessonChoice, onCho
           </button>
         </section>
 
+        <CompareGroupsButton onClick={onCompareGroups} />
         <section className="week-map session-map" aria-label={hasClasses ? "Даты занятий" : "Карта сессии"}>
           <div className="week-map-head">
             <span>{archived ? "Даты в расписании" : "Ближайшие даты"}</span>
@@ -1861,8 +1902,9 @@ function SessionScheduleView({ lessons, notes, groupNrec, getLessonChoice, onCho
               <button className="session-date-card" type="button" key={group.key} onClick={() => onSelectDate(new Date(`${group.key}T12:00:00`))} aria-label={`Открыть день: ${group.title}`}>
                 <strong>{group.title}</strong>
                 <span>{formatLessonCount(group.lessons.length, countUnit)}</span>
-                {group.lessons[0] && <small aria-label={`${group.lessons[0].start} - ${group.lessons[0].end}`}>
-                  <time>{group.lessons[0].start}</time><time>- {group.lessons[0].end}</time>
+                {group.lessons[0] && <small aria-label={lessonTimeLabel(group.lessons[0])}>
+                  <time>{group.lessons[0].start}</time>{group.lessons[0].end
+                    ? <time>- {group.lessons[0].end}</time> : <ClockAlert size={14} aria-label="Время уточняется" />}
                 </small>}
               </button>
             ))}
@@ -1886,14 +1928,15 @@ function SessionScheduleView({ lessons, notes, groupNrec, getLessonChoice, onCho
               return (
                 <article className={`mini-lesson ${expanded ? "expanded" : ""}`} key={lesson.id}>
                   <button className="mini-lesson-main" type="button" onClick={() => setExpandedLessonId((value) => value === lesson.id ? null : lesson.id)} aria-expanded={expanded}>
-                    <span className="mini-lesson-time" aria-label={`С ${lesson.start} до ${lesson.end}`}>
+                    <span className="mini-lesson-time" aria-label={lessonTimeLabel(lesson)}>
                       <time dateTime={lesson.start}>{lesson.start}</time>
-                      <time dateTime={lesson.end}>{lesson.end}</time>
+                      {lesson.end ? <time dateTime={lesson.end}>{lesson.end}</time> : <ClockAlert size={14} aria-label="Время уточняется" />}
                     </span>
                     <strong>{view.subject}</strong>
                     <small className="mini-lesson-meta">
                       <span>{[view.room, view.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
                       <span className="mini-lesson-teacher">{view.teacher || "Преподаватель не указан"}</span>
+                      {lesson.timeStatus === "unconfirmed" && <span className="lesson-choice-hint">Время уточняется</span>}
                       {(lesson.variants?.length ?? 0) > 1 && <span className="lesson-choice-hint">{formatVariantCount(lesson.variants?.length ?? 0)} · выбрать</span>}
                     </small>
                     {linkedNotes.length > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedNotes.length}</span>}

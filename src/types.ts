@@ -32,7 +32,8 @@ export interface LessonSlot {
   isConsultation?: boolean;
   pairIndex: number;
   start: string;
-  end: string;
+  end?: string;
+  timeStatus?: "unconfirmed";
   subject: string;
   subjectKey?: string;
   room?: string;

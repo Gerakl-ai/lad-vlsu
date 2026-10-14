@@ -172,7 +172,8 @@ export function scheduleQuality(schedule) {
     if (item?.type !== 'DatedLesson' || typeof item.name !== 'string' || !item.name.trim()
       || !/^\d{4}-\d{2}-\d{2}$/.test(item.date ?? '')
       || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.start ?? '')
-      || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.end ?? '') || item.start >= item.end
+      || !(item.timeStatus === 'unconfirmed' ? item.end === undefined : item.timeStatus === undefined
+        && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.end ?? '') && item.start < item.end)
       || (item.scheduleKind !== undefined && !['classes', 'exam'].includes(item.scheduleKind))) return false;
     const date = new Date(`${item.date}T00:00:00Z`);
     return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === item.date;
@@ -186,6 +187,8 @@ export function scheduleQuality(schedule) {
   if (weeklyDays + datedEntries + legacyExams !== schedule.length) return null;
 
   const warnings = [];
+  const unconfirmedTimeEntries = schedule.filter((item) => isDated(item) && item.timeStatus === 'unconfirmed').length;
+  if (unconfirmedTimeEntries) warnings.push(`Занятия с неподтверждённым временем: ${unconfirmedTimeEntries}`);
   const hasAnyLesson = schedule.some(
     (item) =>
       isDay(item) &&
@@ -198,7 +201,7 @@ export function scheduleQuality(schedule) {
   if (weeklyDays > 0 && !hasAnyLesson && examEntries === 0 && datedEntries === 0) return null;
 
   return { valid: true, scheduleEntries: schedule.length, lessonDays, examEntries, warnings,
-    ...(datedEntries ? { datedEntries } : {}) };
+    ...(datedEntries ? { datedEntries } : {}), ...(unconfirmedTimeEntries ? { unconfirmedTimeEntries } : {}) };
 }
 
 export function isEmptyScheduleResponse(error) {

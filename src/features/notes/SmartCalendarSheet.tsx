@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { currentDayIndex, dateKeyFromDate, relativeDayLabel, selectDayLessons, weekModeForDate } from "../../lib/time";
+import { currentDayIndex, dateKeyFromDate, hasConfirmedLessonTime, relativeDayLabel, selectDayLessons, weekModeForDate } from "../../lib/time";
 import type { LessonSlot, WeekMode } from "../../types";
 import type { SmartNote } from "./noteTypes";
 import { personalEventsOnDate, usePersonalEvents, type PersonalEvent } from "./personalEvents";
@@ -47,7 +47,8 @@ interface CalendarEvent {
   title: string;
   detail: string;
   start: Date;
-  end: Date;
+  end?: Date;
+  timeStatus?: "unconfirmed";
   location?: string;
   type: "lesson" | "note" | "personal";
   noteId?: string;
@@ -83,31 +84,34 @@ function lessonsForDate(lessons: LessonSlot[], date: Date, currentMode: WeekMode
 
 function notesForDate(notes: SmartNote[], date: Date) {
   const key = dateKeyFromDate(date);
-  return notes.filter((note) => note.status === "open" && (
-    note.lessonContext?.date === key
-    || Boolean(note.dueAt && dateKeyFromDate(new Date(note.dueAt)) === key)
-  ));
+  return notes.filter((note) => note.status === "open" && (note.dueAt
+    ? dateKeyFromDate(new Date(note.dueAt)) === key
+    : note.lessonContext?.date === key));
 }
 
 export function eventsForDate(lessons: LessonSlot[], notes: SmartNote[], date: Date, weekMode: WeekMode, personalEvents: PersonalEvent[], getLessonChoice?: SmartCalendarSheetProps["getLessonChoice"]): CalendarEvent[] {
   const classEvents = lessonsForDate(lessons, date, weekMode, getLessonChoice).map((lesson) => ({
     id: `lesson-${lesson.id}-${dateKeyFromDate(date)}`,
     title: lesson.subject,
-    detail: [lesson.kind, lesson.teacher].filter(Boolean).join(" · ") || "Пара",
+    detail: [lesson.kind, lesson.teacher, lesson.timeStatus === "unconfirmed" ? "Время уточняется" : undefined].filter(Boolean).join(" · ") || "Пара",
     start: timeOnDate(date, lesson.start),
-    end: timeOnDate(date, lesson.end),
+    end: lesson.end ? timeOnDate(date, lesson.end) : undefined,
+    timeStatus: lesson.timeStatus,
     location: lesson.room,
     type: "lesson" as const
   }));
   const noteEvents = notesForDate(notes, date).map((note) => {
+    const linked = lessons.find((lesson) => lesson.id === note.lessonContext?.lessonId);
+    const unconfirmed = !note.dueAt && (linked ? !hasConfirmedLessonTime(linked) : note.lessonContext?.timeStatus === "unconfirmed");
     const start = note.dueAt ? new Date(note.dueAt) : timeOnDate(date, note.lessonContext?.start ?? "09:00");
-    const end = new Date(start.getTime() + 30 * 60_000);
+    const end = unconfirmed ? undefined : new Date(start.getTime() + 30 * 60_000);
     return {
       id: `note-${note.id}`,
       title: note.title,
-      detail: note.topic ?? note.space,
+      detail: [note.topic ?? note.space, unconfirmed ? "Время уточняется" : undefined].filter(Boolean).join(" · "),
       start,
       end,
+      ...(unconfirmed ? { timeStatus: "unconfirmed" as const } : {}),
       type: "note" as const,
       noteId: note.id
     };
@@ -181,7 +185,7 @@ function relativeMonthLabel(month: Date, today: Date) {
 
 export function buildIcs(events: CalendarEvent[], name: string) {
   const stamp = formatUtc(new Date());
-  const rows = events.flatMap((event) => [
+  const rows = confirmedCalendarEvents(events).flatMap((event) => [
     "BEGIN:VEVENT",
     `UID:${escapeIcs(event.id)}@lad-vlsu`,
     `DTSTAMP:${stamp}`,
@@ -202,6 +206,10 @@ export function buildIcs(events: CalendarEvent[], name: string) {
     ...rows,
     "END:VCALENDAR"
   ].map(foldIcsLine).join("\r\n") + "\r\n";
+}
+
+function confirmedCalendarEvents(events: CalendarEvent[]) {
+  return events.filter((event): event is CalendarEvent & { end: Date } => Boolean(event.end) && event.timeStatus !== "unconfirmed");
 }
 
 async function shareCalendar(events: CalendarEvent[], fileName: string, title: string) {
@@ -232,6 +240,7 @@ export function SmartCalendarSheet({ lessons, getLessonChoice, scheduleAvailable
   const [selectedDate, setSelectedDate] = useState(today);
   const [monthTransition, setMonthTransition] = useState<{ from: Date; direction: "next" | "previous" } | null>(null);
   const [exportState, setExportState] = useState<"idle" | "working" | "done">("idle");
+  const [exportMessage, setExportMessage] = useState("");
   const exportResetTimer = useRef<number | undefined>(undefined);
   const cells = useMemo(() => monthCells(month), [month]);
   const selectedEvents = useMemo(
@@ -285,9 +294,13 @@ export function SmartCalendarSheet({ lessons, getLessonChoice, scheduleAvailable
 
   async function exportEvents(events: CalendarEvent[], fileName: string, title: string) {
     if (!events.length || exportState === "working") return;
+    const confirmedEvents = confirmedCalendarEvents(events);
+    const unconfirmedCount = events.length - confirmedEvents.length;
+    setExportMessage(unconfirmedCount ? `${formatEventCount(unconfirmedCount)}: время уточняется` : "");
+    if (!confirmedEvents.length) { setExportState("idle"); return; }
     setExportState("working");
     try {
-      await shareCalendar(events, fileName, title);
+      await shareCalendar(confirmedEvents, fileName, title);
       setExportState("done");
       if (exportResetTimer.current !== undefined) window.clearTimeout(exportResetTimer.current);
       exportResetTimer.current = window.setTimeout(() => setExportState("idle"), 1800);
@@ -455,7 +468,9 @@ export function SmartCalendarSheet({ lessons, getLessonChoice, scheduleAvailable
                 <>
                   <span className="calendar-event-time"><Clock3 size={14} /> {event.start.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}</span>
                   <strong>{event.title}</strong>
-                  <small>{event.location ? <><MapPin size={13} /> {event.location}</> : event.detail}</small>
+                  <small>{event.timeStatus === "unconfirmed"
+                    ? <>Время уточняется{event.location && <> · <MapPin size={13} /> {event.location}</>}</>
+                    : event.location ? <><MapPin size={13} /> {event.location}</> : event.detail}</small>
                   {event.noteId && <ChevronRight className="calendar-event-tail" size={18} aria-hidden="true" />}
                 </>
               );
@@ -486,6 +501,7 @@ export function SmartCalendarSheet({ lessons, getLessonChoice, scheduleAvailable
           <button className="calendar-export-primary" type="button" disabled={!monthEvents.length || exportState === "working"} onClick={() => void exportEvents(monthEvents, `lad-${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}.ics`, `Лад · ${monthLabel}`)}>
             <Download size={17} /> {exportState === "done" ? "Готово" : "В календарь"}
           </button>
+          {exportMessage && <small role="status">{exportMessage}</small>}
         </footer>
         </>}
       </section>

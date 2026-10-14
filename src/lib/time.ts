@@ -100,7 +100,24 @@ export function nowMinutes(date = new Date()) {
   return date.getHours() * 60 + date.getMinutes();
 }
 
+export function hasConfirmedLessonTime(lesson: LessonSlot): lesson is LessonSlot & { end: string } {
+  return lesson.timeStatus !== "unconfirmed" && Boolean(lesson.end);
+}
+
+export function lessonTimeLabel(lesson: Pick<LessonSlot, "start" | "end" | "timeStatus">) {
+  return lesson.timeStatus === "unconfirmed" || !lesson.end
+    ? `${lesson.start} · время уточняется`
+    : `${lesson.start}-${lesson.end}`;
+}
+
+export function dayTimeLabel(lessons: LessonSlot[]) {
+  if (!lessons.length) return "";
+  return lessonTimeLabel({ start: lessons[0].start, end: lessons[lessons.length - 1].end,
+    ...(lessons.some((lesson) => !hasConfirmedLessonTime(lesson)) ? { timeStatus: "unconfirmed" as const } : {}) });
+}
+
 export function lessonProgress(lesson: LessonSlot, date = new Date()) {
+  if (!hasConfirmedLessonTime(lesson)) return 0;
   const start = minutesFromTime(lesson.start);
   const end = minutesFromTime(lesson.end);
   const now = nowMinutes(date);
@@ -110,6 +127,7 @@ export function lessonProgress(lesson: LessonSlot, date = new Date()) {
 }
 
 export function minutesUntilEnd(lesson: LessonSlot, date = new Date()) {
+  if (!hasConfirmedLessonTime(lesson)) return 0;
   return Math.max(0, minutesFromTime(lesson.end) - nowMinutes(date));
 }
 
@@ -118,6 +136,7 @@ export function minutesUntilStart(lesson: LessonSlot, date = new Date()) {
 }
 
 export function lessonTimingState(lesson: LessonSlot, date = new Date()) {
+  if (!hasConfirmedLessonTime(lesson)) return "unconfirmed";
   if (lesson.date) {
     const todayKey = dateKeyFromDate(date);
     if (lesson.date < todayKey) return "past";
@@ -167,9 +186,10 @@ export function selectDayLessons(lessons: LessonSlot[], dayIndex: number, weekMo
 export function findCurrentAndNext(lessons: LessonSlot[], weekMode: WeekMode, date = new Date()) {
   const todayLessons = selectDayLessons(lessons, currentDayIndex(date), weekMode, date);
   const now = nowMinutes(date);
-  const current = todayLessons.find((lesson) => minutesFromTime(lesson.start) <= now && now < minutesFromTime(lesson.end));
+  const current = todayLessons.find((lesson) => hasConfirmedLessonTime(lesson) && minutesFromTime(lesson.start) <= now && now < minutesFromTime(lesson.end));
   const next = todayLessons.find((lesson) => minutesFromTime(lesson.start) > now);
-  return { todayLessons, current, next };
+  const unconfirmed = todayLessons.find((lesson) => !hasConfirmedLessonTime(lesson) && minutesFromTime(lesson.start) <= now);
+  return { todayLessons, current, next, unconfirmed };
 }
 
 export function findNextStudyDay(lessons: LessonSlot[], weekMode: WeekMode, date: Date, now = new Date()): NextStudyDay | null {

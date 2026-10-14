@@ -9,6 +9,7 @@ export interface LessonNoteContext {
   lessonId: string;
   date: string;
   start: string;
+  timeStatus?: "unconfirmed";
   subjectKeys: string[];
   subjectLabel: string;
   scope: LessonLinkScope;

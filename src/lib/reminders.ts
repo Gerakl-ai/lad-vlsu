@@ -184,7 +184,8 @@ export function scheduleNextReminder(
   if (!canUseNotifications(settings)) return;
 
   const today = selectDayLessons(lessons, currentDayIndex(), weekMode);
-  const target = today.find((lesson) => minutesFromTime(lesson.start) - settings.minutesBefore > nowMinutes());
+  const target = today.find((lesson) => lesson.timeStatus !== "unconfirmed" && lesson.end
+    && minutesFromTime(lesson.start) - settings.minutesBefore > nowMinutes());
   if (!target) {
     onScheduled?.("На сегодня напоминаний больше нет");
     return;

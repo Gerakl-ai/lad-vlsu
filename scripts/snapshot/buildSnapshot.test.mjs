@@ -18,6 +18,14 @@ describe("crawl exit status", () => {
 });
 import { decodePayload, UpstreamError } from "./vlsuClient.mjs";
 
+it('accepts explicit unknown dated times without inventing ends and counts their warning', () => {
+  const pending = { type: 'DatedLesson', date: '2026-01-21', start: '16:00', name: 'Subject', timeStatus: 'unconfirmed' };
+  expect(scheduleQuality([pending])).toMatchObject({ valid: true, datedEntries: 1, unconfirmedTimeEntries: 1 });
+  for (const change of [{ timeStatus: undefined }, { timeStatus: 'guessed' }, { end: '17:20' }, { end: null }]) {
+    expect(scheduleQuality([{ ...pending, ...change }])).toBeNull();
+  }
+});
+
 describe("stableStringify", () => {
   it("не зависит от порядка ключей", () => {
     expect(stableStringify({ b: 1, a: 2 })).toBe(stableStringify({ a: 2, b: 1 }));

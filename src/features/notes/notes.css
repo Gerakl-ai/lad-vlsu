@@ -2532,6 +2532,14 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   transition: transform .18s ease, filter .2s ease, box-shadow .25s ease;
 }
 
+.calendar-actions > small[role="status"] {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: break-word;
+}
+
 .calendar-actions button:disabled { opacity: .38; cursor: not-allowed; }
 
 .calendar-actions .calendar-open-day {

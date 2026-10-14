@@ -16,6 +16,7 @@ export function createLessonNoteContext(
     lessonId: lesson.id,
     date: lesson.date ?? dateKeyFromDate(date),
     start: lesson.start,
+    ...(lesson.timeStatus ? { timeStatus: lesson.timeStatus } : {}),
     subjectKeys: lessonSubjectKeys(lesson),
     subjectLabel: lesson.subject,
     scope,

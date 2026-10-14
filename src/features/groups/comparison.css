@@ -1,0 +1,107 @@
+.comparison-backdrop {
+  position: fixed;
+  z-index: 55;
+  top: var(--visual-viewport-offset-top);
+  left: 0;
+  width: 100%;
+  height: var(--visual-viewport-height);
+  display: grid;
+  place-items: center;
+  padding: max(12px, var(--safe-top)) max(12px, var(--safe-right)) max(12px, var(--safe-bottom)) max(12px, var(--safe-left));
+  background: color-mix(in srgb, var(--bg-deep) 65%, transparent);
+}
+.comparison-sheet {
+  width: min(900px, 100%);
+  height: min(800px, 100%);
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  color: var(--text);
+  background: var(--theme-panel-solid);
+  border: 1px solid var(--theme-panel-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  animation: comparison-enter 200ms var(--motion-ease) both;
+}
+.comparison-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px 10px; }
+.comparison-header > svg { color: var(--cyan); flex-shrink: 0; }
+.comparison-header > div { flex: 1; min-width: 0; }
+.comparison-header small { font-size: 12px; color: var(--muted); }
+.comparison-header h2 { font-size: 21px; margin: 2px 0 0; line-height: 1.2; }
+.comparison-sheet button { cursor: pointer; color: var(--text); font: inherit; }
+.comparison-icon { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--line); border-radius: 6px; display: grid; place-items: center; background: var(--chrome); }
+.comparison-sheet button:disabled { opacity: .5; cursor: default; }
+.comparison-controls { padding: 0 16px 12px; border-bottom: 1px solid var(--line); }
+.comparison-groups { display: grid; grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr); align-items: center; gap: 10px; }
+.comparison-groups > span, .comparison-groups > button { display: flex; gap: 8px; align-items: center; min-height: 46px; min-width: 0; overflow-wrap: anywhere; font-size: 16px; font-weight: 700; }
+.comparison-groups > button { justify-content: space-between; border: 1px solid var(--line-strong); border-radius: 6px; padding: 8px 10px; background: rgba(var(--accent-rgb), .09); text-align: left; }
+.comparison-groups svg { flex-shrink: 0; color: var(--cyan); }
+.comparison-date { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.comparison-date label { display: flex; flex: 1; min-width: 0; gap: 8px; align-items: center; justify-content: center; }
+.comparison-date input { min-width: 0; max-width: 100%; border: 0; min-height: 44px; padding: 4px; background: transparent; color: var(--text); font: inherit; font-size: 16px; }
+.comparison-day-label { display: flex; min-height: 34px; gap: 8px; align-items: center; justify-content: space-between; color: var(--muted); font-size: 13px; }
+.comparison-day-label button { padding: 8px 0 8px 8px; border: 0; background: transparent; color: var(--cyan); font-size: 13px; }
+.comparison-scroll { min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+.comparison-start { display: grid; justify-items: center; gap: 16px; padding: 44px 16px; text-align: center; }
+.comparison-start > svg { color: var(--cyan); }
+.comparison-start h3 { margin: 0; font-size: 21px; }
+.comparison-start button { display: flex; align-items: center; gap: 8px; min-height: 48px; border: 1px solid var(--line-strong); border-radius: 6px; padding: 10px 14px; background: rgba(var(--accent-rgb), .12); }
+.comparison-windows { padding: 16px; border-bottom: 1px solid var(--line); }
+.comparison-windows h3 { display: flex; gap: 8px; align-items: center; font-size: 16px; margin: 0; }
+.comparison-windows > p { color: var(--muted); font-size: 12px; margin: 8px 0 0; line-height: 1.5; }
+.comparison-windows ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.comparison-windows li { display: grid; gap: 4px; padding: 9px 12px; border-left: 3px solid var(--green); background: var(--chrome); font-size: 14px; font-variant-numeric: tabular-nums; }
+.comparison-windows li span { color: var(--muted); font-size: 12px; }
+.comparison-windows .comparison-caution { color: var(--text); font-size: 14px; }
+.comparison-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; }
+.comparison-column { min-width: 0; }
+.comparison-column + .comparison-column { border-left: 1px solid var(--line); }
+.comparison-column > header { padding: 16px; border-bottom: 1px solid var(--line); min-height: 114px; }
+.comparison-column > header > span { color: var(--cyan); font-size: 12px; }
+.comparison-column:nth-child(2) > header > span { color: var(--green); }
+.comparison-column h3 { font-size: 19px; margin: 4px 0; overflow-wrap: anywhere; }
+.comparison-column header p { font-size: 13px; margin: 0 0 6px; color: var(--muted); }
+.comparison-column header small { display: block; font-size: 11px; color: var(--muted); line-height: 1.4; }
+.comparison-column header .comparison-stale { color: var(--warning); }
+.comparison-lesson { padding: 14px 16px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.comparison-lesson time { display: block; color: var(--cyan); font-size: 14px; line-height: 1.4; font-weight: 700; font-variant-numeric: tabular-nums; }
+.comparison-column:nth-child(2) .comparison-lesson time { color: var(--green); }
+.comparison-lesson h4 { font-size: 16px; margin: 8px 0; line-height: 1.4; font-weight: 650; }
+.comparison-lesson p { display: flex; align-items: flex-start; gap: 5px; font-size: 13px; line-height: 1.4; margin: 0 0 4px; }
+.comparison-lesson p svg { flex-shrink: 0; margin-top: 2px; color: var(--muted); }
+.comparison-lesson small { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.comparison-lesson .comparison-change { color: var(--warning); font-size: 12px; }
+.comparison-overlap-label { display: flex; align-items: center; gap: 5px; margin-top: 10px; font-size: 11px; color: var(--muted); }
+.comparison-empty { padding: 20px 16px; color: var(--muted); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.comparison-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 4px 16px; border-top: 1px solid var(--line); }
+.comparison-footer > span { font-size: 12px; color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+.week-compare-button { display: flex; width: 100%; min-height: 46px; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px; color: var(--text); background: var(--theme-panel-solid); font: inherit; font-size: 14px; cursor: pointer; }
+.week-compare-button span { display: flex; align-items: center; gap: 9px; }
+.week-compare-button svg { color: var(--cyan); flex-shrink: 0; }
+@keyframes comparison-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 480px) {
+  .comparison-header, .comparison-controls, .comparison-windows { padding-left: 12px; padding-right: 12px; }
+  .comparison-column > header, .comparison-lesson { padding-left: 12px; padding-right: 12px; }
+  .comparison-lesson h4 { font-size: 15px; }
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  .comparison-backdrop { padding-top: 8px; padding-bottom: 8px; }
+  .comparison-header { padding-top: 6px; padding-bottom: 4px; }
+  .comparison-header h2 { font-size: 19px; }
+  .comparison-header small { display: none; }
+  .comparison-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 18px; padding-bottom: 6px; }
+  .comparison-date { margin: 0; }
+  .comparison-day-label { grid-column: 1 / -1; min-height: 24px; }
+  .comparison-footer { min-height: 46px; }
+  .comparison-scroll { display: grid; grid-template-columns: minmax(180px, .7fr) minmax(0, 1.8fr); align-items: start; }
+  .comparison-start { grid-column: 1 / -1; }
+  .comparison-windows { border-bottom: 0; border-right: 1px solid var(--line); padding: 12px; }
+  .comparison-windows h3 { font-size: 14px; align-items: flex-start; }
+  .comparison-windows h3 svg { flex-shrink: 0; }
+  .comparison-windows ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .comparison-windows li { padding: 6px 7px; font-size: 12px; }
+  .comparison-column > header { padding: 10px 12px; min-height: 94px; }
+  .comparison-lesson { padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .comparison-sheet { animation: none; } }

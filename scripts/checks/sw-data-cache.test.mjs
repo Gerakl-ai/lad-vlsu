@@ -33,10 +33,11 @@ function worker(initial = {}, network = async () => { throw new Error('Offline')
   return { stores, listeners, caches, messages };
 }
 
-it.each([undefined, 'classes', 'exam'])('persists dated entries with kind %s and explicit end on an offline reload', async (scheduleKind) => {
+it.each([undefined, 'classes', 'exam', 'unconfirmed'])('persists dated entries with kind %s and explicit timing on an offline reload', async (scheduleKind) => {
   const general = 'https://example.org/app/data/university-schedule.json';
   const dated = { ...item, schedule: [{ type: 'DatedLesson', date: '2026-02-02', start: '15:50', end: '19:10', name: 'Subject',
-    ...(scheduleKind ? { scheduleKind } : {}) }] };
+    ...(scheduleKind && scheduleKind !== 'unconfirmed' ? { scheduleKind } : {}),
+    ...(scheduleKind === 'unconfirmed' ? { end: undefined, timeStatus: 'unconfirmed' } : {}) }] };
   const bundle = { schemaVersion: 1, groups: { [nrec]: dated } };
   const state = worker({}, async () => json(bundle));
   let response;
@@ -64,7 +65,10 @@ it('migrates valid data before deleting old release assets, preserving other sco
   expect(state.stores.get(stable).has(oldAsset)).toBe(false);
 });
 
-it.each([json({ schemaVersion: 1, groups: {} }), json({ schemaVersion: 1, groups: { [nrec]: { ...item, schedule: [] } } }), new Response('<html>bad</html>', { headers: { 'Content-Type': 'text/html' } })])('does not replace a saved bundle with a bad response', async (bad) => {
+it.each([json({ schemaVersion: 1, groups: {} }), json({ schemaVersion: 1, groups: { [nrec]: { ...item, schedule: [] } } }),
+  json({ schemaVersion: 1, groups: { [nrec]: { ...item, schedule: [...item.schedule,
+    { type: 'DatedLesson', date: '2026-02-02', start: '16:00', name: 'Subject' }] } } }),
+  new Response('<html>bad</html>', { headers: { 'Content-Type': 'text/html' } })])('does not replace a saved bundle with a bad response', async (bad) => {
   const bundle = { schemaVersion: 1, groups: { [nrec]: item } };
   const state = worker({ [stable]: [[url, json(bundle)]] }, async () => bad.clone());
   let response;

@@ -15,7 +15,7 @@ describe("calendar uses the same lesson choices as Today and Week", () => {
     expect(events).toHaveLength(1);
     expect(events[0]).toMatchObject({ title: "Физика", location: "425-3" });
     expect(events[0].start.getHours()).toBe(12);
-    expect(events[0].end.getMinutes()).toBe(40);
+    expect(events[0].end?.getMinutes()).toBe(40);
     expect(JSON.stringify(lessons)).toBe(before);
     expect(eventsForDate(lessons, [], new Date("2026-02-05T12:00:00"), "all", [])).toHaveLength(0);
   });

@@ -47,6 +47,7 @@ function isOptionalLessonContext(value: unknown) {
     && isOptionalString(value.groupName)
     && typeof value.date === "string"
     && typeof value.start === "string"
+    && (value.timeStatus === undefined || value.timeStatus === "unconfirmed")
     && Array.isArray(value.subjectKeys)
     && value.subjectKeys.every((key) => typeof key === "string")
     && typeof value.subjectLabel === "string"

@@ -10,7 +10,7 @@
  * тестом, а не глазами при каждой правке.
  */
 
-export type HeroMode = "current" | "next" | "done" | "free" | "loading";
+export type HeroMode = "current" | "next" | "done" | "free" | "loading" | "unconfirmed";
 
 export interface HeroStatus {
   copy: string;
@@ -60,6 +60,8 @@ export function heroCopy(input: HeroCopyInput): HeroCopy {
   } = input;
 
   switch (mode) {
+    case "unconfirmed":
+      return { sigilLabel: "Начало", sigilValue: nextStart ?? "...", showProgressRow: false };
     case "current":
       // Идущая пара — единственный случай, когда плашка «в эфире» что-то добавляет.
       return {

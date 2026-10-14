@@ -123,7 +123,7 @@ function lessonDateTime(lesson: LessonSlot, date: Date) {
 
 function nextLessonAt(subjectKey: string, lessons: LessonSlot[], weekMode: WeekMode, now: Date) {
   const dated = lessons
-    .filter((lesson) => lesson.date && lessonHasSubjectKey(lesson, subjectKey))
+    .filter((lesson) => lesson.date && lesson.timeStatus !== "unconfirmed" && lessonHasSubjectKey(lesson, subjectKey))
     .map((lesson) => lessonDateTime(lesson, new Date(`${lesson.date}T00:00:00`)))
     .filter((date) => date.getTime() > now.getTime())
     .sort((a, b) => a.getTime() - b.getTime());

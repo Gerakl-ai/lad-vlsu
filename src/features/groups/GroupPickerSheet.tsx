@@ -39,6 +39,8 @@ interface GroupPickerSheetProps {
   selectedGroup: GroupProfile | null;
   onClose: () => void;
   onSelect: (group: GroupProfile) => void;
+  purpose?: "comparison";
+  excludedGroupNrec?: string;
 }
 
 type CatalogStatus = "idle" | "loading" | "ready" | "stale";
@@ -71,7 +73,7 @@ export function snapshotLabel(coverage: StaticCoverage | null, nrec: string, ocr
   return coverage || report ? "Нет сохранённого расписания" : null;
 }
 
-export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: GroupPickerSheetProps) {
+export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect, purpose, excludedGroupNrec }: GroupPickerSheetProps) {
   const sheetRef = useRef<HTMLElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const closeRef = useRef(onClose);
@@ -208,11 +210,11 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
     [institutes, query]
   );
   const filteredGroups = useMemo(
-    () => groups.filter((group) => matchesSearch([group.name, group.course], query)),
-    [groups, query]
+    () => groups.filter((group) => group.nrec !== excludedGroupNrec && matchesSearch([group.name, group.course], query)),
+    [groups, query, excludedGroupNrec]
   );
-  const globalResults = useMemo(() => activeInstitute ? [] : searchUniversityGroups(universityGroups, query),
-    [universityGroups, query, activeInstitute]);
+  const globalResults = useMemo(() => activeInstitute ? [] : searchUniversityGroups(universityGroups.filter((group) => group.nrec !== excludedGroupNrec), query),
+    [universityGroups, query, activeInstitute, excludedGroupNrec]);
 
   if (!open) return null;
 
@@ -260,7 +262,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
           ) : <span className="group-picker-logo"><Building2 size={20} /></span>}
           <div>
             <small>{activeInstitute ? activeInstitute.shortName : "Лад ВлГУ"}</small>
-            <h2 id="group-picker-title">{activeInstitute ? "Выберите группу" : selectedGroup ? "Сменить институт" : "Найдите свою группу"}</h2>
+            <h2 id="group-picker-title">{activeInstitute ? "Выберите группу" : purpose === "comparison" ? "Вторая группа" : selectedGroup ? "Сменить институт" : "Найдите свою группу"}</h2>
           </div>
           {canClose ? (
             <button type="button" className="group-picker-icon" onClick={onClose} aria-label="Закрыть выбор группы">
@@ -312,7 +314,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
           {!activeInstitute && !query && favoriteGroups.length > 0 && (
             <section className="favorite-groups" aria-label="Избранные группы">
               <strong className="favorite-groups-title"><Star size={13} fill="currentColor" /> Избранные</strong>
-              {favoriteGroups.map((group) => (
+              {favoriteGroups.filter((group) => group.nrec !== excludedGroupNrec).map((group) => (
                 <div className="group-picker-row-wrap" key={`favorite-${group.nrec}`}>
                   <button type="button" className="group-picker-row group-row" onClick={() => onSelect(group)}>
                     <span className="group-badge"><UsersRound size={19} /></span>
@@ -379,7 +381,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
           <span className="group-picker-footer-status"><span className={`catalog-dot catalog-${status}`} />
             {shareState === "done" ? "Ссылка скопирована" : shareState === "error" ? "Не удалось поделиться" : status === "stale" ? "Показан сохранённый каталог" : status === "loading" ? "Загружаем каталог" : "Выбор сохранится на устройстве"}
           </span>
-          {selectedGroup && (
+          {selectedGroup && purpose !== "comparison" && (
             <button type="button" className="group-share-button" onClick={shareSelectedGroup} aria-label={`Поделиться расписанием группы ${selectedGroup.name}`} title="Поделиться группой">
               <Share2 size={16} />
             </button>

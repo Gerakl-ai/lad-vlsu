@@ -29,6 +29,13 @@ const manualDeadlineNote: SmartNote = {
 };
 
 describe("notes backup", () => {
+  it("preserves unconfirmed lesson timing and rejects unknown flags", () => {
+    const context = { lessonId: "dated", date: "2026-01-21", start: "16:00", subjectLabel: "Предмет", subjectKeys: ["предмет"], scope: "lesson" as const, intent: "note" as const, timeStatus: "unconfirmed" as const };
+    const note = { ...manualDeadlineNote, lessonContext: context };
+    expect(parseNotesBackup(JSON.stringify(createNotesBackup([note])))).toEqual([note]);
+    expect(() => parseNotesBackup(JSON.stringify(createNotesBackup([{ ...note,
+      lessonContext: { ...context, timeStatus: "guessed" } } as unknown as SmartNote])))).toThrow();
+  });
   it("round-trips calendar details independently of academic notes", () => {
     const event = { id: "event", title: "Баня", start: "2026-09-23T18:00:00+03:00", end: "2026-09-23T20:00:00+03:00", location: "Центр", description: "Встреча" };
     expect(parseNotesArchive(JSON.stringify(createNotesBackup([], [], [event]))).events).toEqual([event]);
