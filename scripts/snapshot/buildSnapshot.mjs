@@ -28,6 +28,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { readOptionalJson, recoverCatalog } from "./catalogRecovery.mjs";
 
 import {
   STUDY_FORMS,
@@ -251,8 +252,8 @@ export function instituteShortName(name) {
  * Каталог
  * ------------------------------------------------------------------ */
 
-async function buildCatalog(args, report) {
-  const institutes = (await fetchInstitutes()).slice(0, args.institutes);
+export async function buildCatalog(args, report, api = { fetchInstitutes, fetchGroups }) {
+  const institutes = (await api.fetchInstitutes()).slice(0, args.institutes);
   const catalog = [];
 
   for (const institute of institutes) {
@@ -260,7 +261,7 @@ async function buildCatalog(args, report) {
 
     for (const form of STUDY_FORMS) {
       try {
-        const groups = await fetchGroups(institute.id, form.id);
+        const groups = await api.fetchGroups(institute.id, form.id);
         for (const group of groups) {
           const existing = byNrec.get(group.nrec);
           if (existing) {
@@ -273,6 +274,7 @@ async function buildCatalog(args, report) {
       } catch (error) {
         report.failures.push({
           scope: "groups",
+          instituteId: institute.id,
           institute: institute.name,
           form: form.key,
           reason: error?.message ?? String(error)
@@ -410,22 +412,22 @@ async function main() {
   console.log(`[снимок] старт ${startedAt}`);
   console.log(`[снимок] каталог: институты и группы всех форм обучения`);
 
-  const catalog = await buildCatalog(args, report);
+  const rawCatalog = await buildCatalog(args, report);
+  const catalogFile = path.join(outDir, "catalog.json");
+  const prior = await readOptionalJson(catalogFile);
+  const baseline = await readOptionalJson(path.resolve("public/data/catalog.json"));
+  let catalogDocument = { schemaVersion: SNAPSHOT_SCHEMA_VERSION, capturedAt: startedAt, provenance: buildProvenance(),
+    institutes: rawCatalog, instituteCount: rawCatalog.length, groupCount: rawCatalog.reduce((sum, item) => sum + item.groups.length, 0) };
+  for (const saved of [prior, baseline]) catalogDocument = recoverCatalog(catalogDocument, saved, report);
+  const catalog = catalogDocument.institutes;
+  report.catalogRestoredGroups = catalogDocument.recovery?.restoredGroupIds.length ?? 0;
   report.institutes = catalog.length;
   report.groupsInCatalog = catalog.reduce((sum, item) => sum + item.groups.length, 0);
   console.log(`[снимок] институтов: ${report.institutes}, групп: ${report.groupsInCatalog}`);
 
-  const catalogFile = path.join(outDir, "catalog.json");
   const catalogResult = await writeIfChanged(
     catalogFile,
-    toJsonFile({
-      schemaVersion: SNAPSHOT_SCHEMA_VERSION,
-      capturedAt: startedAt,
-      provenance: buildProvenance(),
-      instituteCount: catalog.length,
-      groupCount: report.groupsInCatalog,
-      institutes: catalog
-    }),
+    toJsonFile(catalogDocument),
     args
   );
   console.log(`[снимок] catalog.json: ${catalogResult}`);

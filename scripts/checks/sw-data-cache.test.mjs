@@ -114,3 +114,28 @@ it('preserves the general university package when a network update is empty', as
   expect(await state.stores.get(stable).get(general).json()).toEqual(bundle);
   expect(state.messages).toEqual([]);
 });
+
+it('keeps all nine real IEIT archives and their four unknown endings through an offline data-cache read', async () => {
+  const reviews = JSON.parse(readFileSync(new URL('../pdf/reviewed-dated-ieit-january-2026.json', import.meta.url), 'utf8')).groups;
+  const snapshots = reviews.map((group) => JSON.parse(readFileSync(new URL(`../../public/data/reviewed-schedule/${group.groupNrec}.json`, import.meta.url), 'utf8')));
+  const bundle = { schemaVersion: 1, groups: Object.fromEntries(snapshots.map((snapshot) => [snapshot.group.nrec, snapshot])) };
+  const general = 'https://example.org/app/data/university-schedule.json';
+  const online = worker({}, async () => json(bundle));
+  const background = [];
+  let response;
+  const request = (state) => state.listeners.fetch({ request: new Request(general), respondWith: (promise) => { response = promise; }, waitUntil: (promise) => background.push(promise) });
+  request(online);
+  expect(await (await response).json()).toEqual(bundle);
+  await Promise.all(background);
+  expect(await online.stores.get(stable).get(general).json()).toEqual(bundle);
+  const offline = worker({ [stable]: [[general, json(bundle)]] });
+  request(offline);
+  const restored = await (await response).json();
+  await Promise.all(background);
+  expect(restored).toEqual(bundle);
+  expect(Object.keys(restored.groups)).toHaveLength(9);
+  expect(Object.values(restored.groups).flatMap((snapshot) => snapshot.schedule)).toHaveLength(106);
+  const unknown = Object.values(restored.groups).flatMap((snapshot) => snapshot.schedule).filter((lesson) => lesson.timeStatus === 'unconfirmed');
+  expect(unknown).toHaveLength(4);
+  expect(unknown.every((lesson) => !Object.hasOwn(lesson, 'end'))).toBe(true);
+});

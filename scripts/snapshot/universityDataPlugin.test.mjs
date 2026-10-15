@@ -44,6 +44,27 @@ it('prepares and writes reviewed fallbacks without rewriting source files', asyn
   expect(JSON.parse(await readFile(source.catalogPath, 'utf8')).institutes[0].groups).toHaveLength(1);
 });
 
+it('recovers failed catalog forms before validating archived schedules, but rejects stale failure evidence', async () => {
+  const source = await fixture();
+  const fallback = path.join(source.root, 'saved-catalog.json');
+  const saved = JSON.parse(await readFile(source.catalogPath, 'utf8'));
+  const capturedAt = '2026-10-15T10:00:00Z';
+  await writeFile(fallback, JSON.stringify({ ...saved, capturedAt: '2026-10-01T00:00:00Z' }));
+  const incomplete = { ...saved, capturedAt, institutes: [{ ...saved.institutes[0], groups: [] }], groupCount: 0 };
+  await writeFile(source.catalogPath, JSON.stringify(incomplete));
+  const statusPath = path.join(source.dataDir, 'status.json');
+  const status = { startedAt: capturedAt, failures: [{ scope: 'groups', instituteId: 'institute', form: 'part-time' }] };
+  await writeFile(statusPath, JSON.stringify(status));
+  const prepared = await prepareUniversityData(source.dataDir, undefined, new Date(capturedAt), fallback);
+  expect(prepared.report.available).toBe(1);
+  expect(prepared.report.catalogGroups).toBe(1);
+  expect(prepared.files['catalog.json'].recovery.restoredGroupIds).toEqual([nrec]);
+  expect(prepared.files['catalog.json'].institutes[0].groups[0].catalogRecovery).toEqual({ savedForms: ['part-time'], capturedAt: '2026-10-01T00:00:00Z' });
+  expect(JSON.parse(await readFile(source.catalogPath, 'utf8'))).toEqual(incomplete);
+  await writeFile(statusPath, JSON.stringify({ ...status, startedAt: 'older' }));
+  await expect(prepareUniversityData(source.dataDir, undefined, new Date(capturedAt), fallback)).rejects.toThrow('Empty university catalog');
+});
+
 it('rejects unsafe output paths', async () => {
   const source = await fixture();
   await expect(writeUniversityData({ files: { '../outside.json': {} } }, path.join(source.root, 'dist', 'data'))).rejects.toThrow('filename');

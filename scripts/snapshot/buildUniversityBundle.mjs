@@ -2,6 +2,7 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { scheduleQuality, sha256 } from './buildSnapshot.mjs';
+import { readOptionalJson, recoverCatalog } from './catalogRecovery.mjs';
 
 function preferCandidate(current, candidate, asOf) {
   const currentPeriod = periodWindow(current, asOf)?.status;
@@ -243,9 +244,11 @@ async function readSnapshots(directory) {
 
 export async function prepareUniversityData(dataDir, fallbackDirectories = [
   path.join(dataDir, 'ocr-schedule'), path.join(dataDir, 'reviewed-schedule')
-], assessedAt = new Date()) {
+], assessedAt = new Date(), catalogFallbackPath = null) {
   const directories = [path.join(dataDir, 'schedule'), ...fallbackDirectories];
-  const catalog = JSON.parse(await readFile(path.join(dataDir, 'catalog.json'), 'utf8'));
+  const primaryCatalog = JSON.parse(await readFile(path.join(dataDir, 'catalog.json'), 'utf8'));
+  const catalog = catalogFallbackPath ? recoverCatalog(primaryCatalog, await readOptionalJson(catalogFallbackPath),
+    await readOptionalJson(path.join(dataDir, 'status.json'))) : primaryCatalog;
   const candidates = (await Promise.all(directories.map(readSnapshots))).flat();
   const { bundle, report } = buildUniversityBundle(catalog, candidates, assessedAt);
   if (!report.available) throw new Error('No valid schedules for university bundle');
@@ -288,7 +291,9 @@ async function main() {
   const dataDir = args.includes('--data-dir') ? args[args.indexOf('--data-dir') + 1] : null;
   if (!dataDir) throw new Error('Usage: --data-dir <catalog/schedule directory> [--fallback-dir <directory> ...]');
   const fallbacks = args.flatMap((arg, i) => arg === '--fallback-dir' ? [args[i + 1]] : []);
-  const prepared = await prepareUniversityData(dataDir, fallbacks.length ? fallbacks : undefined);
+  const catalogFallback = args.includes('--catalog-fallback') ? args[args.indexOf('--catalog-fallback') + 1] : null;
+  if (args.includes('--catalog-fallback') && (!catalogFallback || catalogFallback.startsWith('--'))) throw new Error('Missing --catalog-fallback value');
+  const prepared = await prepareUniversityData(dataDir, fallbacks.length ? fallbacks : undefined, new Date(), catalogFallback);
   const publishDir = args.includes('--publish-dir') ? args[args.indexOf('--publish-dir') + 1] : dataDir;
   if (!publishDir) throw new Error('Missing --publish-dir value');
   await writeUniversityData(prepared, publishDir);

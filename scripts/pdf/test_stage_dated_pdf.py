@@ -3,10 +3,39 @@ from datetime import date
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from stage_dated_pdf import group_cells, lesson_metadata, printed_date, printed_interval, printed_period, reviewed_metadata, stage
+from stage_dated_pdf import group_cells, lesson_metadata, printed_date, printed_interval, printed_period, printed_start, room_first_metadata, reviewed_metadata, reviewed_timing, stage
 
 
 class DatedPdfTests(unittest.TestCase):
+    def test_full_printed_year_must_agree_with_period_and_weekday(self):
+        self.assertEqual(printed_date("Среда 21.01.2026", date(2026, 1, 19), date(2026, 1, 24)), "2026-01-21")
+        with self.assertRaises(ValueError):
+            printed_date("Среда 21.01.2025", date(2026, 1, 19), date(2026, 1, 24))
+
+    def test_room_first_layout_preserves_teacher_and_parenthetical_reassessment(self):
+        self.assertEqual(room_first_metadata("408-1, переат, Математика (Кастэн Ю.А.)"), ("408-1, переат, Кастэн Ю.А., Математика", "exam"))
+        self.assertEqual(room_first_metadata("213-6, зач.диф., Кравцова Е.Р., Предпринимательство"), ("213-6, зач.диф, Кравцова Е.Р., Предпринимательство", "exam"))
+        self.assertEqual(room_first_metadata("214-6, экз, Казурова О.А., Предмет (+п/а)"), ("214-6, экз +п/а, Казурова О.А., Предмет", "exam"))
+        self.assertEqual(room_first_metadata("107-6, (ОРГАНИЗАЦИОННЫЕ СОБРАНИЕ)"), ("107-6, собрание, , Организационное собрание", "classes"))
+        for raw in ["101-СК1, Репникова Е.А., Физическая культура и спорт", "101-6, зач, Предмет", "101-6, зач, Примеров А.А., Предмет 102-6, экз, Другой"]:
+            with self.assertRaises(ValueError):
+                room_first_metadata(raw)
+
+    def test_explicit_start_is_not_converted_into_an_invented_end(self):
+        self.assertEqual(printed_start("8:30 101-6, зач, Subject"), ("08:30", "101-6, зач, Subject"))
+        evidence = {"page": 1, "lessonBox": [1, 2, 3, 4], "rawText": "16:00 Subject", "visibleText": "16:00 Subject"}
+        correction = {"id": "start", "date": "2026-01-21", "gridStart": "15:50", "gridEnd": "17:20", "page": 1,
+                      "lessonBox": evidence["lessonBox"], "expectedRawText": evidence["rawText"], "expectedVisibleText": evidence["visibleText"],
+                      "printedStart": "16:00", "reason": "Checked", "mode": "printed-start"}
+        self.assertEqual(reviewed_timing([correction], "2026-01-21", ("15:50", "17:20"), evidence, "16:00"), correction)
+        with self.assertRaises(ValueError):
+            reviewed_timing([], "2026-01-21", ("15:50", "17:20"), evidence, "16:00")
+        with self.assertRaises(ValueError):
+            reviewed_timing([correction], "2026-01-21", ("15:50", "17:20"), {**evidence, "visibleText": "Changed"}, "16:00")
+        outside = {**correction, "gridStart": "12:10", "gridEnd": "13:40", "mode": "unconfirmed", "conflict": "outside-grid"}
+        self.assertEqual(reviewed_timing([outside], "2026-01-21", ("12:10", "13:40"), evidence, "16:00"), outside)
+        with self.assertRaises(ValueError):
+            reviewed_timing([{**outside, "conflict": "coincident-start"}], "2026-01-21", ("12:10", "13:40"), evidence, "16:00")
     def test_exact_period_and_weekday(self):
         start, end = printed_period("c 01.12.2025 по 06.12.2025")
         self.assertEqual(printed_date("СУББОТА 06.12", start, end), "2025-12-06")

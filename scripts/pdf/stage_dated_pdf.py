@@ -31,7 +31,7 @@ def printed_period(text):
 
 
 def printed_date(text, start, through):
-    match = re.fullmatch(r"\s*([А-Яа-яЁё]+)\s+(\d{2})\.(\d{2})\s*", text)
+    match = re.fullmatch(r"\s*([А-Яа-яЁё]+)\s+(\d{2})\.(\d{2})(?:\.(20\d{2}))?\s*", text)
     if not match or match[1].lower() not in WEEKDAYS:
         raise ValueError(f"Ambiguous dated day: {text}")
     candidates = []
@@ -42,7 +42,7 @@ def printed_date(text, start, through):
             continue
         if start <= stamp <= through:
             candidates.append(stamp)
-    if len(candidates) != 1 or candidates[0].weekday() != WEEKDAYS.index(match[1].lower()):
+    if len(candidates) != 1 or candidates[0].weekday() != WEEKDAYS.index(match[1].lower()) or (match[4] and candidates[0].year != int(match[4])):
         raise ValueError(f"Day or year disagrees with the source period: {text}")
     return candidates[0].isoformat()
 
@@ -55,6 +55,80 @@ def printed_interval(text):
     if result[0] >= result[1]:
         raise ValueError(f"Reversed printed interval: {text}")
     return result
+
+
+def exclude_white_body_text(page, enabled):
+    if not enabled:
+        return page
+    # Use only after a rendered page confirms white table-body backgrounds.
+    return page.filter(lambda item: not (item.get("object_type") == "char"
+                                        and item.get("non_stroking_color") == (1.0, 1.0, 1.0)))
+
+
+def printed_start(raw):
+    prefix = re.match(rf"^\s*({CLOCK})\s+", raw)
+    if not prefix:
+        return None, raw
+    hour, minute = prefix[1].split(":")
+    return f"{int(hour):02}:{minute}", raw[prefix.end():]
+
+
+def room_first_metadata(raw):
+    text = re.sub(r"\s+", " ", raw).strip()
+    meeting = re.fullmatch(rf"(?P<room>{ROOM}),\s*\(ОРГАНИЗАЦИОНН(?:ОЕ|ЫЕ) СОБРАНИЕ\)", text)
+    if meeting:
+        return f"{meeting['room']}, собрание, , Организационное собрание", "classes"
+    parts = text.split(",", 2)
+    if len(parts) != 3 or not re.fullmatch(ROOM, parts[0].strip()):
+        raise ValueError("Room-first subject requires source review")
+    room, kind, rest = [part.strip() for part in parts]
+    if not re.fullmatch(r"зач\s*\.\s*диф\s*\.|зач\.?|экз\.?|переат|лб\.?|лк\.?|пр\.?", kind):
+        raise ValueError("Unmarked lesson kind requires source review")
+    kind = re.sub(r"\s+", "", kind).rstrip(".")
+    teacher_first = re.fullmatch(rf"(?P<teacher>{TEACHER}),\s*(?P<subject>.+)", rest)
+    subject_first = re.fullmatch(rf"(?P<subject>.+?)\s*\((?P<teacher>{TEACHER})\)", rest) if kind == "переат" else None
+    match = teacher_first or subject_first
+    if not match:
+        raise ValueError("Room-first teacher or subject requires source review")
+    teacher = re.sub(r"\s*\.\s*", ".", match["teacher"])
+    teacher = re.sub(r"(?<=[а-яё])(?=[А-ЯЁ]\.)", " ", teacher)
+    subject = match["subject"].strip()
+    annotation = re.search(r"\s*\((\+?\s*п\s*/\s*а)\)$", subject)
+    if annotation:
+        kind += " " + re.sub(r"\s+", "", annotation[1])
+        subject = subject[:annotation.start()].strip()
+    if not subject or re.search(rf"(?:{ROOM}),\s*(?:экз|лб|зач|переат)\b", subject):
+        raise ValueError("Additional source variants require review")
+    return f"{room}, {kind}, {teacher}, {subject}", "exam" if kind.startswith(("зач", "экз", "переат")) else "classes"
+
+
+def reviewed_timing(corrections, stamp, interval, evidence, explicit_start):
+    for correction in corrections:
+        if (correction["date"], correction["gridStart"], correction["gridEnd"], correction["page"]) != (stamp, *interval, evidence["page"]):
+            continue
+        if tuple(correction["lessonBox"]) != tuple(evidence["lessonBox"]):
+            continue
+        if correction["expectedRawText"] != evidence["rawText"] or correction["expectedVisibleText"] != evidence.get("visibleText", evidence["rawText"]):
+            raise ValueError(f"Reviewed timing source changed: {correction['id']}")
+        if correction["printedStart"] != explicit_start or not correction["reason"].strip():
+            raise ValueError("Reviewed timing does not retain the printed start")
+        mode = correction["mode"]
+        if mode == "printed-start":
+            if not interval[0] < explicit_start < interval[1]:
+                raise ValueError("Printed start is outside its grid interval")
+        elif mode == "unconfirmed":
+            if correction["conflict"] not in ["outside-grid", "coincident-start"]:
+                raise ValueError("Unknown printed timing conflict")
+            if correction["conflict"] == "outside-grid" and interval[0] <= explicit_start < interval[1]:
+                raise ValueError("No outside-grid timing conflict")
+            if correction["conflict"] == "coincident-start" and not correction.get("relatedCell"):
+                raise ValueError("Coincident start has no related source cell")
+        else:
+            raise ValueError("Unknown reviewed timing mode")
+        return correction
+    if explicit_start and explicit_start != interval[0]:
+        raise ValueError("Printed start differs from the grid and requires source review")
+    return None
 
 
 def lesson_metadata(raw):
@@ -112,7 +186,7 @@ def reviewed_metadata(corrections, stamp, interval, evidence):
     return None
 
 
-def stage(source, group_name, source_url, metadata_review=None):
+def stage(source, group_name, source_url, metadata_review=None, white_body=False, metadata_layout="subject-first", timing_review=None):
     import pdfplumber
     import pypdfium2 as pdfium
 
@@ -125,11 +199,27 @@ def stage(source, group_name, source_url, metadata_review=None):
     if len(set(correction_ids)) != len(correction_ids):
         raise ValueError("Duplicate reviewed metadata IDs")
     applied = set()
+    timing_corrections = [entry for entry in (timing_review or {}).get("corrections", []) if entry["groupName"] == group_name]
+    if any(entry["sourceSha256"] != source_hash for entry in timing_corrections):
+        raise ValueError("Reviewed timing source hash changed")
+    timing_ids = [entry["id"] for entry in timing_corrections]
+    if len(set(timing_ids)) != len(timing_ids):
+        raise ValueError("Duplicate reviewed timing IDs")
+    timing_applied = set()
+    styles = []
+    if metadata_layout not in ["subject-first", "room-first"]:
+        raise ValueError("Unknown PDF metadata layout")
     with pdfplumber.open(source) as geometry, pdfium.PdfDocument(str(source)) as document:
         for page_index, page in enumerate(geometry.pages):
+            body = exclude_white_body_text(page, white_body)
+            if white_body:
+                styles.append({"page": page_index + 1, "ignoredWhiteCharacters": len(page.chars) - len(body.chars), "whiteBodyBackground": True})
             with closing(document[page_index]) as pdf_page, closing(pdf_page.get_textpage()) as textpage:
                 def read(box):
                     return textpage.get_text_bounded(box[0], page.height - box[3], box[2], page.height - box[1]).strip() if box else ""
+
+                def visible(box):
+                    return (body.crop(box, strict=False).extract_text() or "").strip() if white_body else read(box)
 
                 for table_index, table in enumerate(page.find_tables()):
                     headers = [(index, box) for index, row in enumerate(table.rows) for box in row.cells if read(box) == group_name]
@@ -153,11 +243,12 @@ def stage(source, group_name, source_url, metadata_review=None):
                         if not INTERVAL.fullmatch(time_text):
                             continue
                         time_y = (time_box[1] + time_box[3]) / 2
-                        source_cells = [(box, read(box)) for box in group_cells(table.cells, header_box, time_y) if read(box)]
+                        source_cells = [(box, read(box)) for box in group_cells(table.cells, header_box, time_y) if visible(box)]
                         if not source_cells:
                             continue
                         lesson_box = source_cells[0][0]
                         raw = "\n".join(value for _, value in source_cells)
+                        visible_raw = "\n".join(visible(box) for box, _ in source_cells)
                         covered.update(tuple(box) for box, _ in source_cells)
                         day_box = next((box for box in table.cells if contains(box, table.bbox[0] + (time_box[0] - table.bbox[0]) / 2, time_y)), None)
                         try:
@@ -168,6 +259,7 @@ def stage(source, group_name, source_url, metadata_review=None):
                                                          "lessonBox": lesson_box, "rawText": raw, "timeBox": time_box, "timeText": time_text,
                                                          "dayBox": day_box, "dayText": day_text, "headerBox": header_box, "headerText": group_name,
                                                          "printedInterval": interval,
+                                                         **({"visibleText": visible_raw, "whiteBodyBackground": True} if white_body else {}),
                                                          **({"lessonBoxes": [box for box, _ in source_cells], "rawTexts": [value for _, value in source_cells]}
                                                             if len(source_cells) > 1 else {})}
                             reviewed = reviewed_metadata(corrections, stamp, interval, evidence)
@@ -176,18 +268,44 @@ def stage(source, group_name, source_url, metadata_review=None):
                                 evidence["metadataReviewId"] = correction_id
                                 applied.add(correction_id)
                             else:
-                                name, kind = lesson_metadata(raw)
-                            lessons.append({"date": stamp, "start": interval[0], "end": interval[1], "name": name, "scheduleKind": kind,
-                                            "evidence": evidence})
+                                _, metadata_text = printed_start(visible_raw) if metadata_layout == "room-first" else (None, visible_raw)
+                                name, kind = room_first_metadata(metadata_text) if metadata_layout == "room-first" else lesson_metadata(metadata_text)
+                            explicit_start, _ = printed_start(visible_raw) if metadata_layout == "room-first" else (None, visible_raw)
+                            timing = reviewed_timing(timing_corrections, stamp, interval, evidence, explicit_start)
+                            if timing:
+                                related = timing.get("relatedCell")
+                                if related:
+                                    related_box = tuple(related["lessonBox"])
+                                    related_time_box = tuple(related["timeBox"])
+                                    if (related["page"] != page_index + 1 or related["table"] != table_index + 1
+                                            or related_box not in table.cells
+                                            or min(related_box[2], header_box[2]) - max(related_box[0], header_box[0]) <= .1
+                                            or read(related_box) != related["expectedRawText"]
+                                            or visible(related_box) != related["expectedVisibleText"]
+                                            or read(related_time_box) != related["timeText"]
+                                            or read(tuple(related["dayBox"])) != related["dayText"]):
+                                        raise ValueError("Related timing conflict source changed")
+                                    related_interval = printed_interval(related["timeText"])
+                                    related_start, _ = printed_start(related["expectedVisibleText"])
+                                    if (related_start != explicit_start or related_interval[0] <= related_start < related_interval[1]
+                                            or printed_date(related["dayText"], start, through) != stamp):
+                                        raise ValueError("No coincident outside-grid source conflict")
+                                evidence["timingReview"] = timing
+                                timing_applied.add(timing["id"])
+                            lessons.append({"date": stamp, "start": explicit_start or interval[0],
+                                            **({"timeStatus": "unconfirmed"} if timing and timing["mode"] == "unconfirmed" else {"end": interval[1]}),
+                                            "name": name, "scheduleKind": kind, "evidence": evidence})
                         except ValueError as error:
                             errors.append({"page": page_index + 1, "row": row_index + 1, "rawText": raw, "message": str(error)})
                     for box in table.cells:
-                        if box and box[1] >= body_top and min(box[2], header_box[2]) - max(box[0], header_box[0]) > 0.1 and read(box) and tuple(box) not in covered:
+                        if box and box[1] >= body_top and min(box[2], header_box[2]) - max(box[0], header_box[0]) > 0.1 and visible(box) and tuple(box) not in covered:
                             errors.append({"page": page_index + 1, "lessonBox": box, "rawText": read(box), "message": "Nonempty cell has no fully parsed interval"})
     if not locations or not lessons and not errors:
         raise ValueError("No matching dated group timetable")
     if applied != set(correction_ids):
         raise ValueError(f"Reviewed metadata was not applied: {sorted(set(correction_ids) - applied)}")
+    if timing_applied != set(timing_ids):
+        raise ValueError(f"Reviewed timing was not applied: {sorted(set(timing_ids) - timing_applied)}")
     periods = {(entry["validFrom"], entry["validThrough"]) for entry in locations}
     if len(periods) != 1:
         raise ValueError("Multiple group periods require separate source review")
@@ -195,7 +313,8 @@ def stage(source, group_name, source_url, metadata_review=None):
     lessons.sort(key=lambda entry: (entry["date"], entry["start"], entry["name"]))
     return {"schemaVersion": 1, "purpose": "dated-pdf-grid-staging", "groupName": group_name, "sheet": "PDF",
             "source": {"url": source_url, "sha256": source_hash,
-                       "validFrom": valid_from, "validThrough": valid_through, "locations": locations},
+                       "validFrom": valid_from, "validThrough": valid_through, "locations": locations,
+                       **({"bodyTextFilter": "white-on-white", "styles": styles} if white_body else {})},
             "lessons": lessons, "errors": errors}
 
 
@@ -204,9 +323,13 @@ def main():
     for name in ["source", "group", "source-url", "out"]:
         parser.add_argument(f"--{name}", required=True)
     parser.add_argument("--metadata-review")
+    parser.add_argument("--timing-review")
+    parser.add_argument("--metadata-layout", choices=["subject-first", "room-first"], default="subject-first")
+    parser.add_argument("--white-body-background", action="store_true")
     args = parser.parse_args()
     metadata_review = json.loads(Path(args.metadata_review).read_text(encoding="utf-8")) if args.metadata_review else None
-    result = stage(args.source, args.group, args.source_url, metadata_review)
+    timing_review = json.loads(Path(args.timing_review).read_text(encoding="utf-8")) if args.timing_review else None
+    result = stage(args.source, args.group, args.source_url, metadata_review, args.white_body_background, args.metadata_layout, timing_review)
     Path(args.out).write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"group": args.group, "lessons": len(result["lessons"]), "errors": result["errors"]}, ensure_ascii=False))
     if result["errors"]:

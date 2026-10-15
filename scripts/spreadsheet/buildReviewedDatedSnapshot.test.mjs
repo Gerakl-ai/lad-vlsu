@@ -64,6 +64,44 @@ function pdfFixtures() {
 }
 
 describe('reviewed dated PDF import', () => {
+  function timingFixture(mode, conflict) {
+    const result = pdfFixtures();
+    const entry = result.staging.lessons[0];
+    entry.evidence.printedInterval = conflict === 'outside-grid' ? ['12:10', '13:40'] : ['15:50', '17:20'];
+    entry.evidence.timeText = entry.evidence.printedInterval.join('-');
+    entry.evidence.rawText = entry.evidence.visibleText = '16:00 Source subject';
+    entry.start = '16:00';
+    if (mode === 'unconfirmed') { delete entry.end; entry.timeStatus = 'unconfirmed'; }
+    else entry.end = '17:20';
+    entry.evidence.timingReview = { id: 'review-time', groupName: result.staging.groupName, sourceSha256: result.staging.source.sha256,
+      date: entry.date, page: 1, lessonBox: entry.evidence.lessonBox, gridStart: entry.evidence.printedInterval[0], gridEnd: entry.evidence.printedInterval[1],
+      printedStart: entry.start, expectedRawText: entry.evidence.rawText, expectedVisibleText: entry.evidence.visibleText, mode, conflict, reason: 'Checked original image' };
+    result.review.timingReviewIds = ['review-time'];
+    result.review.lessonsSha256 = sha256(result.staging.lessons);
+    return result;
+  }
+  it('requires source-bound approval for a printed start inside the grid', () => {
+    const { staging, review, catalog } = timingFixture('printed-start');
+    expect(buildReviewedDatedSnapshot(staging, catalog, review).schedule[0]).toMatchObject({ start: '16:00', end: '17:20' });
+    expect(() => buildReviewedDatedSnapshot(staging, catalog, { ...review, timingReviewIds: [] })).toThrow();
+    staging.lessons[0].evidence.timingReview.expectedVisibleText = 'Changed';
+    review.lessonsSha256 = sha256(staging.lessons);
+    expect(() => buildReviewedDatedSnapshot(staging, catalog, review)).toThrow();
+  });
+  it('retains an outside-grid start without inventing its end', () => {
+    const { staging, review, catalog } = timingFixture('unconfirmed', 'outside-grid');
+    const snapshot = buildReviewedDatedSnapshot(staging, catalog, review);
+    expect(snapshot.schedule[0]).toMatchObject({ start: '16:00', timeStatus: 'unconfirmed' });
+    expect(snapshot.schedule[0]).not.toHaveProperty('end');
+    expect(snapshot.quality.unconfirmedTimeEntries).toBe(1);
+    staging.lessons[0].end = '17:20';
+    review.lessonsSha256 = sha256(staging.lessons);
+    expect(() => buildReviewedDatedSnapshot(staging, catalog, review)).toThrow();
+  });
+  it('does not accept a claimed coincident conflict without a related exact cell', () => {
+    const { staging, review, catalog } = timingFixture('unconfirmed', 'coincident-start');
+    expect(() => buildReviewedDatedSnapshot(staging, catalog, review)).toThrow();
+  });
   it('keeps the assessment kind, explicit end and geometric evidence', () => {
     const { staging, catalog, review } = pdfFixtures();
     const result = buildReviewedDatedSnapshot(staging, catalog, review);

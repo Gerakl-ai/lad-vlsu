@@ -32,6 +32,45 @@ function hasPdfEvidence(entry, groupName) {
       && evidence.rawText === evidence.rawTexts.join('\n'));
 }
 
+function timePrefix(value) {
+  const match = /^\s*(\d{1,2}:[0-5]\d)\s+/.exec(value ?? '');
+  return match ? match[1].padStart(5, '0') : null;
+}
+
+function retainsReviewedTime(entry, staging, review, timingIds) {
+  const evidence = entry.evidence;
+  const resolution = evidence.timingReview;
+  const interval = evidence.printedInterval;
+  if (!resolution) return entry.timeStatus === undefined && interval?.[0] === entry.start && interval?.[1] === entry.end;
+  if (staging.purpose !== 'dated-pdf-grid-staging' || !review.timingReviewIds?.includes(resolution.id)
+    || timingIds.has(resolution.id) || resolution.sourceSha256 !== staging.source.sha256
+    || resolution.groupName !== staging.groupName || resolution.page !== evidence.page
+    || resolution.date !== entry.date || resolution.gridStart !== interval?.[0] || resolution.gridEnd !== interval?.[1]
+    || JSON.stringify(resolution.lessonBox) !== JSON.stringify(evidence.lessonBox)
+    || resolution.expectedRawText !== evidence.rawText || resolution.expectedVisibleText !== (evidence.visibleText ?? evidence.rawText)
+    || !resolution.reason?.trim() || resolution.printedStart !== entry.start
+    || timePrefix(evidence.visibleText ?? evidence.rawText) !== entry.start) return false;
+  let valid = false;
+  if (resolution.mode === 'printed-start') {
+    valid = entry.timeStatus === undefined && entry.end === interval[1] && interval[0] < entry.start && entry.start < interval[1];
+  } else if (resolution.mode === 'unconfirmed' && entry.timeStatus === 'unconfirmed' && entry.end === undefined) {
+    if (resolution.conflict === 'outside-grid') valid = entry.start < interval[0] || entry.start >= interval[1];
+    if (resolution.conflict === 'coincident-start') {
+      const related = resolution.relatedCell;
+      const match = /^\s*(\d{1,2}:[0-5]\d)\s*[-\u2013\u2014]\s*(\d{1,2}:[0-5]\d)\s*$/.exec(related?.timeText ?? '');
+      const from = match?.[1].padStart(5, '0');
+      const through = match?.[2].padStart(5, '0');
+      valid = interval[0] <= entry.start && entry.start < interval[1] && related?.page === evidence.page && related?.table === evidence.table
+        && ['lessonBox', 'timeBox', 'dayBox'].every((key) => validBox(related[key]))
+        && related.expectedRawText?.trim() && related.expectedVisibleText?.trim() && related.dayText === evidence.dayText
+        && timePrefix(related.expectedVisibleText) === entry.start && from && through && from < through
+        && (entry.start < from || entry.start >= through);
+    }
+  }
+  if (valid) timingIds.add(resolution.id);
+  return Boolean(valid);
+}
+
 export function buildReviewedDatedSnapshot(staging, catalog, review) {
   assert(staging?.schemaVersion === 1 && ['dated-spreadsheet-staging', 'dated-pdf-grid-staging'].includes(staging.purpose), 'Unknown dated staging');
   const pdf = staging.purpose === 'dated-pdf-grid-staging';
@@ -59,20 +98,23 @@ export function buildReviewedDatedSnapshot(staging, catalog, review) {
   assert(Array.isArray(staging.lessons) && staging.lessons.length === review.lessonCount
     && sha256(staging.lessons) === review.lessonsSha256, 'Reviewed lessons changed');
   const seen = new Set();
+  const timingIds = new Set();
   const schedule = staging.lessons.map((entry) => {
     assert(pdf ? hasPdfEvidence(entry, review.groupName) : entry?.evidence?.lessonCell && entry.evidence.rawText?.trim()
       && entry.evidence.dateCell && entry.evidence.headerCell && Object.keys(entry.evidence.timeCells ?? {}).length,
     'Lesson has no cell evidence');
     assert(validDate(entry.date) && entry.date >= review.validFrom && entry.date <= review.validThrough, 'Lesson is outside the declared period');
-    assert(entry.evidence.printedInterval?.[0] === entry.start && entry.evidence.printedInterval?.[1] === entry.end,
+    assert(retainsReviewedTime(entry, staging, review, timingIds),
       'Lesson does not retain its printed interval');
     const identity = `${entry.date}:${entry.start}:${entry.end}:${entry.name}`;
     assert(!seen.has(identity), 'Duplicate dated lesson');
     seen.add(identity);
     assert(!pdf || ['classes', 'exam'].includes(entry.scheduleKind), 'Dated PDF lesson kind is missing');
-    return { type: 'DatedLesson', date: entry.date, start: entry.start, end: entry.end, name: entry.name,
+    return { type: 'DatedLesson', date: entry.date, start: entry.start,
+      ...(entry.timeStatus === 'unconfirmed' ? { timeStatus: entry.timeStatus } : { end: entry.end }), name: entry.name,
       ...(pdf ? { scheduleKind: entry.scheduleKind } : {}) };
   });
+  assert(JSON.stringify([...timingIds].sort()) === JSON.stringify([...(review.timingReviewIds ?? [])].sort()), 'Reviewed timing IDs changed');
   const quality = scheduleQuality(schedule);
   assert(quality && quality.datedEntries === schedule.length, 'Invalid dates or explicit time intervals');
   return {
@@ -84,6 +126,7 @@ export function buildReviewedDatedSnapshot(staging, catalog, review) {
     validFrom: review.validFrom, validThrough: review.validThrough,
     sourceDocument: { title: review.title, url: review.sourceUrl, sha256: review.sourceSha256, reviewedAt: review.reviewedAt },
     sourceCells: pdf ? { format: 'pdf-grid', locations: staging.source.locations,
+      ...(staging.source.bodyTextFilter ? { bodyTextFilter: staging.source.bodyTextFilter, styles: staging.source.styles } : {}),
       distinctLessons: new Set(staging.lessons.flatMap(({ evidence }) => (evidence.lessonBoxes ?? [evidence.lessonBox])
         .map((box) => `${evidence.page}:${evidence.table}:${box.join(',')}`))).size,
       lessons: staging.lessons.map(({ evidence }) => evidence) } : { sheet: staging.sheet, period: staging.source.periodCell,

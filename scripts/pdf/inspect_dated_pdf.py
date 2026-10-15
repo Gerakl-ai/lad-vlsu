@@ -7,15 +7,7 @@ import re
 from contextlib import closing
 from pathlib import Path
 
-from stage_dated_pdf import CLOCK, INTERVAL, contains, group_cells, printed_date, printed_interval, printed_period
-
-
-def exclude_white_body_text(page, enabled):
-    if not enabled:
-        return page
-    # Opt-in only after rendering confirms a white body background.
-    return page.filter(lambda item: not (item.get("object_type") == "char"
-                                        and item.get("non_stroking_color") == (1.0, 1.0, 1.0)))
+from stage_dated_pdf import CLOCK, INTERVAL, contains, exclude_white_body_text, group_cells, printed_date, printed_interval, printed_period
 
 
 def inspect(source, groups, source_url, white_body=False):
