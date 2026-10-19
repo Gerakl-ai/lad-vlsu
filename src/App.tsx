@@ -1979,8 +1979,12 @@ function WeekMap({ dayLoads, onSelectDate }: { dayLoads: WeekDayLoad[]; onSelect
             aria-label={`Открыть ${day.dayName}: ${day.count ? formatLessonCount(day.count) : day.outsidePeriod ? "нет данных" : "без пар"}`}
             aria-current={dateKeyFromDate(day.date) === todayKey ? "date" : undefined}
           >
-            <span className="week-rhythm-meter" aria-hidden="true"><i style={{ height: day.count ? `${Math.max(16, Math.round((day.count / maxCount) * 100))}%` : "3px" }} /></span>
+            <span className="week-rhythm-meter" aria-hidden="true">
+              <i style={{ height: day.count ? `${Math.max(16, Math.round((day.count / maxCount) * 100))}%` : "3px" }} />
+              <b style={{ width: day.count ? `${Math.max(16, Math.round((day.count / maxCount) * 100))}%` : "3px" }} />
+            </span>
             <strong>{day.short}</strong>
+            <span className="week-rhythm-date">{WEEK_DATE_FORMATTER.format(day.date).replace(".", "")}</span>
             <small>{day.outsidePeriod ? "·" : day.count}</small>
           </button>
         ))}
