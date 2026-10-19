@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { LessonSlot, ScheduleState } from "../../types";
-import { compareScheduleDays, comparisonDay, comparisonLessonCount, type ComparisonDay } from "./scheduleComparison";
+import { compareDayRows, compareScheduleDays, comparisonDay, comparisonLessonCount, type ComparisonDay } from "./scheduleComparison";
 
 const lesson = (id: string, start: string, end?: string): LessonSlot => ({ id, start, end, dayIndex: 2, dayName: "Вторник", pairIndex: 1,
   subject: id, rawText: id, weekMode: "all", ...(!end ? { timeStatus: "unconfirmed" } : {}) });
@@ -9,6 +9,26 @@ const state = (lessons: LessonSlot[]): ScheduleState => ({ groupNrec: "a", allLe
   fetchedAt: "2026-10-06T10:00:00Z", validFrom: "2026-09-01", validThrough: "2026-12-31" });
 
 describe("schedule comparison", () => {
+  it("aligns classes by pair and time, distinguishing shared subject, room and building", () => {
+    const left = day(
+      { ...lesson("one", "08:30", "10:00"), subject: "Базы данных", room: "120-3" },
+      { ...lesson("two", "10:20", "11:50"), pairIndex: 2, room: "120-3" },
+      { ...lesson("three", "12:10", "13:40"), pairIndex: 3, room: "111-3" }
+    );
+    const right = day(
+      { ...lesson("other", "08:30", "10:00"), subject: "Базы данных", room: "999-1" },
+      { ...lesson("four", "10:20", "11:50"), pairIndex: 2, room: "120-3" },
+      { ...lesson("five", "12:10", "13:40"), pairIndex: 3, room: "210-3" },
+      { ...lesson("six", "14:00", "15:30"), pairIndex: 4 }
+    );
+    expect(compareDayRows(left, right).map((row) => row.match)).toEqual(["same-subject", "same-room", "same-building", "one-sided"]);
+  });
+  it("does not assert a match for subgroup alternatives, unknown times or unavailable days", () => {
+    const variants = { ...lesson("A", "08:30", "10:00"), variants: [{ subject: "ИИ", rawText: "ИИ" }, { subject: "Архитектура", rawText: "Архитектура" }] };
+    expect(compareDayRows(day(variants), day(lesson("A", "08:30", "10:00")))[0].match).toBe("uncertain");
+    expect(compareDayRows(day(lesson("A", "08:30")), day(lesson("A", "08:30", "10:00")))[0].match).toBe("uncertain");
+    expect(compareDayRows({ availability: "missing", lessons: [] }, day())).toEqual([]);
+  });
   it("labels the number of classes without broken declensions", () => {
     expect([1, 2, 5, 11, 21].map(comparisonLessonCount)).toEqual(["1 занятие", "2 занятия", "5 занятий", "11 занятий", "21 занятие"]);
   });

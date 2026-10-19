@@ -12,6 +12,8 @@ export interface ComparisonDay {
 }
 
 export interface TimeWindow { start: string; end: string; minutes: number }
+export type ComparisonMatch = "same-subject" | "same-room" | "same-building" | "different" | "one-sided" | "uncertain";
+export interface ComparisonRow { key: string; pairIndex: number; start: string; left: LessonSlot[]; right: LessonSlot[]; match: ComparisonMatch }
 export type ComparisonChoice = (lesson: LessonSlot, mode: WeekMode) => SubgroupChoice;
 export const COMPARISON_RANGE = { start: "08:00", end: "20:00" };
 const COUNT_RULES = new Intl.PluralRules("ru-RU");
@@ -37,6 +39,40 @@ export function comparisonDay(state: ScheduleState | null, date: Date, choice?: 
     return { availability: "outside-period", lessons: [], weekMode };
   }
   return { availability: "ready", lessons, weekMode };
+}
+
+function building(room?: string) {
+  // In VLSU room labels such as 111-3, the suffix is the building number.
+  const value = room?.trim().match(/^\d+-(\d+)$/);
+  return value?.[1];
+}
+
+function rowMatch(left: LessonSlot[], right: LessonSlot[]): ComparisonMatch {
+  if (!left.length || !right.length) return "one-sided";
+  if (left.length !== 1 || right.length !== 1 || (left[0].variants?.length ?? 0) > 1
+    || (right[0].variants?.length ?? 0) > 1) return "uncertain";
+  const a = left[0];
+  const b = right[0];
+  if (!hasConfirmedLessonTime(a) || !hasConfirmedLessonTime(b) || a.start !== b.start || a.end !== b.end) return "uncertain";
+  if (a.subject.trim().toLocaleLowerCase("ru-RU") === b.subject.trim().toLocaleLowerCase("ru-RU")) return "same-subject";
+  if (a.room && b.room && a.room.trim() === b.room.trim()) return "same-room";
+  if (building(a.room) && building(a.room) === building(b.room)) return "same-building";
+  return "different";
+}
+
+export function compareDayRows(left: ComparisonDay, right: ComparisonDay): ComparisonRow[] {
+  if (left.availability !== "ready" || right.availability !== "ready") return [];
+  const rows = new Map<string, ComparisonRow>();
+  for (const [side, day] of [["left", left], ["right", right]] as const) {
+    for (const lesson of day.lessons) {
+      const key = `${lesson.pairIndex}:${lesson.start}`;
+      const row = rows.get(key) ?? { key, pairIndex: lesson.pairIndex, start: lesson.start, left: [], right: [], match: "uncertain" as const };
+      row[side].push(lesson);
+      rows.set(key, row);
+    }
+  }
+  return [...rows.values()].map((row) => ({ ...row, match: rowMatch(row.left, row.right) }))
+    .sort((a, b) => a.start.localeCompare(b.start) || a.pairIndex - b.pairIndex);
 }
 
 function clock(minutes: number) {

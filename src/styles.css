@@ -5914,6 +5914,16 @@ button.day-title > svg {
 
   .today-detail-scroll { display: grid; height: auto; overflow: visible; gap: 14px; }
 
+  .today-primary .hero-card,
+  .today-primary .hero-card:not(:has(.progress-row)) {
+    min-height: clamp(340px, 43vh, 420px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .today-primary .hero-card .status-pill { align-self: flex-start; }
+  .today-primary .hero-card .progress-row { width: 100%; margin-top: auto; padding-top: 20px; }
+
   .hero-card h2 { font-size: 33px; line-height: 1.16; }
   .hero-card.compact-title h2 { font-size: 29px; }
   .hero-card.dense-title h2 { font-size: 26px; }

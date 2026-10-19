@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { currentDayIndex, dateKeyFromDate, hasConfirmedLessonTime, relativeDayLabel, selectDayLessons, weekModeForDate } from "../../lib/time";
+import { currentDayIndex, dateKeyFromDate, hasConfirmedLessonTime, relativeDayLabel, selectDayLessons, vlsuWeekModeForDate, weekModeForDate } from "../../lib/time";
 import type { LessonSlot, WeekMode } from "../../types";
 import type { SmartNote } from "./noteTypes";
 import { personalEventsOnDate, usePersonalEvents, type PersonalEvent } from "./personalEvents";
@@ -77,7 +77,8 @@ function timeOnDate(date: Date, value: string) {
 }
 
 function lessonsForDate(lessons: LessonSlot[], date: Date, currentMode: WeekMode, getLessonChoice?: SmartCalendarSheetProps["getLessonChoice"]) {
-  const mode = weekModeForDate(date, currentMode);
+  const mode = lessons.some((lesson) => lesson.scheduleKind === "exam")
+    ? weekModeForDate(date, currentMode) : vlsuWeekModeForDate(date);
   return selectDayLessons(lessons, currentDayIndex(date), mode, date)
     .map((lesson) => lessonWithSelectedVariant(lesson, getLessonChoice?.(lesson, mode) ?? "all"));
 }
