@@ -1,8 +1,15 @@
 {
   "catalogRestoredGroups": 0,
   "coverageAvailable": 655,
-  "durationSeconds": 661,
+  "durationSeconds": 716,
   "failures": [
+    {
+      "group": "МТИ-122",
+      "institute": "ВШМТ",
+      "nrec": "1ef0106339e1b0b505d64b1bf331123c",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
     {
       "group": "ЗМТИ-122",
       "institute": "ВШМТ",
@@ -14,13 +21,6 @@
       "group": "ИМм-123",
       "institute": "ВШМТ",
       "nrec": "5c167d9e2d0e418a2540497336cf8909",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
-      "group": "МТИ-122",
-      "institute": "ВШМТ",
-      "nrec": "1ef0106339e1b0b505d64b1bf331123c",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -81,16 +81,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗКЛмд-126",
+      "group": "ЗКЛмд-125",
       "institute": "ГИ",
-      "nrec": "25a9befbd8149fa61518a5498537504a",
+      "nrec": "3b614d2c9a7ce16cc2284a5207ad9cb8",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗКЛмд-125",
+      "group": "ЗКЛмд-126",
       "institute": "ГИ",
-      "nrec": "3b614d2c9a7ce16cc2284a5207ad9cb8",
+      "nrec": "25a9befbd8149fa61518a5498537504a",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -151,6 +151,13 @@
       "scope": "schedule"
     },
     {
+      "group": "ЗКПуд-126",
+      "institute": "ГИ",
+      "nrec": "dee8ab858f4ea3150830b22a38904d67",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
       "group": "ЗКПуд-124",
       "institute": "ГИ",
       "nrec": "798821176843e91cc43cd810f75dc1b9",
@@ -161,13 +168,6 @@
       "group": "ЗКПуд-125",
       "institute": "ГИ",
       "nrec": "2c5a8da7f1ca616079e6a68c2d3717a2",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
-      "group": "ЗКПуд-126",
-      "institute": "ГИ",
-      "nrec": "dee8ab858f4ea3150830b22a38904d67",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -193,16 +193,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗРВд-126",
+      "group": "ЗЛГмд-126",
       "institute": "ГИ",
-      "nrec": "a4cfbddaa057cea45a1c5f78e1051841",
+      "nrec": "80ae992c7a9ef6784340fe1a938a7367",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗЛГмд-126",
+      "group": "ЗРВд-126",
       "institute": "ГИ",
-      "nrec": "80ae992c7a9ef6784340fe1a938a7367",
+      "nrec": "a4cfbddaa057cea45a1c5f78e1051841",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -242,16 +242,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗСРд-126",
+      "group": "ЗСРд-125",
       "institute": "ГИ",
-      "nrec": "1c379938dc8c8d654cefd351dd5fd1c0",
+      "nrec": "fe616f542e07d47c8b12282132773cda",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗСРд-125",
+      "group": "ЗСРд-126",
       "institute": "ГИ",
-      "nrec": "fe616f542e07d47c8b12282132773cda",
+      "nrec": "1c379938dc8c8d654cefd351dd5fd1c0",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -333,16 +333,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗСвд-124",
+      "group": "ЗСвд-122",
       "institute": "ИАС",
-      "nrec": "4ee7d1e67f587e8943ef396db490b8c2",
+      "nrec": "e3cc9b171c1ab571f2b56918d27a5661",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗСвд-122",
+      "group": "ЗСвд-124",
       "institute": "ИАС",
-      "nrec": "e3cc9b171c1ab571f2b56918d27a5661",
+      "nrec": "4ee7d1e67f587e8943ef396db490b8c2",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -375,16 +375,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗСмвд-126",
+      "group": "ЗСмвд-125",
       "institute": "ИАС",
-      "nrec": "8508207225d23219a667e4c6a13f39c7",
+      "nrec": "a875b3f4b1eb059cca782b63f86af48e",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗСмвд-125",
+      "group": "ЗСмвд-126",
       "institute": "ИАС",
-      "nrec": "a875b3f4b1eb059cca782b63f86af48e",
+      "nrec": "8508207225d23219a667e4c6a13f39c7",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -396,16 +396,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗСмгд-126",
+      "group": "ЗСмгд-125",
       "institute": "ИАС",
-      "nrec": "dc85fabf7ff52a804fb7c70fccc5c506",
+      "nrec": "f8c78226f1219dabfa7cbcb3b7beacd7",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗСмгд-125",
+      "group": "ЗСмгд-126",
       "institute": "ИАС",
-      "nrec": "f8c78226f1219dabfa7cbcb3b7beacd7",
+      "nrec": "dc85fabf7ff52a804fb7c70fccc5c506",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -438,16 +438,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗСмид-125",
+      "group": "ЗСмид-124",
       "institute": "ИАС",
-      "nrec": "326af1351358f4d3a17e5bc72d901dd2",
+      "nrec": "99d014d258f3052e7e10f7cd0cc44073",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗСмид-124",
+      "group": "ЗСмид-125",
       "institute": "ИАС",
-      "nrec": "99d014d258f3052e7e10f7cd0cc44073",
+      "nrec": "326af1351358f4d3a17e5bc72d901dd2",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -662,16 +662,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗЭЭу-122",
+      "group": "ЗЭЭмд-126",
       "institute": "ИАС",
-      "nrec": "86fb21b0c0ed2276814944e02a032c6d",
+      "nrec": "5e7eb942b62ba61fbab9e5c85ae50b7f",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗЭЭмд-126",
+      "group": "ЗЭЭу-122",
       "institute": "ИАС",
-      "nrec": "5e7eb942b62ba61fbab9e5c85ae50b7f",
+      "nrec": "86fb21b0c0ed2276814944e02a032c6d",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -781,13 +781,6 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗХТвд-125",
-      "institute": "ЕН",
-      "nrec": "e83c98a68c1f7d1de14b7a7dec405161",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
       "group": "ЗХТвд-124",
       "institute": "ЕН",
       "nrec": "4f22a89be8717affe80b21e8212279e8",
@@ -795,9 +788,9 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗХТд-122",
+      "group": "ЗХТвд-125",
       "institute": "ЕН",
-      "nrec": "a004869efa8c83c1c77795934a741978",
+      "nrec": "e83c98a68c1f7d1de14b7a7dec405161",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -816,16 +809,9 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗХТд-125",
+      "group": "ЗХТд-122",
       "institute": "ЕН",
-      "nrec": "b99e67347dcc1a04b77a20ba2ed485dd",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
-      "group": "ЗХТд-126",
-      "institute": "ЕН",
-      "nrec": "ff54722645fa1e005d3518a0d6a61245",
+      "nrec": "a004869efa8c83c1c77795934a741978",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -837,9 +823,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗХТуд-124",
+      "group": "ЗХТд-126",
       "institute": "ЕН",
-      "nrec": "8d91423e7886858ca92d4e153e56b648",
+      "nrec": "ff54722645fa1e005d3518a0d6a61245",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
+      "group": "ЗХТд-125",
+      "institute": "ЕН",
+      "nrec": "b99e67347dcc1a04b77a20ba2ed485dd",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -847,6 +840,13 @@
       "group": "ЗХТуд-125",
       "institute": "ЕН",
       "nrec": "758863665d107b41173fa4cb6ea3d1c2",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
+      "group": "ЗХТуд-124",
+      "institute": "ЕН",
+      "nrec": "8d91423e7886858ca92d4e153e56b648",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -865,16 +865,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗИСТд-123",
+      "group": "ЗИСТд-122",
       "institute": "ИИТЭ",
-      "nrec": "867f37551c693649f54f002807a3d69a",
+      "nrec": "ccfede0a6161e83cf079475e02324ac5",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗИСТд-122",
+      "group": "ЗИСТд-123",
       "institute": "ИИТЭ",
-      "nrec": "ccfede0a6161e83cf079475e02324ac5",
+      "nrec": "867f37551c693649f54f002807a3d69a",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -886,16 +886,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗИСТд-125",
+      "group": "ЗИСТд-126",
       "institute": "ИИТЭ",
-      "nrec": "27c32a70c2195ae5214ee6da44b897a1",
+      "nrec": "296ccc855693c856f385c4e4153d1943",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗИСТд-126",
+      "group": "ЗИСТд-125",
       "institute": "ИИТЭ",
-      "nrec": "296ccc855693c856f385c4e4153d1943",
+      "nrec": "27c32a70c2195ae5214ee6da44b897a1",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -907,16 +907,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗИСТуд-124",
+      "group": "ЗИСТуд-125",
       "institute": "ИИТЭ",
-      "nrec": "878b392229b6d070fc63567a83d2a4cb",
+      "nrec": "fb5bcde8c308b1b5a47fd7d3278074e8",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗИСТуд-125",
+      "group": "ЗИСТуд-124",
       "institute": "ИИТЭ",
-      "nrec": "fb5bcde8c308b1b5a47fd7d3278074e8",
+      "nrec": "878b392229b6d070fc63567a83d2a4cb",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -949,6 +949,13 @@
       "scope": "schedule"
     },
     {
+      "group": "ЗПИд-123",
+      "institute": "ИИТЭ",
+      "nrec": "ed3fd02c6f8255630e10ce064542a02e",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
       "group": "ЗПИд-122",
       "institute": "ИИТЭ",
       "nrec": "9e8a25a033119117261f01f3bc44ab4f",
@@ -959,13 +966,6 @@
       "group": "ЗПИд-124",
       "institute": "ИИТЭ",
       "nrec": "0d790c3d3958adfb9781777766dd566f",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
-      "group": "ЗПИд-123",
-      "institute": "ИИТЭ",
-      "nrec": "ed3fd02c6f8255630e10ce064542a02e",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1012,13 +1012,6 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗПИуд-226",
-      "institute": "ИИТЭ",
-      "nrec": "49f5a0d49e3325c85316d44c022d7bb8",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
       "group": "ЗПИуд-224",
       "institute": "ИИТЭ",
       "nrec": "8ac1dd3833df0336ee260d3919df5c6e",
@@ -1033,6 +1026,13 @@
       "scope": "schedule"
     },
     {
+      "group": "ЗПИуд-226",
+      "institute": "ИИТЭ",
+      "nrec": "49f5a0d49e3325c85316d44c022d7bb8",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
       "group": "ЗРТд-125",
       "institute": "ИИТЭ",
       "nrec": "eb1699068dc6d88fc95596b8f623256d",
@@ -1040,16 +1040,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗРТд-126",
+      "group": "ЗПИуд-324",
       "institute": "ИИТЭ",
-      "nrec": "137d2b3c75ae9220353ee1d4082b5db1",
+      "nrec": "325023882e9acad0419c3aba4fa063b9",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗПИуд-324",
+      "group": "ЗРТд-126",
       "institute": "ИИТЭ",
-      "nrec": "325023882e9acad0419c3aba4fa063b9",
+      "nrec": "137d2b3c75ae9220353ee1d4082b5db1",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1089,13 +1089,6 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗАд-125",
-      "institute": "ИМиАТ",
-      "nrec": "899ec128de7515a85e0829008d08bb48",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
       "group": "ЗАд-126",
       "institute": "ИМиАТ",
       "nrec": "6452e13ab61718f880d687e670481183",
@@ -1103,9 +1096,23 @@
       "scope": "schedule"
     },
     {
+      "group": "ЗАд-125",
+      "institute": "ИМиАТ",
+      "nrec": "899ec128de7515a85e0829008d08bb48",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
       "group": "ЗАТд-122",
       "institute": "ИМиАТ",
       "nrec": "4c388ab211a0e9bd2ea9bbc03ff040c6",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
+      "group": "ЗАТд-125",
+      "institute": "ИМиАТ",
+      "nrec": "bf9608915064c817bde46d56e60a55dc",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1124,9 +1131,9 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗАТд-125",
+      "group": "ЗАуд-124",
       "institute": "ИМиАТ",
-      "nrec": "bf9608915064c817bde46d56e60a55dc",
+      "nrec": "b78271dfb0cc8f3ebfb279621c38c900",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1145,9 +1152,9 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗАуд-124",
+      "group": "ЗАуд-125",
       "institute": "ИМиАТ",
-      "nrec": "b78271dfb0cc8f3ebfb279621c38c900",
+      "nrec": "6149bfbd30b564ea539c68b1edfdfcfa",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1162,13 +1169,6 @@
       "group": "ЗАуд-223",
       "institute": "ИМиАТ",
       "nrec": "c6fdae1fc681abc2157ee9f4e0ba2a2d",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
-      "group": "ЗАуд-125",
-      "institute": "ИМиАТ",
-      "nrec": "6149bfbd30b564ea539c68b1edfdfcfa",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1257,16 +1257,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗТТПд-126",
+      "group": "ЗТСБуд-126",
       "institute": "ИМиАТ",
-      "nrec": "f5a3fad6a7488906b2c04495e0c3ce23",
+      "nrec": "b7a45321429e1db4ce100f447fce7309",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗТСБуд-126",
+      "group": "ЗТТПд-126",
       "institute": "ИМиАТ",
-      "nrec": "b7a45321429e1db4ce100f447fce7309",
+      "nrec": "f5a3fad6a7488906b2c04495e0c3ce23",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1278,16 +1278,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗТТПуд-125",
+      "group": "ЗТТПуд-124",
       "institute": "ИМиАТ",
-      "nrec": "5bb12ef9ccd12282c0b61a92a2d5c700",
+      "nrec": "3f523c78c33215540dfe7c93ddf9153a",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗТТПуд-124",
+      "group": "ЗТТПуд-125",
       "institute": "ИМиАТ",
-      "nrec": "3f523c78c33215540dfe7c93ddf9153a",
+      "nrec": "5bb12ef9ccd12282c0b61a92a2d5c700",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1362,6 +1362,13 @@
       "scope": "schedule"
     },
     {
+      "group": "ЗАФКуд-126",
+      "institute": "ФКСХ",
+      "nrec": "528772b60492bcd830c8ed12ba7af01f",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
       "group": "ЗАФКд-126",
       "institute": "ФКСХ",
       "nrec": "d23c5b2ab5a6dd9ffe945e577726ad1e",
@@ -1372,13 +1379,6 @@
       "group": "ЗФКм-125",
       "institute": "ФКСХ",
       "nrec": "9ffb7f0cd35bd083f179c629dad61e7f",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
-      "group": "ЗАФКуд-126",
-      "institute": "ФКСХ",
-      "nrec": "528772b60492bcd830c8ed12ba7af01f",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1432,16 +1432,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗБИмд-125",
+      "group": "ЗБИмд-126",
       "institute": "ИЭиТ",
-      "nrec": "def17c7090c7ba358c2fc6283735fd9c",
+      "nrec": "10fb5e030cc731538521b4af0f1c4318",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗБИмд-126",
+      "group": "ЗБИмд-125",
       "institute": "ИЭиТ",
-      "nrec": "10fb5e030cc731538521b4af0f1c4318",
+      "nrec": "def17c7090c7ba358c2fc6283735fd9c",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1509,16 +1509,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗГМУмд-125",
+      "group": "ЗГМУмд-126",
       "institute": "ИЭиТ",
-      "nrec": "f949f50dc4cf6f01d91b3cec3b164b35",
+      "nrec": "0f916b0179a532524ea560e38a3a2d99",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗГМУмд-126",
+      "group": "ЗГМУмд-125",
       "institute": "ИЭиТ",
-      "nrec": "0f916b0179a532524ea560e38a3a2d99",
+      "nrec": "f949f50dc4cf6f01d91b3cec3b164b35",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1530,16 +1530,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗМНммрд-125",
+      "group": "ЗМНммрд-126",
       "institute": "ИЭиТ",
-      "nrec": "460ebed236b2b9157ecd31ca9bdff55a",
+      "nrec": "d61163bb28021e23884089fa646957ce",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗМНммрд-126",
+      "group": "ЗМНммрд-125",
       "institute": "ИЭиТ",
-      "nrec": "d61163bb28021e23884089fa646957ce",
+      "nrec": "460ebed236b2b9157ecd31ca9bdff55a",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1551,16 +1551,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗМНмупд-125",
+      "group": "ЗМНмупд-126",
       "institute": "ИЭиТ",
-      "nrec": "b2d4ee12aea8d7ec3498b7ce313dc89f",
+      "nrec": "d794b8754312e48161d6d380b9dd4cea",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗМНмупд-126",
+      "group": "ЗМНмупд-125",
       "institute": "ИЭиТ",
-      "nrec": "d794b8754312e48161d6d380b9dd4cea",
+      "nrec": "b2d4ee12aea8d7ec3498b7ce313dc89f",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1600,6 +1600,13 @@
       "scope": "schedule"
     },
     {
+      "group": "ЗТРуд-126",
+      "institute": "ИЭиТ",
+      "nrec": "3c18153f850365cfdce6512dfa7859eb",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
       "group": "ЗТРуд-125",
       "institute": "ИЭиТ",
       "nrec": "0f61e3f460bb6139636ba387765d9946",
@@ -1614,23 +1621,9 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗТРуд-126",
-      "institute": "ИЭиТ",
-      "nrec": "3c18153f850365cfdce6512dfa7859eb",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
       "group": "ЗУКд-125",
       "institute": "ИЭиТ",
       "nrec": "7c4ba59ba6411203f0eaa40c03e44647",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
-      "group": "ЗУПмд-124",
-      "institute": "ИЭиТ",
-      "nrec": "f4a9e97c4a565d5f229f08b7b69facb7",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1642,6 +1635,13 @@
       "scope": "schedule"
     },
     {
+      "group": "ЗУПмд-124",
+      "institute": "ИЭиТ",
+      "nrec": "f4a9e97c4a565d5f229f08b7b69facb7",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
       "group": "ЗУПмд-125",
       "institute": "ИЭиТ",
       "nrec": "3c49dfd5530030ba83389a45064ae53f",
@@ -1649,16 +1649,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗЭБд-122",
+      "group": "ЗУПмд-126",
       "institute": "ИЭиТ",
-      "nrec": "561d49dd542884ec895eb4a05fc76fb7",
+      "nrec": "d8a2862dea05b261a6b135eb7afb501e",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗУПмд-126",
+      "group": "ЗЭБд-122",
       "institute": "ИЭиТ",
-      "nrec": "d8a2862dea05b261a6b135eb7afb501e",
+      "nrec": "561d49dd542884ec895eb4a05fc76fb7",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1677,16 +1677,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗЭБд-126",
+      "group": "ЗЭБд-125",
       "institute": "ИЭиТ",
-      "nrec": "d2284e8348ef9395505fc48d576d3762",
+      "nrec": "71a2e21a1a367a9870ddfc8fb02fa1be",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗЭБд-125",
+      "group": "ЗЭБд-126",
       "institute": "ИЭиТ",
-      "nrec": "71a2e21a1a367a9870ddfc8fb02fa1be",
+      "nrec": "d2284e8348ef9395505fc48d576d3762",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1726,16 +1726,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗЭКмд-125",
+      "group": "ЗЭКмд-126",
       "institute": "ИЭиТ",
-      "nrec": "c4e4414dd1d025984b2af18881c175e2",
+      "nrec": "aad706834bcad60fc45c3b69f817eaec",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ЗЭКмд-126",
+      "group": "ЗЭКмд-125",
       "institute": "ИЭиТ",
-      "nrec": "aad706834bcad60fc45c3b69f817eaec",
+      "nrec": "c4e4414dd1d025984b2af18881c175e2",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1789,16 +1789,16 @@
       "scope": "schedule"
     },
     {
-      "group": "РЭсп-324",
+      "group": "РЭуспк-225",
       "institute": "КИТП",
-      "nrec": "a182d0d604c3a48d88b80ee32c553c10",
+      "nrec": "edb17e3f86207809da1484839093f9fa",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "РЭуспк-225",
+      "group": "РЭсп-324",
       "institute": "КИТП",
-      "nrec": "edb17e3f86207809da1484839093f9fa",
+      "nrec": "a182d0d604c3a48d88b80ee32c553c10",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1873,13 +1873,6 @@
       "scope": "schedule"
     },
     {
-      "group": "ФКуспк-225",
-      "institute": "КИТП",
-      "nrec": "e555b848e505317db875f958956e5dd2",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
       "group": "ФКуспк-224",
       "institute": "КИТП",
       "nrec": "cc916539d78e36f10cf27bda28df05b1",
@@ -1887,9 +1880,23 @@
       "scope": "schedule"
     },
     {
+      "group": "ФКуспк-225",
+      "institute": "КИТП",
+      "nrec": "e555b848e505317db875f958956e5dd2",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
       "group": "Фуспк-226",
       "institute": "КИТП",
       "nrec": "dc11b1cc8a396ef910f1bd5d7dbdc925",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
+      "group": "ЭОсп-126",
+      "institute": "КИТП",
+      "nrec": "65e6767d9b230aa90de8a4061975ad0f",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1922,6 +1929,13 @@
       "scope": "schedule"
     },
     {
+      "group": "ЗДНОмд-126",
+      "institute": "ПИ",
+      "nrec": "443ce82484e6b6a69cd5ca02d8620a1a",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
       "group": "ЗДНОмд-124",
       "institute": "ПИ",
       "nrec": "59710035a4d366f75240cf8d5bfb92a2",
@@ -1936,9 +1950,9 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗДНОмд-126",
+      "group": "ЗДОд-125",
       "institute": "ПИ",
-      "nrec": "443ce82484e6b6a69cd5ca02d8620a1a",
+      "nrec": "aaac427b13617f90db4737f64e9a8f3f",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1946,13 +1960,6 @@
       "group": "ЗДОд-124",
       "institute": "ПИ",
       "nrec": "f19501c22e9bcd9dd88b506869ae014a",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
-      "group": "ЗДОд-125",
-      "institute": "ПИ",
-      "nrec": "aaac427b13617f90db4737f64e9a8f3f",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1971,13 +1978,6 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗДОу-123",
-      "institute": "ПИ",
-      "nrec": "998ffe00deef6449f292c80f1c2db9e2",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
       "group": "ЗНО-122",
       "institute": "ПИ",
       "nrec": "22bf2b59e14c2f70705a8be6f89cab78",
@@ -1985,9 +1985,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗНО-123",
+      "group": "ЗДОу-123",
       "institute": "ПИ",
-      "nrec": "5f2ef322994aac90d4a8b02c12376b06",
+      "nrec": "998ffe00deef6449f292c80f1c2db9e2",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
+      "group": "ЗНОд-125",
+      "institute": "ПИ",
+      "nrec": "6e8231be124dfd1513ddf02853854c20",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -1999,9 +2006,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗНОд-125",
+      "group": "ЗНО-123",
       "institute": "ПИ",
-      "nrec": "6e8231be124dfd1513ddf02853854c20",
+      "nrec": "5f2ef322994aac90d4a8b02c12376b06",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
+      "group": "ЗНОу-123",
+      "institute": "ПИ",
+      "nrec": "961b0c1a377026735256bc9d7c18c456",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -2016,13 +2030,6 @@
       "group": "ЗНОуд-124",
       "institute": "ПИ",
       "nrec": "7e8008db45a6bef24cfb00569bc858bc",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
-      "group": "ЗНОу-123",
-      "institute": "ПИ",
-      "nrec": "961b0c1a377026735256bc9d7c18c456",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -2062,16 +2069,16 @@
       "scope": "schedule"
     },
     {
-      "group": "НОЛ-121",
+      "group": "НО-117",
       "institute": "ПИ",
-      "nrec": "1161c110f006d446add50c537c3635e4",
+      "nrec": "97b15b42829c996616127082e6fec222",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "НО-117",
+      "group": "НОЛ-121",
       "institute": "ПИ",
-      "nrec": "97b15b42829c996616127082e6fec222",
+      "nrec": "1161c110f006d446add50c537c3635e4",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -2153,16 +2160,16 @@
       "scope": "schedule"
     },
     {
-      "group": "ПОд-113",
+      "group": "ПОд-114",
       "institute": "ЦМО",
-      "nrec": "a5f0fa9ae4c2e75be7b8d32b946eaace",
+      "nrec": "d893e908071d24b13bc614c95a32c34e",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "ПОд-114",
+      "group": "ПОд-113",
       "institute": "ЦМО",
-      "nrec": "d893e908071d24b13bc614c95a32c34e",
+      "nrec": "a5f0fa9ae4c2e75be7b8d32b946eaace",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -2181,16 +2188,16 @@
       "scope": "schedule"
     },
     {
-      "group": "РКИ-114",
+      "group": "РКИ-115",
       "institute": "ЦМО",
-      "nrec": "5a776eae4f1793fdb8c0e440ff1a1b96",
+      "nrec": "ff7e5277c09e34841f41719bd62d0e96",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
     {
-      "group": "РКИ-115",
+      "group": "РКИ-114",
       "institute": "ЦМО",
-      "nrec": "ff7e5277c09e34841f41719bd62d0e96",
+      "nrec": "5a776eae4f1793fdb8c0e440ff1a1b96",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -2223,13 +2230,6 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗТМД-123",
-      "institute": "ЮИ",
-      "nrec": "4027f02adfd21cb08b89bdec168c3955",
-      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
-      "scope": "schedule"
-    },
-    {
       "group": "ЗТМД-121",
       "institute": "ЮИ",
       "nrec": "eff695e1f08d7f39d0b36c794044179b",
@@ -2244,9 +2244,9 @@
       "scope": "schedule"
     },
     {
-      "group": "ЗТМД-125",
+      "group": "ЗТМД-123",
       "institute": "ЮИ",
-      "nrec": "6e0bae2adea74f65057db5b1b4027cff",
+      "nrec": "4027f02adfd21cb08b89bdec168c3955",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -2261,6 +2261,13 @@
       "group": "ЗТМДд-126",
       "institute": "ЮИ",
       "nrec": "2695e7b81c70739f2ed7561c4efbde75",
+      "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
+      "scope": "schedule"
+    },
+    {
+      "group": "ЗТМД-125",
+      "institute": "ЮИ",
+      "nrec": "6e0bae2adea74f65057db5b1b4027cff",
       "reason": "ВлГУ вернул пустой ответ вместо данных (HTTP 200)",
       "scope": "schedule"
     },
@@ -2286,7 +2293,7 @@
       "scope": "schedule"
     }
   ],
-  "finishedAt": "2026-10-20T14:29:38.706Z",
+  "finishedAt": "2026-10-20T19:29:13.160Z",
   "groupsInCatalog": 964,
   "institutes": 14,
   "probeAttempted": 3,
@@ -2295,17 +2302,17 @@
     "commit": "88bfa12660e36b5aaa51577f15f453d8edc026b0",
     "commitUrl": "https://github.com/Gerakl-ai/lad-vlsu/commit/88bfa12660e36b5aaa51577f15f453d8edc026b0",
     "repository": "Gerakl-ai/lad-vlsu",
-    "runUrl": "https://github.com/Gerakl-ai/lad-vlsu/actions/runs/39438022060"
+    "runUrl": "https://github.com/Gerakl-ai/lad-vlsu/actions/runs/39482136924"
   },
   "scheduleAttempted": 964,
-  "scheduleFailed": 326,
-  "scheduleOk": 638,
+  "scheduleFailed": 327,
+  "scheduleOk": 637,
   "scheduleSkipped": 0,
   "skipReason": null,
-  "startedAt": "2026-10-20T14:18:37.661Z",
+  "startedAt": "2026-10-20T19:17:17.098Z",
   "written": {
     "created": 0,
     "unchanged": 0,
-    "updated": 638
+    "updated": 637
   }
 }
