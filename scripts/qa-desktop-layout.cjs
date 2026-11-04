@@ -48,6 +48,18 @@ const qaUrl = new URL(groupQuery, process.env.QA_URL || 'http://127.0.0.1:4173/'
           await palette.getByRole('option', { name: /Сменить группу/ }).waitFor();
           await page.keyboard.press('Escape');
           await palette.waitFor({ state: 'hidden' });
+          await page.keyboard.press('Control+k');
+          await palette.waitFor();
+          await palette.getByRole('combobox', { name: 'Найти команду' }).fill('завтра');
+          await page.keyboard.press('Enter');
+          const tomorrowDay = await page.evaluate(() => { const date = new Date(); date.setDate(date.getDate() + 1); return String(date.getDate()); });
+          await page.waitForFunction((day) => document.querySelector('.today-date-tile strong')?.textContent?.trim() === day, tomorrowDay);
+          await page.keyboard.press('Control+k');
+          await palette.waitFor();
+          await palette.getByRole('combobox', { name: 'Найти команду' }).fill('сегодня');
+          await page.keyboard.press('Enter');
+          const currentDay = await page.evaluate(() => String(new Date().getDate()));
+          await page.waitForFunction((day) => document.querySelector('.today-date-tile strong')?.textContent?.trim() === day, currentDay);
         } else {
           await page.getByRole('button', { name: 'Быстрый переход' }).waitFor({ state: 'hidden' });
         }

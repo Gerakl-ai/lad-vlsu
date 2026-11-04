@@ -782,7 +782,7 @@ export function App() {
   }, [navigateToTab, selectedDate]);
 
   const desktopCommands: DesktopCommand[] = [
-    { id: "today", label: "Сегодня", description: "Расписание выбранного дня", category: "Переход", keywords: "пары расписание день", icon: CalendarDays, run: () => navigateToTab("today") },
+    { id: "today", label: "Сегодня", description: "Вернуться к текущей дате", category: "Переход", keywords: "пары расписание день сейчас", icon: CalendarDays, run: () => showScheduleDate(new Date()) },
     { id: "week", label: "Неделя", description: "Расписание и нагрузка по дням", category: "Переход", keywords: "расписание пары", icon: Grid2X2, run: () => navigateToTab("week") },
     { id: "notes", label: "Записи", description: "Заметки, дела и папки", category: "Переход", keywords: "заметки дела", icon: NotebookPen, run: () => navigateToTab("notes") },
     { id: "settings", label: "Настройки", description: "Оформление и напоминания", category: "Переход", keywords: "тема уведомления", icon: Settings, run: () => navigateToTab("settings") },
