@@ -40,6 +40,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Palette,
+  Search,
   RefreshCw,
   Send,
   Settings,
@@ -47,6 +48,7 @@ import {
   ShieldCheck,
   Sparkles,
   Upload,
+  UsersRound,
   Video,
   Waves,
   X
@@ -60,6 +62,7 @@ import { importDrafts, loadDraftsWithStatus, type NotesLoadStatus } from "./feat
 import { useSmartNotes } from "./features/notes/useSmartNotes";
 import { importPersonalEvents, personalEventsOnDate, usePersonalEvents } from "./features/notes/personalEvents";
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
+import { DesktopCommandPalette, type DesktopCommand } from "./components/DesktopCommandPalette";
 import "./features/groups/comparison.css";
 import { StudyCalendarPanel } from "./features/groups/StudyCalendarPanel";
 import { parseGroupLink, resolveGroupLink, syncGroupLink } from "./features/groups/groupLinks";
@@ -286,6 +289,7 @@ export function App() {
   const [schedule, setSchedule] = useState<ScheduleState | null>(INITIAL_SCHEDULE);
   const [status, setStatus] = useState<ApiStatus>(() => (INITIAL_SCHEDULE ? "hydrating-from-cache" : "loading"));
   const [activeTab, setActiveTab] = useState<AppTab>(initialAppTab);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(() => {
     try { return localStorage.getItem("lad.desktop-nav-collapsed") === "true"; }
     catch { return false; }
@@ -530,6 +534,20 @@ export function App() {
   }, [selectedGroup]);
 
   useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "k") return;
+      if (!window.matchMedia("(min-width: 960px) and (min-height: 600px)").matches) return;
+      const target = event.target instanceof HTMLElement ? event.target : null;
+      const inPalette = Boolean(target?.closest(".desktop-command-palette"));
+      if (!inPalette && target?.matches("input, textarea, select, [contenteditable='true']")) return;
+      event.preventDefault();
+      setCommandPaletteOpen((open) => !open);
+    };
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, []);
+
+  useEffect(() => {
     const applyDataUpdate = (data: unknown) => {
       const group = selectedGroupRef.current;
       if (!group || !isSelectedScheduleUpdate(data, group.nrec)) return;
@@ -763,6 +781,21 @@ export function App() {
     navigateToTab("today");
   }, [navigateToTab, selectedDate]);
 
+  const desktopCommands: DesktopCommand[] = [
+    { id: "today", label: "Сегодня", description: "Расписание выбранного дня", category: "Переход", keywords: "пары расписание день", icon: CalendarDays, run: () => navigateToTab("today") },
+    { id: "week", label: "Неделя", description: "Расписание и нагрузка по дням", category: "Переход", keywords: "расписание пары", icon: Grid2X2, run: () => navigateToTab("week") },
+    { id: "notes", label: "Записи", description: "Заметки, дела и папки", category: "Переход", keywords: "заметки дела", icon: NotebookPen, run: () => navigateToTab("notes") },
+    { id: "settings", label: "Настройки", description: "Оформление и напоминания", category: "Переход", keywords: "тема уведомления", icon: Settings, run: () => navigateToTab("settings") },
+    { id: "previous-day", label: "Предыдущий день", description: "Открыть день перед выбранным", category: "Дата", keywords: "вчера назад календарь", icon: ChevronLeft, run: () => showScheduleDate(addDays(selectedDate, -1)) },
+    { id: "next-day", label: "Следующий день", description: "Открыть день после выбранного", category: "Дата", keywords: "завтра вперед календарь", icon: ChevronRight, run: () => showScheduleDate(addDays(selectedDate, 1)) },
+    { id: "calendar", label: "Открыть календарь", description: "Выбрать дату, пару или событие", category: "Действие", keywords: "месяц дата планы", icon: CalendarDays, run: () => { setCalendarCreateOnOpen(false); setCalendarOpen(true); } },
+    { id: "new-event", label: "Добавить событие", description: "Запланировать личное событие", category: "Действие", keywords: "календарь встреча", icon: CalendarPlus, run: () => { setCalendarCreateOnOpen(true); setCalendarOpen(true); } },
+    { id: "group", label: "Сменить группу", description: "Найти расписание другой группы ВлГУ", category: "Действие", keywords: "институт выбрать группу", icon: UsersRound, run: () => setGroupPickerOpen(true) },
+    ...(selectedGroup ? [{ id: "compare", label: "Сравнить группы", description: "Сопоставить расписания двух групп", category: "Действие", keywords: "пары сравнение", icon: GitCompareArrows, run: () => setComparisonOpen(true) }] : []),
+    { id: "refresh", label: "Обновить расписание", description: "Проверить свежие данные ВлГУ", category: "Действие", keywords: "синхронизация сеть", icon: RefreshCw, run: () => { void refreshSchedule(); } },
+    { id: "theme", label: "Сменить тему", description: "Открыть галерею оформления", category: "Действие", keywords: "цвета дизайн", icon: Palette, run: () => setThemeSheetOpen(true) }
+  ];
+
   const resetScreenGesture = useCallback(() => {
     const view = contentScrollRef.current?.querySelector<HTMLElement>(".view-stack");
     if (view?.style.transform) {
@@ -891,6 +924,7 @@ export function App() {
           onRefresh={() => refreshSchedule()}
           onThemeOpen={() => setThemeSheetOpen(true)}
           onGroupOpen={() => setGroupPickerOpen(true)}
+          onCommandOpen={() => setCommandPaletteOpen(true)}
           sidebarCollapsed={desktopSidebarCollapsed}
           onToggleSidebar={() => setDesktopSidebarCollapsed((collapsed) => {
             const next = !collapsed;
@@ -1082,6 +1116,12 @@ export function App() {
           onCustomChange={updateCustomTheme}
           onSelect={selectTheme}
         />
+        <DesktopCommandPalette
+          open={commandPaletteOpen}
+          commands={desktopCommands}
+          onClose={() => setCommandPaletteOpen(false)}
+          shortcutLabel={typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘ K" : "Ctrl K"}
+        />
         <GroupPickerSheet
           open={groupPickerOpen}
           selectedGroup={selectedGroup}
@@ -1102,11 +1142,12 @@ interface HeaderProps {
   onRefresh: () => void;
   onThemeOpen: () => void;
   onGroupOpen: () => void;
+  onCommandOpen: () => void;
   sidebarCollapsed: boolean;
   onToggleSidebar: () => void;
 }
 
-function Header({ group, currentWeek, datedScheduleLabel, status, refreshedAt, onRefresh, onThemeOpen, onGroupOpen, sidebarCollapsed, onToggleSidebar }: HeaderProps) {
+function Header({ group, currentWeek, datedScheduleLabel, status, refreshedAt, onRefresh, onThemeOpen, onGroupOpen, onCommandOpen, sidebarCollapsed, onToggleSidebar }: HeaderProps) {
   const isBusy = status === "loading" || status === "checking-without-cache" || status === "refreshing";
   const connectionState = status === "stale" || status === "error-without-cache" ? "offline" : isBusy ? "syncing" : "ready";
   const badge = groupBadgeParts(group?.name ?? "ВлГУ");
@@ -1139,6 +1180,11 @@ function Header({ group, currentWeek, datedScheduleLabel, status, refreshedAt, o
           <span>{datedScheduleLabel ?? formatWeekChip(currentWeek)}</span>
           <i className={`week-chip-health ${connectionState}`} title={syncStatusText(status, refreshedAt)} aria-hidden="true" />
           <RefreshCw className={isBusy ? "spin" : ""} size={16} />
+        </button>
+        <button className="desktop-command-trigger" type="button" onClick={onCommandOpen} aria-label="Быстрый переход" title="Быстрый переход" aria-keyshortcuts="Control+K Meta+K">
+          <Search size={17} aria-hidden="true" />
+          <span>Поиск</span>
+          <kbd>{typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘ K" : "Ctrl K"}</kbd>
         </button>
         <button className="header-icon-button" type="button" onClick={onThemeOpen} aria-label="Сменить тему" title="Сменить тему" data-testid="open-theme-picker">
           <Palette size={20} />
