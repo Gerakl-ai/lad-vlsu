@@ -389,6 +389,8 @@ select,
   isolation: isolate;
 }
 
+.desktop-sidebar-toggle { display: none; }
+
 .brand {
   display: flex;
   min-width: 0;
@@ -5986,17 +5988,52 @@ button.day-title > svg {
 }
 
 @media (min-width: 1280px) and (min-height: 600px) {
+  .phone-frame { transition: grid-template-columns .22s cubic-bezier(.2,.8,.2,1); }
+
   .phone-frame {
     display: grid;
     grid-template-columns: 210px minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
   }
 
+  .phone-frame[data-sidebar-collapsed="true"] { grid-template-columns: 76px minmax(0, 1fr); }
+
   .topbar {
     grid-column: 1 / -1;
     grid-row: 1;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    align-items: center;
     padding: 12px 28px 8px;
   }
+
+  .desktop-sidebar-toggle {
+    grid-column: 1;
+    grid-row: 1;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    color: var(--muted);
+    border: 1px solid var(--theme-panel-border);
+    border-radius: 6px;
+    background: var(--theme-control);
+    cursor: pointer;
+    transition: color .16s ease, border-color .16s ease, background .16s ease;
+  }
+
+  .desktop-sidebar-toggle:hover,
+  .desktop-sidebar-toggle:focus-visible {
+    color: var(--text);
+    border-color: rgba(var(--accent-rgb), .52);
+    background: var(--theme-control-active);
+  }
+
+  .desktop-sidebar-toggle:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+  .topbar > .brand { grid-column: 2; grid-row: 1; }
+  .topbar > .header-actions { grid-column: 3; grid-row: 1; }
+  .topbar > .sync-line { grid-column: 1 / -1; }
 
   .topbar .brand-mark { width: 46px; height: 46px; }
   .topbar .brand h1 { font-size: 26px; }
@@ -6066,6 +6103,11 @@ button.day-title > svg {
   }
 
   .phone-frame > .bottom-nav .nav-icon { flex: 0 0 26px; width: 26px; height: 26px; }
+
+  .phone-frame[data-sidebar-collapsed="true"] > .bottom-nav { padding-inline: 10px; }
+  .phone-frame[data-sidebar-collapsed="true"] > .bottom-nav button { justify-content: center; padding-inline: 0; }
+  .phone-frame[data-sidebar-collapsed="true"] > .bottom-nav .nav-label { display: none; }
+  .phone-frame[data-sidebar-collapsed="true"] > .bottom-nav .nav-icon { flex: 0 0 26px; }
 }
 
 @media (min-width: 1800px) and (min-height: 600px) {

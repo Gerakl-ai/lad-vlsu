@@ -37,6 +37,8 @@ import {
   Info,
   MapPin,
   NotebookPen,
+  PanelLeftClose,
+  PanelLeftOpen,
   Palette,
   RefreshCw,
   Send,
@@ -284,6 +286,10 @@ export function App() {
   const [schedule, setSchedule] = useState<ScheduleState | null>(INITIAL_SCHEDULE);
   const [status, setStatus] = useState<ApiStatus>(() => (INITIAL_SCHEDULE ? "hydrating-from-cache" : "loading"));
   const [activeTab, setActiveTab] = useState<AppTab>(initialAppTab);
+  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(() => {
+    try { return localStorage.getItem("lad.desktop-nav-collapsed") === "true"; }
+    catch { return false; }
+  });
   const [weekOverride, setWeekOverride] = useState<WeekMode | "current">("current");
   const [settings, setSettings] = useState<ReminderSettings>(() => readReminderSettings());
   const [notice, setNotice] = useState("");
@@ -872,7 +878,7 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <section className="phone-frame" aria-label={`${selectedGroup?.name ?? "ВлГУ"} расписание`} inert={comparisonOpen || undefined}>
+      <section className="phone-frame" data-sidebar-collapsed={desktopSidebarCollapsed} aria-label={`${selectedGroup?.name ?? "ВлГУ"} расписание`} inert={comparisonOpen || undefined}>
         <div className="ambient-grid" />
         <div className="light-sweep" />
         <MotionScene />
@@ -885,6 +891,12 @@ export function App() {
           onRefresh={() => refreshSchedule()}
           onThemeOpen={() => setThemeSheetOpen(true)}
           onGroupOpen={() => setGroupPickerOpen(true)}
+          sidebarCollapsed={desktopSidebarCollapsed}
+          onToggleSidebar={() => setDesktopSidebarCollapsed((collapsed) => {
+            const next = !collapsed;
+            try { localStorage.setItem("lad.desktop-nav-collapsed", String(next)); } catch { /* Optional preference. */ }
+            return next;
+          })}
         />
 
         <div
@@ -1031,7 +1043,7 @@ export function App() {
           )}
         </div>
 
-        <BottomNav activeTab={activeTab} onTabChange={navigateToTab} />
+        <BottomNav activeTab={activeTab} onTabChange={navigateToTab} sidebarCollapsed={desktopSidebarCollapsed} />
         {comparisonOpen && selectedGroup && <Suspense fallback={createPortal(
           <div className="comparison-backdrop"><section className="comparison-sheet" role="dialog" aria-label="Открываем сравнение">
             <header className="comparison-header"><div><h2>Сравнить группы</h2></div>
@@ -1090,9 +1102,11 @@ interface HeaderProps {
   onRefresh: () => void;
   onThemeOpen: () => void;
   onGroupOpen: () => void;
+  sidebarCollapsed: boolean;
+  onToggleSidebar: () => void;
 }
 
-function Header({ group, currentWeek, datedScheduleLabel, status, refreshedAt, onRefresh, onThemeOpen, onGroupOpen }: HeaderProps) {
+function Header({ group, currentWeek, datedScheduleLabel, status, refreshedAt, onRefresh, onThemeOpen, onGroupOpen, sidebarCollapsed, onToggleSidebar }: HeaderProps) {
   const isBusy = status === "loading" || status === "checking-without-cache" || status === "refreshing";
   const connectionState = status === "stale" || status === "error-without-cache" ? "offline" : isBusy ? "syncing" : "ready";
   const badge = groupBadgeParts(group?.name ?? "ВлГУ");
@@ -1101,6 +1115,11 @@ function Header({ group, currentWeek, datedScheduleLabel, status, refreshedAt, o
 
   return (
     <header className="topbar" data-sync-status={status}>
+      <button className="desktop-sidebar-toggle" type="button" onClick={onToggleSidebar}
+        aria-label={sidebarCollapsed ? "Развернуть навигацию" : "Свернуть навигацию"}
+        title={sidebarCollapsed ? "Развернуть навигацию" : "Свернуть навигацию"}>
+        {sidebarCollapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}
+      </button>
       <button className="brand brand-button" type="button" onClick={onGroupOpen} aria-label={group ? `Сменить группу. Сейчас ${group.name}` : "Выбрать группу"}>
         <span className="brand-mark group-brand-mark" data-visual={group?.visualKey ?? "institute-0"} aria-hidden="true">
           <strong>{badge.prefix}</strong>
@@ -2260,7 +2279,7 @@ function SkeletonView({ light }: { light: boolean }) {
   );
 }
 
-function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange: (tab: AppTab) => void }) {
+function BottomNav({ activeTab, onTabChange, sidebarCollapsed }: { activeTab: AppTab; onTabChange: (tab: AppTab) => void; sidebarCollapsed: boolean }) {
   const items = [
     { tab: "today" as const, label: "Сегодня", icon: CalendarDays },
     { tab: "week" as const, label: "Неделя", icon: Grid2X2 },
@@ -2279,6 +2298,8 @@ function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange:
           key={tab}
           className={activeTab === tab ? "active" : ""}
           type="button"
+          aria-label={label}
+          title={sidebarCollapsed ? label : undefined}
           onClick={(event) => {
             event.currentTarget.blur();
             onTabChange(tab);
