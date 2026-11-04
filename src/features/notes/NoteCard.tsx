@@ -8,6 +8,7 @@ import type { SmartNote } from "./noteTypes";
 
 interface NoteCardProps {
   note: SmartNote;
+  selected?: boolean;
   onEdit: (note: SmartNote) => void;
   onDelete: (noteId: string) => Promise<void>;
   onToggle: (noteId: string) => void;
@@ -31,7 +32,7 @@ function noteBody(note: SmartNote) {
   return lines.slice(1).join("\n").trim();
 }
 
-function notePreviewHtml(note: SmartNote) {
+export function notePreviewHtml(note: SmartNote) {
   if (!note.contentHtml) return "";
   const documentValue = new DOMParser().parseFromString(note.contentHtml, "text/html");
   const firstBlock = documentValue.body.querySelector("p, h1, h2, h3");
@@ -53,6 +54,7 @@ function formatFullNoteDate(value: string) {
 
 export function NoteCard({
   note,
+  selected = false,
   onEdit,
   onDelete,
   onToggle,
@@ -196,6 +198,7 @@ export function NoteCard({
     <div
       className={[
         "note-swipe-shell",
+        selected ? "selected" : "",
         revealed ? "revealed" : "",
         deleting ? "deleting" : "",
         reordering ? "reordering" : "",

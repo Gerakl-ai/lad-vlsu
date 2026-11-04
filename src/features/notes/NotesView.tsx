@@ -13,6 +13,7 @@ import {
   Mic,
   Music2,
   PanelsTopLeft,
+  Pin,
   Radio,
   RefreshCw,
   Search,
@@ -25,7 +26,7 @@ import { createPortal } from "react-dom";
 import type { LessonSlot, WeekMode } from "../../types";
 import { FolderSheet } from "./FolderSheet";
 import { deadlineForCalendarDate } from "./noteDeadline";
-import { NoteCard } from "./NoteCard";
+import { NoteCard, notePreviewHtml } from "./NoteCard";
 import { loadDraftsWithStatus, type NotesLoadStatus } from "./noteStorage";
 import type { NoteDropPlacement } from "./noteOrdering";
 import type { LessonNoteContext, NoteClassification, NoteComposerRequest, NoteDocumentInput, NoteDraft, NoteFolder, SmartNote } from "./noteTypes";
@@ -142,6 +143,8 @@ export function NotesView({
   onOpenSettings,
   onRetryStorage
 }: NotesViewProps) {
+  const [wideDesktop, setWideDesktop] = useState(false);
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [composerOpen, setComposerOpen] = useState(() => new URLSearchParams(window.location.search).get("compose") === "1");
@@ -160,6 +163,14 @@ export function NotesView({
   const voiceRequestIdRef = useRef(0);
   const reorderStateRef = useRef<NoteReorderState | null>(null);
   const reorderOriginRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1400px) and (min-height: 600px)");
+    const update = () => setWideDesktop(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -205,6 +216,9 @@ export function NotesView({
       return `${note.title} ${note.text} ${note.space} ${note.topic ?? ""} ${note.subjectLabel ?? ""}`.toLocaleLowerCase("ru-RU").includes(normalizedQuery);
     });
   }, [notes, query, selectedFilter]);
+  const selectedPreviewNote = wideDesktop
+    ? visibleNotes.find((note) => note.id === selectedNoteId) ?? visibleNotes[0] ?? null
+    : null;
 
   const calendarDate = new Date();
   const calendarDay = calendarDate.getDate();
@@ -439,14 +453,28 @@ export function NotesView({
   async function saveNote(input: NoteDocumentInput, noteId?: string) {
     if (noteId) await onUpdate(noteId, input);
     else {
-      await onCreate(input);
+      const created = await onCreate(input);
+      if (wideDesktop) setSelectedNoteId(created.id);
       setActiveFilter("all");
       setQuery("");
     }
   }
 
+  const recoverableDrafts = ready && drafts.some((draft) => draft.text.trim() || /<img\b/i.test(draft.contentHtml)) && (
+    <section className="recoverable-drafts" aria-label="Черновики записей">
+      <h3>Черновики</h3>
+      {drafts.filter((draft) => draft.text.trim() || /<img\b/i.test(draft.contentHtml)).map((draft) => (
+        <button key={draft.id} type="button" onClick={() => openDraft(draft)}>
+          <SquarePen size={18} aria-hidden="true" />
+          <span>{draft.text.trim().split("\n")[0].slice(0, 80) || "Запись с фото"}</span>
+          <ChevronRight size={18} aria-hidden="true" />
+        </button>
+      ))}
+    </section>
+  );
+
   return (
-    <div className="view-stack notes-view">
+    <div className={`view-stack notes-view${wideDesktop ? " wide-note-workspace" : ""}`}>
       <div className="notes-dashboard">
         <section className="notes-heading">
           <div>
@@ -504,7 +532,7 @@ export function NotesView({
           {showNoteControls && filters.map(({ id, label, space, color, icon: Icon }) => {
             const count = notes.filter((note) => !space || note.space === space).length;
             return (
-              <button key={id} className={selectedFilter.id === id ? "active" : ""} type="button" onClick={() => { setActiveFilter(id); setRevealedNoteId(null); }} aria-pressed={selectedFilter.id === id}>
+              <button key={id} className={selectedFilter.id === id ? "active" : ""} type="button" title={label} onClick={() => { setActiveFilter(id); setRevealedNoteId(null); }} aria-pressed={selectedFilter.id === id}>
                 {color ? <i className="folder-color" style={{ background: color }} aria-hidden="true" /> : <Icon size={16} />}
                 <span>{label}</span>
                 <small>{count}</small>
@@ -516,20 +544,10 @@ export function NotesView({
             <span>Папки</span>
           </button>
         </div>
+        {wideDesktop && recoverableDrafts}
       </div>
 
-      {ready && drafts.some((draft) => draft.text.trim() || /<img\b/i.test(draft.contentHtml)) && (
-        <section className="recoverable-drafts" aria-label="Черновики записей">
-          <h3>Черновики</h3>
-          {drafts.filter((draft) => draft.text.trim() || /<img\b/i.test(draft.contentHtml)).map((draft) => (
-            <button key={draft.id} type="button" onClick={() => openDraft(draft)}>
-              <SquarePen size={18} aria-hidden="true" />
-              <span>{draft.text.trim().split("\n")[0].slice(0, 80) || "Запись с фото"}</span>
-              <ChevronRight size={18} aria-hidden="true" />
-            </button>
-          ))}
-        </section>
-      )}
+      {!wideDesktop && recoverableDrafts}
 
       {!ready ? (
         <section className="notes-loading" aria-label="Загрузка записей"><span /><span /><span /></section>
@@ -548,11 +566,13 @@ export function NotesView({
             <NoteCard
               key={note.id}
               note={note}
+              selected={wideDesktop && selectedPreviewNote?.id === note.id}
               revealed={revealedNoteId === note.id}
               reordering={reorderState?.sourceId === note.id}
               dropPlacement={reorderState?.targetId === note.id ? reorderState.placement : undefined}
               onEdit={(value) => {
-                openNote(value);
+                if (wideDesktop) setSelectedNoteId(value.id);
+                else openNote(value);
               }}
               onDelete={async (noteId) => {
                 await onDelete(noteId);
@@ -591,6 +611,15 @@ export function NotesView({
         </section>
       )}
 
+      {wideDesktop && selectedPreviewNote && (
+        <NoteDetailPane
+          note={selectedPreviewNote}
+          onEdit={openNote}
+          onToggle={onToggle}
+          onTogglePinned={onTogglePinned}
+        />
+      )}
+
       {composerOpen && (
         <Suspense fallback={<SheetModuleFallback label="Открываем запись" />}>
           <LazyNoteComposer
@@ -627,5 +656,60 @@ export function NotesView({
         </Suspense>
       )}
     </div>
+  );
+}
+
+function NoteDetailPane({
+  note,
+  onEdit,
+  onToggle,
+  onTogglePinned
+}: {
+  note: SmartNote;
+  onEdit: (note: SmartNote) => void;
+  onToggle: (noteId: string) => void;
+  onTogglePinned: (noteId: string) => void;
+}) {
+  const savedAt = note.contentUpdatedAt ?? note.createdAt ?? note.updatedAt;
+  const timestamp = new Date(savedAt);
+  const formattedDate = Number.isNaN(timestamp.getTime())
+    ? ""
+    : new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(timestamp);
+  const preview = notePreviewHtml(note);
+  const plainBody = note.text.split(/\r?\n/).slice(1).join("\n").trim();
+  const normalizedTitle = note.title.trim().toLocaleLowerCase("ru-RU");
+  const normalizedTopic = note.topic?.trim().toLocaleLowerCase("ru-RU") ?? "";
+  const distinctTopic = normalizedTopic && !normalizedTitle.startsWith(normalizedTopic) && !normalizedTopic.startsWith(normalizedTitle);
+
+  return (
+    <aside className="note-detail-pane" aria-label={`Просмотр записи: ${note.title}`}>
+      <header className="note-detail-top">
+        <span>ЗАПИСЬ</span>
+        {formattedDate && <time dateTime={savedAt}>{formattedDate}</time>}
+        <button type="button" className={note.pinned ? "active" : ""} onClick={() => onTogglePinned(note.id)} aria-label={note.pinned ? "Открепить запись" : "Закрепить запись"} title={note.pinned ? "Открепить" : "Закрепить"}>
+          <Pin size={17} fill={note.pinned ? "currentColor" : "none"} />
+        </button>
+      </header>
+      <article className="note-detail-content">
+        <h3>{note.title}</h3>
+        <div className="note-detail-meta">
+          {distinctTopic && <span>{note.topic}</span>}
+          {note.space !== "Входящие" && note.space !== note.topic && <span>{note.space}</span>}
+          {note.subjectLabel && note.subjectLabel !== note.topic && <span>{note.subjectLabel}</span>}
+          {note.dueLabel && <span>{note.dueLabel}</span>}
+        </div>
+        {preview
+          ? <div className="note-detail-body" dangerouslySetInnerHTML={{ __html: preview }} />
+          : <p className="note-detail-plain">{plainBody || "В этой записи пока нет текста."}</p>}
+      </article>
+      <footer className="note-detail-actions">
+        <button type="button" className="note-detail-complete" onClick={() => onToggle(note.id)}>
+          <CheckCircle2 size={17} />{note.status === "done" ? "Вернуть в дела" : "Отметить выполненной"}
+        </button>
+        <button type="button" className="note-detail-edit" onClick={() => onEdit(note)}>
+          <SquarePen size={17} />Редактировать
+        </button>
+      </footer>
+    </aside>
   );
 }

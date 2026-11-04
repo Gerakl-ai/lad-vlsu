@@ -42,6 +42,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
   const [saveError, setSaveError] = useState(false);
   const [draftState, setDraftState] = useState<DraftState>("idle");
   const [editorKey, setEditorKey] = useState(0);
+  const draftDirtyRef = useRef(false);
   const draftRevisionRef = useRef(0);
   const hydratedDraftRef = useRef<string | null>(null);
   const draftWriteRef = useRef<Promise<boolean>>(Promise.resolve(true));
@@ -68,6 +69,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
     setHydrating(true);
     const canRestore = Boolean(snapshot && (restoredDraft || !note || snapshot.updatedAt > noteSavedAt));
     const recoveredDraft = canRestore ? snapshot : null;
+    draftDirtyRef.current = Boolean(recoveredDraft);
     const nextHtml = recoveredDraft?.contentHtml ?? note?.contentHtml ?? plainTextToHtml(note?.text ?? initialSeed);
     setContentHtml(nextHtml || "<p></p>");
     setText(recoveredDraft?.text ?? note?.text ?? initialSeed);
@@ -94,6 +96,8 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
 
   const persistDraft = useCallback(async () => {
     if (!open || hydrating || hydratedDraftRef.current !== draftId) return false;
+    if (note && !draftDirtyRef.current) return true;
+    if (!hasContent && !deadlineTouched && !lessonContext && !restoredDraft) return true;
     const revision = draftRevisionRef.current;
     setDraftState("saving");
     const snapshot = {
@@ -113,7 +117,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
     const persisted = await write;
     if (revision === draftRevisionRef.current) setDraftState(persisted ? "saved" : "error");
     return persisted;
-  }, [contentHtml, deadlineTouched, deadlineValue, draftId, hydrating, lessonContext, open, pinned, spaceOverride, text]);
+  }, [contentHtml, deadlineTouched, deadlineValue, draftId, hasContent, hydrating, lessonContext, note, open, pinned, restoredDraft, spaceOverride, text]);
 
   useEffect(() => {
     if (!open || hydrating) return;
@@ -126,6 +130,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
   }, []);
 
   const markDraftDirty = useCallback(() => {
+    draftDirtyRef.current = true;
     draftRevisionRef.current += 1;
     setDraftState("saving");
   }, []);
