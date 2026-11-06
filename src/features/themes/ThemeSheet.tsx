@@ -34,6 +34,7 @@ const LIGHT_CUSTOM_THEME: CustomTheme = {
 };
 
 const QUICK_ACCENTS = [
+  { name: "Белый", value: "#ffffff" },
   { name: "Терракота", value: "#c9602d" },
   { name: "Бирюза", value: "#2f7d78" },
   { name: "Ультрамарин", value: "#4c5bd4" },

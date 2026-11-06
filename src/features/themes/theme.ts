@@ -39,13 +39,13 @@ export const THEME_SCHEMA_VERSION = "2026-08-ember";
 export const DEFAULT_THEME_ID: ThemeId = "ember";
 
 export const DEFAULT_CUSTOM_THEME: CustomTheme = {
-  name: "Мой свет",
+  name: "Моя тема",
   mode: "dark",
   background: "#080b12",
   surface: "#131c2a",
   text: "#f7f9fc",
   muted: "#94a2b5",
-  accent: "#72b8ff",
+  accent: "#ffffff",
   signal: "#ff6b72",
   success: "#61dfbd"
 };
@@ -62,9 +62,9 @@ export const THEMES: ThemeDefinition[] = [
   {
     id: "obsidian",
     name: "Obsidian",
-    caption: "Глубокий графит, белый текст и холодный голубой свет",
+    caption: "Глубокий графит, белый текст и чистый белый свет",
     themeColor: "#080b12",
-    colors: ["#080b12", "#f7f9fc", "#72b8ff", "#ff6b72"]
+    colors: ["#080b12", "#f7f9fc", "#ffffff", "#ff6b72"]
   },
   {
     id: "porcelain",
@@ -189,7 +189,24 @@ export function readCustomTheme(): CustomTheme {
     const stored = localStorage.getItem(CUSTOM_THEME_STORAGE_KEY);
     if (!stored) return DEFAULT_CUSTOM_THEME;
     const parsed: unknown = JSON.parse(stored);
-    return validCustomTheme(parsed) ? parsed : DEFAULT_CUSTOM_THEME;
+    if (!validCustomTheme(parsed)) return DEFAULT_CUSTOM_THEME;
+
+    const isPreviousDefault =
+      (parsed.name === "Мой свет" || parsed.name === "Моя тема") &&
+      parsed.mode === "dark" &&
+      parsed.background === "#080b12" &&
+      parsed.surface === "#131c2a" &&
+      parsed.text === "#f7f9fc" &&
+      parsed.muted === "#94a2b5" &&
+      parsed.accent === "#72b8ff" &&
+      parsed.signal === "#ff6b72" &&
+      parsed.success === "#61dfbd";
+
+    if (!isPreviousDefault) return parsed;
+
+    const migrated = { ...DEFAULT_CUSTOM_THEME };
+    localStorage.setItem(CUSTOM_THEME_STORAGE_KEY, JSON.stringify(migrated));
+    return migrated;
   } catch {
     return DEFAULT_CUSTOM_THEME;
   }

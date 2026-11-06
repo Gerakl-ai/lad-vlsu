@@ -69,7 +69,7 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
             surface: 'rgba(19, 28, 42, .86)',
             text: '#f7f9fc',
             muted: '#94a2b5',
-            accent: '114, 184, 255',
+            accent: '255, 255, 255',
             signal: '255, 107, 114',
             success: '97, 223, 189'
           });
@@ -164,6 +164,27 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
     await notePage.locator('[data-note-id="desktop-delete-qa"]').waitFor({ state: 'detached' });
     assert.deepEqual(await notePage.evaluate(() => JSON.parse(localStorage.getItem('lad.notes.deleted.v1') || '[]')), ['desktop-delete-qa']);
     await notePage.close();
+
+    const themePage = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+    await themePage.addInitScript(() => {
+      localStorage.setItem('lad.theme-schema', '2026-08-ember');
+      localStorage.setItem('lad.theme', 'obsidian');
+      localStorage.setItem('lad.custom-theme', JSON.stringify({
+        name: 'Мой свет', mode: 'dark', background: '#080b12', surface: '#131c2a', text: '#f7f9fc',
+        muted: '#94a2b5', accent: '#72b8ff', signal: '#ff6b72', success: '#61dfbd'
+      }));
+    });
+    await themePage.goto(url, { waitUntil: 'domcontentloaded' });
+    await themePage.getByTestId('open-theme-picker').click();
+    await themePage.locator('.theme-presets summary').click();
+    await themePage.locator('.theme-option-custom').click();
+    await themePage.locator('.custom-theme-editor').scrollIntoViewIfNeeded();
+    const customColors = await themePage.locator('.custom-theme-editor input[type="color"]').evaluateAll((inputs) => inputs.map((input) => input.value));
+    assert.deepEqual(customColors, ['#080b12', '#131c2a', '#f7f9fc', '#94a2b5', '#ffffff', '#ff6b72', '#61dfbd']);
+    assert.equal(await themePage.getByLabel('Название темы').inputValue(), 'Моя тема');
+    assert.equal(await themePage.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim()), '255, 255, 255');
+    await themePage.screenshot({ path: 'artifacts/qa/desktop-surfaces/1366-Тема.png' });
+    await themePage.close();
   } finally {
     await browser.close();
   }
