@@ -108,47 +108,47 @@
 
 :root[data-theme="obsidian"] {
   color-scheme: dark;
-  --bg: #080b10;
-  --bg-deep: #04060a;
-  --surface: rgba(20, 26, 35, .88);
-  --surface-strong: rgba(30, 37, 48, .96);
-  --line: rgba(224, 231, 240, .13);
-  --line-strong: rgba(241, 245, 249, .56);
+  --bg: #111720;
+  --bg-deep: #0b1017;
+  --surface: rgba(31, 40, 53, .9);
+  --surface-strong: rgba(43, 53, 68, .96);
+  --line: rgba(224, 231, 240, .16);
+  --line-strong: rgba(241, 245, 249, .62);
   --text: #f3f5f8;
-  --muted: #9ba6b7;
-  --cyan: #eef2f7;
-  --blue: #dfe5ed;
-  --coral: #ff786d;
+  --muted: #aab5c4;
+  --cyan: #f1f4f8;
+  --blue: #e5eaf1;
+  --coral: #ff8176;
   --green: #73d7bd;
   --warning: #f2c078;
   --ruby: #b54852;
   --ice: #dce3ed;
-  --accent-rgb: 238, 242, 247;
-  --accent-soft-rgb: 177, 190, 207;
-  --signal-rgb: 255, 120, 109;
+  --accent-rgb: 241, 244, 248;
+  --accent-soft-rgb: 188, 199, 213;
+  --signal-rgb: 255, 129, 118;
   --signal-deep-rgb: 178, 68, 70;
   --success-rgb: 115, 215, 189;
   --theme-body:
-    linear-gradient(120deg, rgba(238, 242, 247, .075), transparent 40%),
-    linear-gradient(310deg, rgba(255, 120, 109, .045), transparent 52%),
-    #080b10;
+    linear-gradient(120deg, rgba(238, 242, 247, .09), transparent 40%),
+    linear-gradient(310deg, rgba(255, 129, 118, .055), transparent 52%),
+    #111720;
   --theme-frame:
-    repeating-linear-gradient(90deg, rgba(205, 216, 230, .024) 0 1px, transparent 1px 42px),
-    radial-gradient(560px 380px at 94% -7%, rgba(238, 242, 247, .09), transparent 70%),
-    linear-gradient(180deg, #111822, #05070b);
+    repeating-linear-gradient(90deg, rgba(205, 216, 230, .028) 0 1px, transparent 1px 42px),
+    radial-gradient(560px 380px at 94% -7%, rgba(238, 242, 247, .14), transparent 70%),
+    linear-gradient(180deg, #202a37, #0d131b);
   --theme-panel:
-    linear-gradient(135deg, rgba(255, 255, 255, .055), transparent 39%),
-    linear-gradient(145deg, rgba(25, 32, 42, .96), rgba(7, 10, 15, .97));
-  --theme-panel-solid: rgba(14, 19, 27, .98);
-  --theme-panel-border: rgba(220, 229, 240, .18);
-  --theme-control: rgba(220, 229, 240, .075);
-  --theme-control-active: rgba(220, 229, 240, .17);
-  --theme-nav: linear-gradient(180deg, rgba(19, 27, 38, .99), rgba(5, 7, 11, .995));
-  --theme-nav-text: #aab4c2;
-  --theme-grid-rgb: 177, 190, 207;
-  --theme-image-filter: saturate(.78) contrast(1.1) brightness(.78);
-  --theme-image-opacity: .78;
-  --shadow: 0 30px 90px rgba(0, 0, 0, .6);
+    linear-gradient(135deg, rgba(255, 255, 255, .07), transparent 39%),
+    linear-gradient(145deg, rgba(37, 47, 61, .97), rgba(16, 23, 32, .98));
+  --theme-panel-solid: rgba(25, 34, 46, .98);
+  --theme-panel-border: rgba(220, 229, 240, .21);
+  --theme-control: rgba(220, 229, 240, .09);
+  --theme-control-active: rgba(220, 229, 240, .19);
+  --theme-nav: linear-gradient(180deg, rgba(31, 42, 56, .99), rgba(13, 20, 29, .995));
+  --theme-nav-text: #b4bfce;
+  --theme-grid-rgb: 188, 199, 213;
+  --theme-image-filter: saturate(.82) contrast(1.08) brightness(.86);
+  --theme-image-opacity: .82;
+  --shadow: 0 30px 90px rgba(0, 0, 0, .46);
 }
 
 :root[data-theme="porcelain"] {

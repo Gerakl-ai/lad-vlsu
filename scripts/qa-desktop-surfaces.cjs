@@ -17,7 +17,7 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
       page.on('pageerror', (error) => errors.push(error.message));
       await page.addInitScript(() => {
         localStorage.setItem('lad.subgroup.v1:7936a2a43b11b20b01d30f5b00c73166', '0');
-        if (innerWidth === 1366) {
+        if (innerWidth === 1366 || innerWidth === 402) {
           localStorage.setItem('lad.theme-schema', '2026-08-ember');
           localStorage.setItem('lad.theme', 'obsidian');
         }

@@ -157,7 +157,12 @@ const LazyScheduleComparisonSheet = lazy(async () => ({ default: (await import("
 
 let notesViewPromise: Promise<NotesViewComponent> | null = null;
 const loadNotesView = () => {
-  notesViewPromise ??= import("./features/notes/NotesView").then((module) => module.NotesView);
+  notesViewPromise ??= import("./features/notes/NotesView")
+    .then((module) => module.NotesView)
+    .catch((error: unknown) => {
+      notesViewPromise = null;
+      throw error;
+    });
   return notesViewPromise;
 };
 
@@ -615,6 +620,14 @@ export function App() {
       preload();
       return () => {
         cancelled = true;
+      };
+    }
+    const mobileWindow = window.matchMedia("(max-width: 767px), (hover: none) and (max-width: 1100px)").matches;
+    if (mobileWindow) {
+      const timer = window.setTimeout(preload, 120);
+      return () => {
+        cancelled = true;
+        window.clearTimeout(timer);
       };
     }
     const idleWindow = window as typeof window & {
@@ -2539,6 +2552,12 @@ function BottomNav({ activeTab, onTabChange, sidebarCollapsed }: { activeTab: Ap
           type="button"
           aria-label={label}
           title={sidebarCollapsed ? label : undefined}
+          onPointerEnter={() => {
+            if (tab === "notes") void loadNotesView().catch(() => undefined);
+          }}
+          onPointerDown={(event) => {
+            if (tab === "notes" && event.pointerType !== "mouse") void loadNotesView().catch(() => undefined);
+          }}
           onClick={(event) => {
             event.currentTarget.blur();
             onTabChange(tab);

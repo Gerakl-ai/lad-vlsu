@@ -36,7 +36,13 @@ function assertVisibleTabMotion(motion, label, direction) {
   fs.mkdirSync('artifacts/qa/desktop-layout', { recursive: true });
   try {
     for (const viewport of viewports) {
-      const page = await browser.newPage({ viewport, serviceWorkers: 'block' });
+      const isMobile = viewport.width === 402;
+      const page = await browser.newPage({
+        viewport,
+        serviceWorkers: 'block',
+        ...(isMobile ? { isMobile: true, hasTouch: true, deviceScaleFactor: 3 } : {})
+      });
+      let notesChunkRequested = false;
       const savedAt = '2026-11-04T14:20:00.000Z';
       if (viewport.width === 1024) {
         await page.addInitScript(() => {
@@ -48,6 +54,20 @@ function assertVisibleTabMotion(motion, label, direction) {
         });
         await page.route('**/assets/NotesView-*.js', async (route) => {
           await new Promise((resolve) => setTimeout(resolve, 500));
+          await route.continue();
+        });
+      }
+      if (isMobile) {
+        await page.addInitScript(() => {
+          window.requestIdleCallback = (callback) => {
+            window.__deferredIdleCallback = callback;
+            return 1;
+          };
+          window.cancelIdleCallback = () => {};
+        });
+        await page.route('**/assets/NotesView-*.js', async (route) => {
+          notesChunkRequested = true;
+          await new Promise((resolve) => setTimeout(resolve, 450));
           await route.continue();
         });
       }
@@ -102,6 +122,18 @@ function assertVisibleTabMotion(motion, label, direction) {
             return [...window.__tabMotionHistory].reverse().find((entry) => entry.element === element && entry.motionId === motionId);
           };
         });
+        if (isMobile) {
+          await page.getByRole('button', { name: 'Добавить событие' }).waitFor();
+          if (!notesChunkRequested) await page.waitForRequest('**/assets/NotesView-*.js', { timeout: 1200 });
+          const startedAt = Date.now();
+          await page.locator('.bottom-nav').getByRole('button', { name: 'Записи' }).click();
+          await page.waitForFunction(() => document.querySelector('.content-scroll')?.getAttribute('data-active-tab') === 'notes');
+          const firstOpenMs = Date.now() - startedAt;
+          assert.ok(firstOpenMs < 700, `Mobile Notes first open waited ${firstOpenMs}ms despite early preload`);
+          console.log(JSON.stringify({ mobileNotesFirstOpenMs: firstOpenMs, preloadStartedBeforeTap: true }));
+          await page.locator('.bottom-nav').getByRole('button', { name: 'Сегодня' }).click();
+          await page.locator('.today-view').waitFor();
+        }
         const desktop = viewport.width >= 960 && viewport.height >= 600;
         if (desktop) {
           if (viewport.width >= 1280) {
