@@ -62,9 +62,9 @@ export const THEMES: ThemeDefinition[] = [
   {
     id: "obsidian",
     name: "Obsidian",
-    caption: "Светлый графит, мягкий белый и чистый контраст",
-    themeColor: "#111720",
-    colors: ["#111720", "#f4f6f9", "#f1f4f8", "#ff8176"]
+    caption: "Светлый графит, жемчужный свет и мягкий коралл",
+    themeColor: "#1b222c",
+    colors: ["#1b222c", "#f5f6f8", "#e8edf4", "#ff8479"]
   },
   {
     id: "porcelain",

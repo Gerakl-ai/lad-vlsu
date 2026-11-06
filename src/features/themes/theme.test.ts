@@ -26,7 +26,8 @@ describe("theme definitions", () => {
     expect(THEMES[0]).toMatchObject({ id: "ember", isLight: true });
     expect(THEMES[1].id).toBe("obsidian");
     expect(THEMES[1].isLight).toBeFalsy();
-    expect(THEMES[1].colors[2]).toBe("#f1f4f8");
+    expect(THEMES[1].themeColor).toBe("#1b222c");
+    expect(THEMES[1].colors[2]).toBe("#e8edf4");
   });
 
   it("migrates an existing installation once and preserves later choices", () => {
