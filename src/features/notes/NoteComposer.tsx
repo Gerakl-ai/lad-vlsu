@@ -5,6 +5,7 @@ import { noteKindLabel } from "./noteClassifier";
 import { plainTextToHtml } from "./noteContent";
 import { localDateTimeToIso, resolveNoteDeadline, toLocalDateTimeValue } from "./noteDeadline";
 import { readDraftSnapshot, removeDraft, storeDraft } from "./noteStorage";
+import { hasDraftPayload, lessonDraftId } from "./noteDraftId";
 import type { LessonNoteContext, NoteClassification, NoteDocumentInput, NoteDraft, NoteFolder, SmartNote } from "./noteTypes";
 
 const LazyRichNoteEditor = lazy(async () => ({ default: (await import("./RichNoteEditor")).RichNoteEditor }));
@@ -47,9 +48,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
   const hydratedDraftRef = useRef<string | null>(null);
   const draftWriteRef = useRef<Promise<boolean>>(Promise.resolve(true));
   const shareResetTimerRef = useRef<number | undefined>(undefined);
-  const draftId = restoredDraft?.id ?? note?.id ?? (initialLessonContext
-    ? `new-${initialLessonContext.lessonId}-${initialLessonContext.date}-${initialLessonContext.intent}`
-    : "new");
+  const draftId = restoredDraft?.id ?? note?.id ?? (initialLessonContext ? lessonDraftId(initialLessonContext) : "new");
   const noteSavedAt = note?.contentUpdatedAt ?? note?.createdAt ?? note?.updatedAt ?? "";
   const hasContent = Boolean(text.trim() || /<img\b/i.test(contentHtml));
   const hasShareableText = Boolean(text.trim());
@@ -67,8 +66,13 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
     draftRevisionRef.current += 1;
     const snapshot = restoredDraft ?? readDraftSnapshot(draftId);
     setHydrating(true);
-    const canRestore = Boolean(snapshot && (restoredDraft || !note || snapshot.updatedAt > noteSavedAt));
+    const snapshotHasPayload = Boolean(snapshot && hasDraftPayload({
+      ...snapshot,
+      dueAtSet: Object.prototype.hasOwnProperty.call(snapshot, "dueAtOverride")
+    }));
+    const canRestore = Boolean(snapshot && snapshotHasPayload && (restoredDraft || !note || snapshot.updatedAt > noteSavedAt));
     const recoveredDraft = canRestore ? snapshot : null;
+    if (snapshot && !snapshotHasPayload && !restoredDraft) void removeDraft(draftId);
     draftDirtyRef.current = Boolean(recoveredDraft);
     const nextHtml = recoveredDraft?.contentHtml ?? note?.contentHtml ?? plainTextToHtml(note?.text ?? initialSeed);
     setContentHtml(nextHtml || "<p></p>");
@@ -97,8 +101,22 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
   const persistDraft = useCallback(async () => {
     if (!open || hydrating || hydratedDraftRef.current !== draftId) return false;
     if (note && !draftDirtyRef.current) return true;
-    if (!hasContent && !deadlineTouched && !lessonContext && !restoredDraft) return true;
     const revision = draftRevisionRef.current;
+    if (!hasDraftPayload({ text, contentHtml, pinned, spaceOverride, dueAtSet: deadlineTouched })) {
+      if (draftDirtyRef.current || restoredDraft) {
+        const cleanup = draftWriteRef.current
+          .catch(() => false)
+          .then(async () => {
+            await removeDraft(draftId);
+            return true;
+          });
+        draftWriteRef.current = cleanup;
+        await cleanup;
+        draftDirtyRef.current = false;
+      }
+      if (revision === draftRevisionRef.current) setDraftState("idle");
+      return true;
+    }
     setDraftState("saving");
     const snapshot = {
       id: draftId,

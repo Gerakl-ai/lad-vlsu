@@ -8,8 +8,9 @@
   display: grid;
   place-items: center;
   padding: max(12px, var(--safe-top)) max(12px, var(--safe-right)) max(12px, var(--safe-bottom)) max(12px, var(--safe-left));
-  background: color-mix(in srgb, var(--bg-deep) 65%, transparent);
+  background: rgba(6, 10, 18, .62);
 }
+:root[data-theme-mode="light"] .comparison-backdrop { background: rgba(34, 28, 24, .28); }
 .comparison-sheet {
   width: min(1120px, 100%);
   height: min(880px, 100%);
@@ -18,12 +19,13 @@
   grid-template-rows: auto auto minmax(0, 1fr) auto;
   overflow: hidden;
   color: var(--text);
-  background: var(--theme-panel-solid);
+  background: linear-gradient(var(--theme-panel-solid), var(--theme-panel-solid)), var(--bg);
   border: 1px solid var(--theme-panel-border);
   border-radius: 8px;
   box-shadow: var(--shadow);
   animation: comparison-enter 200ms var(--motion-ease) both;
 }
+.comparison-sheet:has(.comparison-start) { height: min(580px, 100%); }
 .comparison-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px 10px; }
 .comparison-header > svg { color: var(--cyan); flex-shrink: 0; }
 .comparison-header > div { flex: 1; min-width: 0; }
@@ -99,6 +101,36 @@
 .week-compare-button { display: flex; width: 100%; min-height: 46px; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px; color: var(--text); background: var(--theme-panel-solid); font: inherit; font-size: 14px; cursor: pointer; }
 .week-compare-button span { display: flex; align-items: center; gap: 9px; }
 .week-compare-button svg { color: var(--cyan); flex-shrink: 0; }
+
+@media (min-width: 960px) and (min-height: 600px) {
+  .comparison-backdrop { padding: 24px; }
+  .comparison-sheet { width: min(1480px, 100%); height: min(960px, 100%); }
+  .comparison-header { padding: 18px 24px 12px; }
+  .comparison-header h2 { font-size: 24px; }
+  .comparison-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(190px, .8fr);
+    align-items: center;
+    gap: 12px 20px;
+    padding: 0 24px 14px;
+  }
+  .comparison-groups { grid-column: 1 / -1; grid-row: 1; }
+  .comparison-groups > span,
+  .comparison-groups > button { min-height: 52px; padding-inline: 14px; font-size: 17px; }
+  .comparison-view { grid-column: 1; grid-row: 2; width: 240px; margin: 0; }
+  .comparison-view button { min-height: 40px; }
+  .comparison-date { grid-column: 2; grid-row: 2; margin: 0; }
+  .comparison-date .comparison-icon,
+  .comparison-date input { min-height: 40px; }
+  .comparison-day-label { grid-column: 3; grid-row: 2; justify-self: end; white-space: nowrap; }
+  .comparison-week-head,
+  .comparison-week-row { grid-template-columns: 100px repeat(2, minmax(0, 1fr)); }
+  .comparison-week-head { padding: 12px 18px; }
+  .comparison-week-day h3 { padding: 13px 18px; font-size: 17px; }
+  .comparison-week-row { padding: 14px 18px 12px; }
+  .comparison-week-lessons strong { font-size: 15px; }
+}
+
 @keyframes comparison-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 480px) {
   .comparison-header, .comparison-controls, .comparison-windows { padding-left: 12px; padding-right: 12px; }

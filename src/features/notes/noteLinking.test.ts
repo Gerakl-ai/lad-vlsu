@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LessonSlot } from "../../types";
 import { createLessonNoteContext, noteMatchesLesson } from "./noteLinking";
+import { lessonDraftId } from "./noteDraftId";
 import { lessonWithSelectedVariant } from "../../lib/lessonSelection";
 import type { SmartNote } from "./noteTypes";
 
@@ -74,6 +75,18 @@ describe("lesson note linking", () => {
     expect(noteMatchesLesson(linked, architecture, firstDate)).toBe(false);
     linked.lessonContext = createLessonNoteContext(split, firstDate, "note", "subject");
     expect(noteMatchesLesson(linked, architecture, firstDate)).toBe(false);
+  });
+
+  it("keeps homework drafts separate for selected variants of a shared slot", () => {
+    const split = { ...lesson, variants: [
+      { subject: "Основы искусственного интеллекта", rawText: "ИИ" },
+      { subject: "Основы архитектуры и интеграции информационных систем", rawText: "Архитектура" }
+    ] };
+    const group = { nrec: "group-a", name: "ПИ-124" };
+    const aiDraft = lessonDraftId(createLessonNoteContext(lessonWithSelectedVariant(split, 0), firstDate, "homework", "lesson", group));
+    const architectureDraft = lessonDraftId(createLessonNoteContext(lessonWithSelectedVariant(split, 1), firstDate, "homework", "lesson", group));
+
+    expect(aiDraft).not.toBe(architectureDraft);
   });
 
   it("reads an explicit subject from an older note with a combined lesson context", () => {

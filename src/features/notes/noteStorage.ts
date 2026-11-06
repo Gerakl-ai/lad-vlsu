@@ -277,6 +277,11 @@ export function readDraftSnapshot(draftId: string) {
   return readFallback<Record<string, NoteDraft>>(DRAFTS_FALLBACK_KEY, {})[draftId] ?? null;
 }
 
+export function readDraftsSnapshot() {
+  const snapshot = readFallback<Record<string, NoteDraft>>(DRAFTS_FALLBACK_KEY, {});
+  return snapshot && typeof snapshot === "object" && !Array.isArray(snapshot) ? Object.values(snapshot) : [];
+}
+
 export async function loadDraftsWithStatus(): Promise<{ drafts: NoteDraft[]; status: NotesLoadStatus }> {
   let fallbackAvailable = false;
   let fallback: Record<string, NoteDraft> = {};

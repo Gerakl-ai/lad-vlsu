@@ -22,6 +22,13 @@ describe("theme definitions", () => {
     expect(initialTheme?.themeColor).toBe(initialTheme?.colors[0]);
   });
 
+  it("keeps the warm light and white-accent dark presets as the first two choices", () => {
+    expect(THEMES[0]).toMatchObject({ id: "ember", isLight: true });
+    expect(THEMES[1].id).toBe("obsidian");
+    expect(THEMES[1].isLight).toBeFalsy();
+    expect(THEMES[1].colors[2]).toBe("#eef2f7");
+  });
+
   it("migrates an existing installation once and preserves later choices", () => {
     const originalStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
     const values = new Map<string, string>([[THEME_STORAGE_KEY, "signal"]]);

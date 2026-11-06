@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LEGACY_PI124_GROUP } from "../groups/groupTypes";
-import { importDrafts, loadDraftsWithStatus, loadFolders, loadNotes, loadNotesWithStatus, normalizeStoredNote, removeNote, storeDraft, storeFolder, storeNote } from "./noteStorage";
+import { importDrafts, loadDraftsWithStatus, loadFolders, loadNotes, loadNotesWithStatus, normalizeStoredNote, readDraftsSnapshot, removeNote, storeDraft, storeFolder, storeNote } from "./noteStorage";
 import type { NoteDraft, SmartNote } from "./noteTypes";
 
 const baseNote: SmartNote = {
@@ -44,6 +44,19 @@ describe("draft transfer", () => {
     expect(await importDrafts([incoming])).toEqual({ added: 1, conflicts: 1 });
     expect((await loadDraftsWithStatus()).drafts.map((draft) => draft.text)).toEqual([current.text, incoming.text]);
     expect((await importDrafts([incoming])).added).toBe(0);
+  });
+
+  it("reads mirrored drafts synchronously for the first Notes render", () => {
+    const values = new Map<string, string>([["lad.note-drafts.fallback", JSON.stringify({
+      first: { id: "first", text: "Черновик", contentHtml: "<p>Черновик</p>", pinned: false, updatedAt: "2026-11-05T10:00:00.000Z" }
+    })]]);
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value)
+    });
+
+    expect(readDraftsSnapshot().map((draft) => draft.id)).toEqual(["first"]);
   });
 
   it("does not call an inaccessible draft database empty when the mirror is unavailable", async () => {

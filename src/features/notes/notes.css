@@ -3297,11 +3297,11 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   .smart-calendar:has(.personal-event-form) { width: min(100%, 700px); margin: auto; }
 }
 
-@media (min-width: 1400px) and (min-height: 600px) {
+@media (min-width: 1280px) and (min-height: 600px) {
   .note-composer { width: min(100%, 920px); }
 }
 
-@media (min-width: 1400px) and (min-height: 600px) {
+@media (min-width: 1280px) and (min-height: 600px) {
   .notes-view.wide-note-workspace {
     height: 100%;
     min-height: 620px;
@@ -3521,4 +3521,19 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   .note-detail-actions button:hover,
   .note-detail-actions button:focus-visible { border-color: rgba(var(--accent-rgb), .55); background: var(--theme-control-active); }
   .note-detail-actions .note-detail-complete { color: rgba(var(--accent-rgb), 1); }
+}
+
+@media (min-width: 1800px) and (min-height: 600px) {
+  .notes-view.wide-note-workspace {
+    grid-template-columns: minmax(340px, .78fr) minmax(380px, 1fr) minmax(520px, 1.45fr);
+    gap: 18px;
+  }
+
+  .notes-view.wide-note-workspace .notes-dashboard { padding-right: 4px; }
+  .notes-view.wide-note-workspace .notes-pulse button { min-height: 82px; }
+  .notes-view.wide-note-workspace .quick-capture,
+  .notes-view.wide-note-workspace .calendar-launch-card { min-height: 86px; }
+  .notes-view.wide-note-workspace .note-detail-content { padding-inline: clamp(36px, 3vw, 72px); }
+  .notes-view.wide-note-workspace .note-detail-body,
+  .notes-view.wide-note-workspace .note-detail-plain { font-size: 18px; line-height: 1.82; }
 }

@@ -27,7 +27,7 @@ import type { LessonSlot, WeekMode } from "../../types";
 import { FolderSheet } from "./FolderSheet";
 import { deadlineForCalendarDate } from "./noteDeadline";
 import { NoteCard, notePreviewHtml } from "./NoteCard";
-import { loadDraftsWithStatus, type NotesLoadStatus } from "./noteStorage";
+import { loadDraftsWithStatus, readDraftsSnapshot, type NotesLoadStatus } from "./noteStorage";
 import type { NoteDropPlacement } from "./noteOrdering";
 import type { LessonNoteContext, NoteClassification, NoteComposerRequest, NoteDocumentInput, NoteDraft, NoteFolder, SmartNote } from "./noteTypes";
 
@@ -119,6 +119,8 @@ function iconForSpace(space: string) {
   return Sparkles;
 }
 
+const WIDE_NOTE_WORKSPACE_QUERY = "(min-width: 1280px) and (min-height: 600px)";
+
 export function NotesView({
   visualSrc,
   notes,
@@ -143,7 +145,7 @@ export function NotesView({
   onOpenSettings,
   onRetryStorage
 }: NotesViewProps) {
-  const [wideDesktop, setWideDesktop] = useState(false);
+  const [wideDesktop, setWideDesktop] = useState(() => window.matchMedia(WIDE_NOTE_WORKSPACE_QUERY).matches);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [query, setQuery] = useState("");
@@ -152,7 +154,7 @@ export function NotesView({
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<SmartNote | null>(null);
   const [restoringDraft, setRestoringDraft] = useState<NoteDraft | null>(null);
-  const [drafts, setDrafts] = useState<NoteDraft[]>([]);
+  const [drafts, setDrafts] = useState<NoteDraft[]>(() => readDraftsSnapshot());
   const [voiceStartToken, setVoiceStartToken] = useState(0);
   const [composerSeed, setComposerSeed] = useState("");
   const [composerDueAt, setComposerDueAt] = useState<string | undefined>(undefined);
@@ -165,9 +167,8 @@ export function NotesView({
   const reorderOriginRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 1400px) and (min-height: 600px)");
-    const update = () => setWideDesktop(media.matches);
-    update();
+    const media = window.matchMedia(WIDE_NOTE_WORKSPACE_QUERY);
+    const update = (event: MediaQueryListEvent) => setWideDesktop(event.matches);
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
@@ -175,7 +176,12 @@ export function NotesView({
   useEffect(() => {
     let active = true;
     void loadDraftsWithStatus().then(({ drafts: stored }) => {
-      if (active) setDrafts(stored);
+      if (active) setDrafts((current) => current.length === stored.length && current.every((draft, index) => (
+        draft.id === stored[index]?.id
+        && draft.updatedAt === stored[index]?.updatedAt
+        && draft.text === stored[index]?.text
+        && draft.contentHtml === stored[index]?.contentHtml
+      )) ? current : stored);
     });
     return () => { active = false; };
   }, []);
@@ -401,7 +407,12 @@ export function NotesView({
     setComposerSeed("");
     setComposerDueAt(undefined);
     setComposerLessonContext(undefined);
-    void loadDraftsWithStatus().then(({ drafts: stored }) => setDrafts(stored));
+    void loadDraftsWithStatus().then(({ drafts: stored }) => setDrafts((current) => current.length === stored.length && current.every((draft, index) => (
+      draft.id === stored[index]?.id
+      && draft.updatedAt === stored[index]?.updatedAt
+      && draft.text === stored[index]?.text
+      && draft.contentHtml === stored[index]?.contentHtml
+    )) ? current : stored));
   }
 
   function createBlankNote(seed = "", dueAt?: string, lessonContext?: LessonNoteContext) {
@@ -460,7 +471,7 @@ export function NotesView({
     }
   }
 
-  const recoverableDrafts = ready && drafts.some((draft) => draft.text.trim() || /<img\b/i.test(draft.contentHtml)) && (
+  const recoverableDrafts = drafts.some((draft) => draft.text.trim() || /<img\b/i.test(draft.contentHtml)) && (
     <section className="recoverable-drafts" aria-label="Черновики записей">
       <h3>Черновики</h3>
       {drafts.filter((draft) => draft.text.trim() || /<img\b/i.test(draft.contentHtml)).map((draft) => (

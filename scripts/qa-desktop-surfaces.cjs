@@ -74,7 +74,7 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
         }
         if (viewport.width === 2560) {
           assert.ok(metrics.frame.width >= 1700);
-          if (tab === 'Неделя') assert.equal(metrics.weekColumns, 2);
+          if (tab === 'Неделя') assert.equal(metrics.weekColumns, 6);
         }
         await page.screenshot({ path: `artifacts/qa/desktop-surfaces/${viewport.width}-${tab}.png` });
         console.log(JSON.stringify({ tab, ...viewport, ...metrics }));

@@ -47,6 +47,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sparkles,
+  SquarePen,
   Upload,
   UsersRound,
   Video,
@@ -316,17 +317,8 @@ export function App() {
   });
   const [dayMotionDirection, setDayMotionDirection] = useState<"forward" | "backward" | null>(null);
   const [NotesView, setNotesView] = useState<NotesViewComponent | null>(null);
-  const [tabMotion, setTabMotion] = useState<{ id: number; direction: "forward" | "backward" }>({ id: 0, direction: "forward" });
+  const [tabMotion, setTabMotion] = useState<{ id: number; direction: "forward" | "backward"; to: AppTab }>({ id: 0, direction: "forward", to: activeTab });
   const contentScrollRef = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    if (!tabMotion.id || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const view = contentScrollRef.current?.querySelector<HTMLElement>(".view-stack");
-    const animation = view?.animate([
-      { opacity: 0.86, transform: `translate3d(${tabMotion.direction === "forward" ? 16 : -16}px,0,0)` },
-      { opacity: 1, transform: "translate3d(0,0,0)" }
-    ], { duration: 360, easing: "cubic-bezier(.2,.8,.2,1)" });
-    return () => animation?.cancel();
-  }, [tabMotion]);
   const pendingTabRef = useRef<AppTab>(activeTab);
   const tabScrollPositionsRef = useRef<Record<AppTab, number>>({ today: 0, week: 0, notes: 0, settings: 0 });
   const scheduleRef = useRef<ScheduleState | null>(schedule);
@@ -726,6 +718,7 @@ export function App() {
   }
 
   const navigateToTab = useCallback((nextTab: AppTab) => {
+    if (nextTab !== activeTab && pendingTabRef.current === nextTab) return;
     pendingTabRef.current = nextTab;
     const container = contentScrollRef.current;
     const activeScroller = tabScrollContainer(activeTab, container);
@@ -738,13 +731,19 @@ export function App() {
     if (activeScroller) tabScrollPositionsRef.current[activeTab] = activeScroller.scrollTop;
     const direction = TAB_ORDER.indexOf(nextTab) > TAB_ORDER.indexOf(activeTab) ? "forward" : "backward";
     const commitTab = () => {
-      setTabMotion((current) => ({ id: current.id + 1, direction }));
+      setTabMotion((current) => ({ id: current.id + 1, direction, to: nextTab }));
       setActiveTab(nextTab);
     };
     if (nextTab === "notes" && !NotesView) {
       void loadNotesView().then((Component) => {
         setNotesView(() => Component);
-        if (pendingTabRef.current === "notes") commitTab();
+        if (pendingTabRef.current === nextTab) {
+          commitTab();
+        }
+      }).catch(() => {
+        if (pendingTabRef.current !== nextTab) return;
+        pendingTabRef.current = activeTab;
+        setNotice("Не удалось открыть записи. Попробуйте ещё раз.");
       });
       return;
     }
@@ -785,6 +784,10 @@ export function App() {
     { id: "today", label: "Сегодня", description: "Вернуться к текущей дате", category: "Переход", keywords: "пары расписание день сейчас", icon: CalendarDays, run: () => showScheduleDate(new Date()) },
     { id: "week", label: "Неделя", description: "Расписание и нагрузка по дням", category: "Переход", keywords: "расписание пары", icon: Grid2X2, run: () => navigateToTab("week") },
     { id: "notes", label: "Записи", description: "Заметки, дела и папки", category: "Переход", keywords: "заметки дела", icon: NotebookPen, run: () => navigateToTab("notes") },
+    { id: "new-note", label: "Создать запись", description: "Открыть чистый лист", category: "Записи", keywords: "заметка новая дело написать", icon: SquarePen, run: () => {
+      setComposerRequest({ id: Date.now() });
+      navigateToTab("notes");
+    } },
     { id: "settings", label: "Настройки", description: "Оформление и напоминания", category: "Переход", keywords: "тема уведомления", icon: Settings, run: () => navigateToTab("settings") },
     { id: "previous-day", label: "Предыдущий день", description: "Открыть день перед выбранным", category: "Дата", keywords: "вчера назад календарь", icon: ChevronLeft, run: () => showScheduleDate(addDays(selectedDate, -1)) },
     { id: "next-day", label: "Следующий день", description: "Открыть день после выбранного", category: "Дата", keywords: "завтра вперед календарь", icon: ChevronRight, run: () => showScheduleDate(addDays(selectedDate, 1)) },
@@ -879,6 +882,36 @@ export function App() {
     if (activeScroller) activeScroller.scrollTop = tabScrollPositionsRef.current[activeTab];
   }, [activeTab]);
 
+  useLayoutEffect(() => {
+    if (!tabMotion.id || tabMotion.to !== activeTab) return;
+    const container = contentScrollRef.current;
+    const view = container?.querySelector<HTMLElement>(":scope > .view-stack, :scope > .notes-loading");
+    if (!view || typeof view.animate !== "function") return;
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const desktop = window.matchMedia("(min-width: 960px) and (min-height: 600px)").matches;
+    const offset = desktop ? 68 : 52;
+    const direction = tabMotion.direction === "forward" ? 1 : -1;
+    const keyframes: Keyframe[] = reducedMotion
+      ? [{ opacity: 0.42 }, { opacity: 1 }]
+      : [
+          { opacity: 0.2, transform: `translate3d(${offset * direction}px, 0, 0) scale(0.986)` },
+          { opacity: 0.88, transform: `translate3d(${offset * direction * 0.12}px, 0, 0) scale(0.998)`, offset: 0.72 },
+          { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" }
+        ];
+    const animation = view.animate(keyframes, {
+      duration: reducedMotion ? 220 : desktop ? 460 : 430,
+      easing: "cubic-bezier(.22, .68, 0, 1)",
+      fill: "both"
+    });
+    animation.id = `tab-view-enter-${tabMotion.direction}`;
+    animation.onfinish = () => animation.cancel();
+    return () => {
+      animation.onfinish = null;
+      animation.cancel();
+    };
+  }, [activeTab, tabMotion]);
+
   const nextLabel = isSelectedToday ? "Сегодня новых пар нет" : "В этот день новых пар нет";
   const displayLessons = todayLessons;
   const hasStudyCalendar = Boolean(groupStudyCalendar(selectedGroup?.nrec));
@@ -937,6 +970,8 @@ export function App() {
           className="content-scroll"
           ref={contentScrollRef}
           data-active-tab={activeTab}
+          data-tab-motion-id={tabMotion.id}
+          data-tab-motion-direction={tabMotion.direction}
           onPointerDownCapture={beginScreenGesture}
           onPointerMoveCapture={moveScreenGesture}
           onPointerUpCapture={finishScreenGesture}
@@ -966,6 +1001,7 @@ export function App() {
               onChooseLesson={chooseLesson}
               heroSubject={heroSubject}
               heroVisual={lightHero ? HERO_VISUAL_LIGHT : HERO_VISUAL_DARK}
+              scheduleLessons={schedule?.allLessons ?? []}
               lightHero={lightHero}
               heroRoom={heroRoom}
               heroTime={heroTime}
@@ -996,6 +1032,7 @@ export function App() {
               onAddEvent={() => { setCalendarCreateOnOpen(true); setCalendarOpen(true); }}
               onSelectDate={setSelectedDate}
               onShiftDate={shiftSelectedDay}
+              onOpenWeek={() => navigateToTab("week")}
               motionDirection={dayMotionDirection}
               onCreateLessonNote={openLessonComposer}
               outsideSchedulePeriod={outsideSchedulePeriod}
@@ -1157,9 +1194,13 @@ function Header({ group, currentWeek, datedScheduleLabel, status, refreshedAt, o
   return (
     <header className="topbar" data-sync-status={status}>
       <button className="desktop-sidebar-toggle" type="button" onClick={onToggleSidebar}
+        data-collapsed={sidebarCollapsed}
         aria-label={sidebarCollapsed ? "Развернуть навигацию" : "Свернуть навигацию"}
         title={sidebarCollapsed ? "Развернуть навигацию" : "Свернуть навигацию"}>
-        {sidebarCollapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}
+        <span className="desktop-sidebar-toggle-glyph" aria-hidden="true">
+          <PanelLeftOpen className="is-open" size={19} />
+          <PanelLeftClose className="is-close" size={19} />
+        </span>
       </button>
       <button className="brand brand-button" type="button" onClick={onGroupOpen} aria-label={group ? `Сменить группу. Сейчас ${group.name}` : "Выбрать группу"}>
         <span className="brand-mark group-brand-mark" data-visual={group?.visualKey ?? "institute-0"} aria-hidden="true">
@@ -1213,6 +1254,7 @@ function TodayView({
   onChooseLesson,
   heroSubject,
   heroVisual,
+  scheduleLessons,
   lightHero,
   heroRoom,
   heroTime,
@@ -1243,6 +1285,7 @@ function TodayView({
   onAddEvent,
   onSelectDate,
   onShiftDate,
+  onOpenWeek,
   motionDirection,
   onCreateLessonNote,
   outsideSchedulePeriod,
@@ -1255,6 +1298,7 @@ function TodayView({
   onChooseLesson: LessonChoiceSetter;
   heroSubject: string;
   heroVisual: string;
+  scheduleLessons: LessonSlot[];
   lightHero: boolean;
   heroRoom: string;
   heroTime: string;
@@ -1285,6 +1329,7 @@ function TodayView({
   onAddEvent: () => void;
   onSelectDate: (date: Date) => void;
   onShiftDate: (offset: -1 | 1) => void;
+  onOpenWeek: () => void;
   motionDirection: "forward" | "backward" | null;
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
   outsideSchedulePeriod: boolean;
@@ -1298,7 +1343,29 @@ function TodayView({
   const selectedPersonalEvents = personalEventsOnDate(personalEvents, selectedDate);
   const minutesToNext = next && isSelectedToday ? minutesUntilStart(next, now) : 0;
   const nextView = next ? lessonView(next, getLessonChoice(next, weekMode), weekMode) : null;
+  const desktopWeekLoads = useMemo(
+    () => buildWeekLoads(scheduleLessons, weekMode, scheduleValidFrom, scheduleValidThrough, selectedDate),
+    [scheduleLessons, weekMode, scheduleValidFrom, scheduleValidThrough, selectedDate]
+  );
   const upcomingWeekMode = nextStudyDay ? weekModeForDate(nextStudyDay.date, weekMode, selectedDate) : weekMode;
+  const orderedDayLessons = [...lessons].sort((left, right) => minutesFromTime(left.start) - minutesFromTime(right.start));
+  const studyMinutes = orderedDayLessons.reduce((total, lesson) => lesson.end
+    ? total + Math.max(0, minutesFromTime(lesson.end) - minutesFromTime(lesson.start))
+    : total, 0);
+  const freeWindows = orderedDayLessons.slice(1).reduce((total, lesson, index) => {
+    const previous = orderedDayLessons[index];
+    if (!previous.end) return total;
+    const minutes = Math.max(0, minutesFromTime(lesson.start) - minutesFromTime(previous.end));
+    return minutes > 0 ? { count: total.count + 1, minutes: total.minutes + minutes } : total;
+  }, { count: 0, minutes: 0 });
+  const freeWindowLabel = freeWindows.count === 1
+    ? "1 окно"
+    : freeWindows.count > 1 && freeWindows.count < 5 ? `${freeWindows.count} окна` : `${freeWindows.count} окон`;
+  const firstDayLesson = orderedDayLessons[0];
+  const lastDayLesson = orderedDayLessons[orderedDayLessons.length - 1];
+  const dayTimeRange = firstDayLesson && lastDayLesson
+    ? `${firstDayLesson.start} - ${lastDayLesson.end ?? lastDayLesson.start}`
+    : "Без занятий";
   const hero = heroCopy({
     mode: heroMode,
     isSelectedToday,
@@ -1334,7 +1401,7 @@ function TodayView({
 
   return (
     <div className="view-stack today-view">
-      <div className="today-primary">
+      <div className={`today-primary${selectedPersonalEvents.length ? " has-personal-events" : ""}${!outsideSchedulePeriod ? " has-day-summary" : ""}`}>
         <div className="today-date-navigator">
           <button className="date-step" type="button" onClick={() => moveDay(-1)} aria-label="Предыдущий день"><ChevronLeft size={21} /></button>
           <button
@@ -1403,6 +1470,21 @@ function TodayView({
               </div>
             </div>
           )}
+        </section>}
+
+        {!outsideSchedulePeriod && <section className="today-day-summary" aria-label="Итоги дня">
+          <header>
+            <strong>Итоги дня</strong>
+            <span>{dayTimeRange}</span>
+          </header>
+          <div className="today-day-summary-grid">
+            <div><small>Занятия</small><strong>{lessons.length ? formatLessonCount(lessons.length) : "Нет"}</strong></div>
+            <div><small>Учебное время</small><strong>{studyMinutes ? formatDuration(studyMinutes) : "-"}</strong></div>
+            <div aria-label={`Свободные окна: ${freeWindows.minutes ? `${freeWindowLabel}, ${formatDuration(freeWindows.minutes)}` : "нет"}`}>
+              <small>Окна</small>
+              <strong>{freeWindows.minutes ? `${freeWindows.count} · ${formatDuration(freeWindows.minutes)}` : "Нет"}</strong>
+            </div>
+          </div>
         </section>}
       </div>
 
@@ -1473,7 +1555,105 @@ function TodayView({
           selectedWeekMode={weekMode}
         />}
       </div>
+
+      <TodayWeekPreview
+        days={desktopWeekLoads}
+        selectedDate={selectedDate}
+        weekMode={weekMode}
+        getLessonChoice={getLessonChoice}
+        onSelectDate={onSelectDate}
+        onOpenWeek={onOpenWeek}
+      />
     </div>
+  );
+}
+
+function TodayWeekPreview({
+  days,
+  selectedDate,
+  weekMode,
+  getLessonChoice,
+  onSelectDate,
+  onOpenWeek
+}: {
+  days: WeekDayLoad[];
+  selectedDate: Date;
+  weekMode: WeekMode;
+  getLessonChoice: LessonChoiceResolver;
+  onSelectDate: (date: Date) => void;
+  onOpenWeek: () => void;
+}) {
+  const selectedKey = dateKeyFromDate(selectedDate);
+  const weekCount = days.reduce((sum, day) => sum + day.count, 0);
+  const confirmedDays = days.filter((day) => !day.outsidePeriod);
+  const lessonMinutes = days.reduce((sum, day) => sum + day.lessons.reduce((daySum, lesson) => (
+    lesson.end ? daySum + Math.max(0, minutesFromTime(lesson.end) - minutesFromTime(lesson.start)) : daySum
+  ), 0), 0);
+  const busiestDay = confirmedDays.reduce<WeekDayLoad | null>((best, day) => day.count > (best?.count ?? 0) ? day : best, null);
+  const freeDays = confirmedDays.filter((day) => day.count === 0).length;
+  const range = days.length
+    ? `${WEEK_DATE_FORMATTER.format(days[0].date)} - ${WEEK_DATE_FORMATTER.format(days[days.length - 1].date)}`
+    : "";
+
+  return (
+    <section className="today-week-preview" aria-label="Расписание на неделю">
+      <header>
+        <div>
+          <small>Учебная неделя · {range}</small>
+          <strong>{formatLessonCount(weekCount)}</strong>
+        </div>
+        <button type="button" onClick={onOpenWeek} aria-label="Открыть полное расписание на неделю">
+          Вся неделя <ChevronRight size={16} aria-hidden="true" />
+        </button>
+      </header>
+      <div className="today-week-days">
+        {days.map((day) => {
+          const dayKey = dateKeyFromDate(day.date);
+          const active = dayKey === selectedKey;
+          const previewLessons = day.lessons.slice(0, 2);
+          const hiddenLessonCount = day.lessons.length - previewLessons.length;
+          return (
+            <button
+              className={`today-week-day${active ? " active" : ""}${day.outsidePeriod ? " outside" : ""}`}
+              data-date={dayKey}
+              key={dayKey}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onSelectDate(day.date)}
+            >
+              <span className="today-week-day-head">
+                <span className="today-week-date">
+                  <strong>{day.short}</strong>
+                  <small>{day.date.getDate()}</small>
+                </span>
+                <strong className="today-week-load">{day.outsidePeriod ? "—" : formatLessonCount(day.count)}</strong>
+              </span>
+              <span className="today-week-day-copy">
+                <strong>{day.dayName}</strong>
+                {day.outsidePeriod ? <span className="today-week-empty">Даты не подтверждены</span> : previewLessons.length ? (
+                  <span className="today-week-lessons">{previewLessons.map((lesson) => {
+                    const view = lessonView(lesson, getLessonChoice(lesson, weekMode), weekMode);
+                    const meta = [view.room, view.kind, view.teacher].filter(Boolean).join(" · ");
+                    return <span className="today-week-lesson" key={lesson.id}>
+                      <time>{lesson.start}{lesson.end ? `-${lesson.end}` : ""}</time>
+                      <span>{view.subject}</span>
+                      {meta && <small className="today-week-lesson-meta" title={meta}>{meta}</small>}
+                    </span>;
+                  })}{hiddenLessonCount > 0 && <small className="today-week-more">+ ещё {formatLessonCount(hiddenLessonCount)}</small>}</span>
+                ) : (
+                  <span className="today-week-empty">Свободный день</span>
+                )}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <footer className="today-week-summary" aria-label="Итоги учебной недели">
+        <div><Clock3 size={18} aria-hidden="true" /><span><small>Время занятий</small><strong>{weekCount ? formatDuration(lessonMinutes) : "Нет данных"}</strong></span></div>
+        <div><Activity size={18} aria-hidden="true" /><span><small>Самый плотный день</small><strong>{busiestDay ? `${busiestDay.dayName}, ${formatLessonCount(busiestDay.count)}` : "Нет занятий"}</strong></span></div>
+        <div><CalendarDays size={18} aria-hidden="true" /><span><small>Свободные дни</small><strong>{freeDays ? `${freeDays} ${freeDays === 1 ? "день" : freeDays < 5 ? "дня" : "дней"}` : "Нет"}</strong></span></div>
+      </footer>
+    </section>
   );
 }
 
@@ -1711,8 +1891,8 @@ interface WeekDayLoad {
   short: string;
 }
 
-function buildWeekLoads(lessons: LessonSlot[], weekMode: WeekMode, validFrom?: string, validThrough?: string): WeekDayLoad[] {
-  const weekStart = weekStartForMode(weekMode);
+function buildWeekLoads(lessons: LessonSlot[], weekMode: WeekMode, validFrom?: string, validThrough?: string, baseDate = new Date()): WeekDayLoad[] {
+  const weekStart = weekStartForMode(weekMode, baseDate);
   return WEEK_DAYS.map((dayName, index) => {
     const date = dateForWeekDay(index + 1, weekStart);
     const dateKey = dateKeyFromDate(date);
@@ -2143,12 +2323,20 @@ function SettingsView({
   return (
     <div className="view-stack settings-view">
       <section className="settings-hero">
-        <div>
-          <BellRing size={34} />
-          <h2>Напоминания перед парами</h2>
-          <p>
-            Напоминания работают, пока приложение открыто. Если закрыть его, уведомления о парах могут не прийти.
-          </p>
+        <div className="settings-hero-copy">
+          <div className="settings-hero-title">
+            <Settings size={34} aria-hidden="true" />
+            <div>
+              <span className="settings-eyebrow">ЛАД ВлГУ</span>
+              <h2>Настройки</h2>
+            </div>
+          </div>
+          <p>Оформление, напоминания и управление личными данными на этом устройстве.</p>
+        </div>
+        <div className="settings-overview" aria-label="Состояние приложения">
+          <div><Palette size={20} aria-hidden="true" /><span><small>Оформление</small><strong>{activeThemeName}</strong></span></div>
+          <div><BellRing size={20} aria-hidden="true" /><span><small>Уведомления</small><strong>{capability.title}</strong></span></div>
+          <div><CalendarDays size={20} aria-hidden="true" /><span><small>Расписание</small><strong>{schedule ? "Доступно офлайн" : "Нет копии"}</strong></span></div>
         </div>
       </section>
 
@@ -2164,6 +2352,11 @@ function SettingsView({
               Сменить
             </button>
           </div>
+
+          <header className="settings-section-heading">
+            <BellRing size={20} aria-hidden="true" />
+            <div><span>УВЕДОМЛЕНИЯ</span><h3>Напоминания о парах</h3></div>
+          </header>
 
           <div className={`capability-card ${capability.status}`}>
             <div>
