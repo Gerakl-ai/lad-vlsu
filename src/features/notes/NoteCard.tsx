@@ -263,6 +263,16 @@ export function NoteCard({
 
       <div className="note-card-actions">
         <button
+          className="note-delete-desktop"
+          type="button"
+          onClick={() => void deleteNote()}
+          aria-label={`Удалить запись «${note.title}»`}
+          title="Удалить запись"
+          disabled={deleting}
+        >
+          {deleting ? <LoaderCircle className="spin" size={15} /> : <Trash2 size={15} />}
+        </button>
+        <button
           className={note.pinned ? "active" : ""}
           type="button"
           onClick={() => onTogglePinned(note.id)}

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LEGACY_PI124_GROUP } from "../groups/groupTypes";
-import { importDrafts, loadDraftsWithStatus, loadFolders, loadNotes, loadNotesWithStatus, normalizeStoredNote, readDraftsSnapshot, removeNote, storeDraft, storeFolder, storeNote } from "./noteStorage";
+import { DEFAULT_NOTE_FOLDERS, importDrafts, loadDraftsWithStatus, loadFolders, loadNotes, loadNotesWithStatus, normalizeStoredNote, readDraftsSnapshot, removeNote, storeDraft, storeFolder, storeNote } from "./noteStorage";
 import type { NoteDraft, SmartNote } from "./noteTypes";
 
 const baseNote: SmartNote = {
@@ -25,6 +25,31 @@ describe("note group migration", () => {
     expect(study.groupNrec).toBe(LEGACY_PI124_GROUP.nrec);
     expect(study.groupName).toBe(LEGACY_PI124_GROUP.name);
     expect(personal.groupNrec).toBeUndefined();
+  });
+});
+
+describe("default note folders", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("does not add Radio or Dance folders by default and drops their legacy system entries", async () => {
+    const legacyFolders = [
+      { id: "dance", name: "Танцы", color: "#d89cff", system: true, createdAt: baseNote.createdAt },
+      { id: "radio", name: "Радио", color: "#ffc55f", system: true, createdAt: baseNote.createdAt },
+      { id: "custom-dance", name: "Танцы", color: "#d89cff", system: false, createdAt: baseNote.createdAt }
+    ];
+    const values = new Map<string, string>([["lad.note-folders.fallback", JSON.stringify(legacyFolders)]]);
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value)
+    });
+
+    expect(DEFAULT_NOTE_FOLDERS.map((folder) => folder.id)).not.toContain("dance");
+    expect(DEFAULT_NOTE_FOLDERS.map((folder) => folder.id)).not.toContain("radio");
+    const folders = await loadFolders();
+    expect(folders.map((folder) => folder.id)).not.toContain("dance");
+    expect(folders.map((folder) => folder.id)).not.toContain("radio");
+    expect(folders).toContainEqual(legacyFolders[2]);
   });
 });
 

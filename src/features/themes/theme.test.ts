@@ -22,12 +22,11 @@ describe("theme definitions", () => {
     expect(initialTheme?.themeColor).toBe(initialTheme?.colors[0]);
   });
 
-  it("keeps the warm light and white-accent dark presets as the first two choices", () => {
+  it("keeps the warm light and user-matched dark presets as the first two choices", () => {
     expect(THEMES[0]).toMatchObject({ id: "ember", isLight: true });
     expect(THEMES[1].id).toBe("obsidian");
     expect(THEMES[1].isLight).toBeFalsy();
-    expect(THEMES[1].themeColor).toBe("#1b222c");
-    expect(THEMES[1].colors[2]).toBe("#e8edf4");
+    expect(THEMES[1].colors).toEqual(["#080b12", "#f7f9fc", "#72b8ff", "#ff6b72"]);
   });
 
   it("migrates an existing installation once and preserves later choices", () => {

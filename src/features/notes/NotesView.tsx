@@ -601,17 +601,23 @@ export function NotesView({
           ))}
         </section>
       ) : (
-        <section className="notes-empty">
+        <section className={`notes-empty${!query && ready && notes.length === 0 ? " desktop-first-run" : ""}`}>
           <img className="notes-empty-backdrop" src={visualSrc} alt="" aria-hidden="true" />
           <img className="notes-empty-visual" src={visualSrc} alt="Блокнот с расписанием и зарисовкой главного корпуса ВлГУ" />
-          <div>
+          <div className="notes-empty-copy">
+            {!query && ready && notes.length === 0 && <span className="notes-empty-kicker">ЛИЧНОЕ ПРОСТРАНСТВО</span>}
             <Sparkles size={23} />
-            <h3>{query ? "Ничего не найдено" : "Здесь пока тихо"}</h3>
-            <p>{query ? "Попробуйте другой запрос." : "Новая запись появится в этом пространстве."}</p>
+            <h3>{query ? "Ничего не найдено" : !notes.length && ready ? "Начни с чистого листа" : "Здесь пока тихо"}</h3>
+            <p>{query ? "Попробуйте другой запрос." : !notes.length && ready ? "Идеи, планы и задачи соберутся здесь." : "Новая запись появится в этом пространстве."}</p>
             {!query && ready && notes.length === 0 && (
-              <button className="notes-empty-create" type="button" onPointerDown={preloadNoteComposer} onClick={() => createBlankNote()}>
-                <SquarePen size={17} aria-hidden="true" /> Создать запись
-              </button>
+              <div className="notes-empty-actions">
+                <button className="notes-empty-create" type="button" onPointerDown={preloadNoteComposer} onClick={() => createBlankNote()}>
+                  <SquarePen size={17} aria-hidden="true" /> Создать запись
+                </button>
+                <button className="notes-empty-dictate" type="button" onPointerDown={preloadNoteComposer} onClick={startDictation}>
+                  <Mic size={17} aria-hidden="true" /> Надиктовать
+                </button>
+              </div>
             )}
             {!query && ready && notes.length === 0 && (
               <button className="notes-empty-recovery" type="button" onClick={onOpenSettings}>

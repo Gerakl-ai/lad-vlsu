@@ -29,21 +29,58 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
         await page.locator('.bottom-nav').getByRole('button', { name: tab }).click();
         await page.waitForTimeout(250);
         if (tab === 'Сегодня') {
-          await page.locator('.upcoming-study').waitFor();
-          assert.match(await page.locator('.upcoming-study').innerText(), /6 октября/);
-          const upcomingSubject = await page.locator('.upcoming-lesson strong').first().innerText();
-          assert.match(upcomingSubject, /искусственного интеллекта/i);
-          assert.doesNotMatch(upcomingSubject, /архитектуры/i);
+          if (viewport.width >= 1280 && viewport.width < 1800 && viewport.height >= 600) {
+            const weekPreview = page.locator('.today-week-preview');
+            await weekPreview.waitFor();
+            assert.ok(await weekPreview.evaluate((element) => element.getBoundingClientRect().height >= 230));
+            assert.equal(await page.locator('.today-week-day').count(), 6);
+            assert.equal(await page.locator('.today-week-days').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length), 6);
+            const nextDay = page.locator('.today-week-day[data-date="2026-10-06"]');
+            assert.match(await nextDay.innerText(), /6.*Основы искусственного интеллекта/is);
+          } else {
+            await page.locator('.upcoming-study').waitFor();
+            assert.match(await page.locator('.upcoming-study').innerText(), /6 октября/);
+            const upcomingSubject = await page.locator('.upcoming-lesson strong').first().innerText();
+            assert.match(upcomingSubject, /искусственного интеллекта/i);
+            assert.doesNotMatch(upcomingSubject, /архитектуры/i);
+          }
         }
         if (tab === 'Неделя') {
           await page.locator('.week-list .lesson-choice-hint').first().waitFor();
           assert.match(await page.locator('.week-list .lesson-choice-hint').first().innerText(), /2 варианта · выбрать/);
         }
+        if (viewport.width === 1366 && tab === 'Сегодня') {
+          const theme = await page.evaluate(() => {
+            const style = getComputedStyle(document.documentElement);
+            return {
+              id: document.documentElement.dataset.theme,
+              background: style.getPropertyValue('--bg').trim(),
+              surface: style.getPropertyValue('--surface').trim(),
+              text: style.getPropertyValue('--text').trim(),
+              muted: style.getPropertyValue('--muted').trim(),
+              accent: style.getPropertyValue('--accent-rgb').trim(),
+              signal: style.getPropertyValue('--signal-rgb').trim(),
+              success: style.getPropertyValue('--success-rgb').trim()
+            };
+          });
+          assert.deepEqual(theme, {
+            id: 'obsidian',
+            background: '#080b12',
+            surface: 'rgba(19, 28, 42, .86)',
+            text: '#f7f9fc',
+            muted: '#94a2b5',
+            accent: '114, 184, 255',
+            signal: '255, 107, 114',
+            success: '97, 223, 189'
+          });
+        }
         if (tab === 'Записи' && viewport.width >= 960) {
           const empty = page.locator('.notes-empty');
           await empty.waitFor();
           assert.ok((await empty.boundingBox()).height >= 320);
+          assert.equal(await empty.evaluate((element) => element.classList.contains('desktop-first-run')), true);
           assert.equal(await empty.getByRole('button', { name: 'Создать запись' }).isVisible(), true);
+          assert.equal(await empty.getByRole('button', { name: 'Надиктовать' }).isVisible(), true);
         }
         if (tab === 'Записи' && viewport.width < 960) {
           assert.equal(await page.locator('.notes-empty-create').isVisible(), false);
@@ -110,6 +147,23 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
       assert.deepEqual(errors, []);
       await page.close();
     }
+
+    const notePage = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    await notePage.addInitScript(() => {
+      localStorage.setItem('lad.notes.fallback', JSON.stringify([{
+        id: 'desktop-delete-qa', text: 'Проверка удаления', title: 'Проверка удаления', kind: 'task', space: 'Дела',
+        confidence: 1, status: 'open', pinned: false, createdAt: '2026-11-06T10:00:00.000Z',
+        updatedAt: '2026-11-06T10:00:00.000Z', classificationSource: 'local'
+      }]));
+    });
+    await notePage.goto(url, { waitUntil: 'domcontentloaded' });
+    await notePage.locator('.bottom-nav').getByRole('button', { name: 'Записи' }).click();
+    const deleteButton = notePage.getByRole('button', { name: 'Удалить запись «Проверка удаления»' });
+    await deleteButton.waitFor({ state: 'visible' });
+    await deleteButton.click();
+    await notePage.locator('[data-note-id="desktop-delete-qa"]').waitFor({ state: 'detached' });
+    assert.deepEqual(await notePage.evaluate(() => JSON.parse(localStorage.getItem('lad.notes.deleted.v1') || '[]')), ['desktop-delete-qa']);
+    await notePage.close();
   } finally {
     await browser.close();
   }

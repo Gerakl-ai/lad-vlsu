@@ -108,47 +108,47 @@
 
 :root[data-theme="obsidian"] {
   color-scheme: dark;
-  --bg: #1b222c;
-  --bg-deep: #151b24;
-  --surface: rgba(39, 49, 63, .92);
-  --surface-strong: rgba(52, 63, 79, .97);
-  --line: rgba(232, 237, 244, .16);
-  --line-strong: rgba(245, 246, 248, .62);
-  --text: #f5f6f8;
-  --muted: #b5bfcc;
-  --cyan: #e8edf4;
-  --blue: #dde5ef;
-  --coral: #ff8479;
-  --green: #73d7bd;
-  --warning: #f2c078;
-  --ruby: #b54852;
-  --ice: #e8edf4;
-  --accent-rgb: 232, 237, 244;
-  --accent-soft-rgb: 195, 207, 222;
-  --signal-rgb: 255, 132, 121;
-  --signal-deep-rgb: 178, 68, 70;
-  --success-rgb: 115, 215, 189;
+  --bg: #080b12;
+  --bg-deep: #000006;
+  --surface: rgba(19, 28, 42, .86);
+  --surface-strong: rgba(27, 36, 50, .94);
+  --line: rgba(176, 246, 255, .15);
+  --line-strong: rgba(114, 184, 255, .58);
+  --text: #f7f9fc;
+  --muted: #94a2b5;
+  --cyan: #72b8ff;
+  --blue: #ff6b72;
+  --coral: #ff6b72;
+  --green: #61dfbd;
+  --warning: #ff8d94;
+  --ruby: #cb373e;
+  --ice: #b0f6ff;
+  --accent-rgb: 114, 184, 255;
+  --accent-soft-rgb: 176, 246, 255;
+  --signal-rgb: 255, 107, 114;
+  --signal-deep-rgb: 203, 55, 62;
+  --success-rgb: 97, 223, 189;
   --theme-body:
-    linear-gradient(120deg, rgba(232, 237, 244, .095), transparent 40%),
-    linear-gradient(310deg, rgba(255, 132, 121, .06), transparent 52%),
-    #1b222c;
+    linear-gradient(118deg, rgba(114, 184, 255, .12), transparent 38%),
+    linear-gradient(316deg, rgba(255, 107, 114, .08), transparent 50%),
+    #080b12;
   --theme-frame:
-    repeating-linear-gradient(90deg, rgba(205, 216, 230, .035) 0 1px, transparent 1px 42px),
-    radial-gradient(560px 380px at 94% -7%, rgba(232, 237, 244, .15), transparent 70%),
-    linear-gradient(180deg, #293544, #151b24);
+    repeating-linear-gradient(90deg, rgba(176, 246, 255, .025) 0 1px, transparent 1px 40px),
+    radial-gradient(520px 360px at 92% -6%, rgba(114, 184, 255, .13), transparent 70%),
+    linear-gradient(180deg, #1b2432, #000006);
   --theme-panel:
-    linear-gradient(135deg, rgba(255, 255, 255, .075), transparent 39%),
-    linear-gradient(145deg, rgba(48, 59, 74, .98), rgba(29, 37, 49, .99));
-  --theme-panel-solid: rgba(34, 43, 56, .98);
-  --theme-panel-border: rgba(220, 229, 240, .22);
-  --theme-control: rgba(220, 229, 240, .095);
-  --theme-control-active: rgba(220, 229, 240, .2);
-  --theme-nav: linear-gradient(180deg, rgba(42, 53, 68, .99), rgba(22, 29, 39, .995));
-  --theme-nav-text: #bec7d2;
-  --theme-grid-rgb: 195, 207, 222;
-  --theme-image-filter: saturate(.9) contrast(1.04) brightness(.98);
-  --theme-image-opacity: .88;
-  --shadow: 0 30px 82px rgba(0, 0, 0, .4);
+    linear-gradient(135deg, rgba(247, 249, 252, .05), transparent 40%),
+    linear-gradient(145deg, rgba(19, 28, 42, .94), rgba(0, 0, 6, .96));
+  --theme-panel-solid: rgba(19, 28, 42, .98);
+  --theme-panel-border: rgba(114, 184, 255, .22);
+  --theme-control: rgba(114, 184, 255, .1);
+  --theme-control-active: rgba(114, 184, 255, .23);
+  --theme-nav: linear-gradient(180deg, rgba(27, 36, 50, .99), rgba(0, 0, 6, .995));
+  --theme-nav-text: #94a2b5;
+  --theme-grid-rgb: 176, 246, 255;
+  --theme-image-filter: saturate(.72) contrast(1.12) brightness(.72);
+  --theme-image-opacity: .7;
+  --shadow: 0 30px 90px rgba(0, 0, 0, .58);
 }
 
 :root[data-theme="obsidian"] .hero-card::after {
