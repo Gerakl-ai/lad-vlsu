@@ -3,7 +3,15 @@ const fs = require('node:fs');
 const { chromium } = require('playwright');
 
 const tabs = ['Сегодня', 'Неделя', 'Записи', 'Настройки'];
-const sizes = [{ width: 402, height: 874 }, { width: 932, height: 430 }, { width: 960, height: 600 }, { width: 1280, height: 800 }, { width: 1366, height: 768 }, { width: 1440, height: 900 }, { width: 1920, height: 1080 }, { width: 2560, height: 1440 }];
+const allSizes = [
+  { width: 320, height: 568 }, { width: 402, height: 874 }, { width: 932, height: 430 },
+  { width: 768, height: 1024 }, { width: 960, height: 600 }, { width: 1024, height: 600 },
+  { width: 1280, height: 720 }, { width: 1366, height: 768 }, { width: 1440, height: 900 }, { width: 1536, height: 864 },
+  { width: 1600, height: 900 }, { width: 1920, height: 1080 }, { width: 2560, height: 1440 },
+  { width: 3440, height: 1440 }
+];
+const viewportFilter = process.env.QA_VIEWPORT;
+const sizes = viewportFilter ? allSizes.filter(({ width, height }) => `${width}x${height}` === viewportFilter) : allSizes;
 const root = process.env.QA_URL || 'http://127.0.0.1:4173/';
 const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53ec1dd1892e5ec44a3a60a896', root).href;
 
@@ -12,12 +20,13 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
   fs.mkdirSync('artifacts/qa/desktop-surfaces', { recursive: true });
   try {
     for (const viewport of sizes) {
-      const page = await browser.newPage({ viewport });
+      const { deviceScaleFactor = 1, ...viewportSize } = viewport;
+      const page = await browser.newPage({ viewport: viewportSize, deviceScaleFactor });
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
       await page.addInitScript(() => {
         localStorage.setItem('lad.subgroup.v1:7936a2a43b11b20b01d30f5b00c73166', '0');
-        if (innerWidth === 1366 || innerWidth === 402) {
+        if (innerWidth === 1366 || innerWidth === 402 || innerWidth === 2560) {
           localStorage.setItem('lad.theme-schema', '2026-08-ember');
           localStorage.setItem('lad.theme', 'obsidian');
         }
@@ -44,10 +53,50 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
             assert.match(upcomingSubject, /искусственного интеллекта/i);
             assert.doesNotMatch(upcomingSubject, /архитектуры/i);
           }
+          if (viewport.width >= 1280 && viewport.height >= 600) {
+            const layout = await page.evaluate(() => {
+              const rect = (element) => {
+                if (!element) return null;
+                const box = element.getBoundingClientRect();
+                return { x: box.x, y: box.y, width: box.width, height: box.height, bottom: box.bottom };
+              };
+              return {
+                date: rect(document.querySelector('.today-date-navigator')),
+                hero: rect(document.querySelector('.today-primary > .hero-card, .today-primary > .schedule-period-empty')),
+                detail: rect(document.querySelector('.today-detail-scroll')),
+                summary: rect(document.querySelector('.today-day-summary')),
+                preview: rect(document.querySelector('.today-week-preview')),
+                event: rect(document.querySelector('.today-add-event')),
+                focus: rect(document.querySelector('.focus-note-card')),
+                upcomingDisplay: document.querySelector('.upcoming-study')
+                  ? getComputedStyle(document.querySelector('.upcoming-study')).display : null
+              };
+            });
+            assert.ok(layout.date && layout.hero && layout.detail && layout.preview, JSON.stringify(layout));
+            assert.ok(Math.abs(layout.date.x - layout.preview.x) < 2, JSON.stringify(layout));
+            assert.ok(Math.abs(layout.date.width - layout.preview.width) < 2, JSON.stringify(layout));
+            assert.ok(layout.date.width > layout.hero.width + 100, JSON.stringify(layout));
+            assert.ok(Math.abs(layout.hero.y - layout.detail.y) < 3, JSON.stringify(layout));
+            assert.ok(layout.preview.y >= Math.max(layout.hero.bottom, layout.detail.bottom, layout.summary?.bottom ?? 0) - 2, JSON.stringify(layout));
+            if (layout.event) assert.ok(layout.event.height <= 64, JSON.stringify(layout));
+            if (layout.focus) assert.ok(layout.focus.height <= 110, JSON.stringify(layout));
+            if (layout.upcomingDisplay) assert.notEqual(layout.upcomingDisplay, 'none');
+          }
         }
         if (tab === 'Неделя') {
-          await page.locator('.week-list .lesson-choice-hint').first().waitFor();
-          assert.match(await page.locator('.week-list .lesson-choice-hint').first().innerText(), /2 варианта · выбрать/);
+          if (viewport.width >= 2200) {
+            const board = page.locator('.desktop-week-calendar');
+            await board.waitFor();
+            const variantCard = board.locator('.desktop-week-lesson:has(.desktop-week-variant)').first();
+            await variantCard.waitFor();
+            assert.match(await variantCard.locator('.desktop-week-variant').innerText(), /2 варианта/);
+            await variantCard.click();
+            await board.locator('.desktop-week-selection').getByRole('group', { name: 'Выбрать свою пару' }).waitFor();
+            if (viewport.width === 2560) await page.screenshot({ path: 'artifacts/qa/desktop-surfaces/2560-Неделя-тёмная.png' });
+          } else {
+            await page.locator('.week-list .lesson-choice-hint').first().waitFor();
+            assert.match(await page.locator('.week-list .lesson-choice-hint').first().innerText(), /2 варианта · выбрать/);
+          }
         }
         if (viewport.width === 1366 && tab === 'Сегодня') {
           const theme = await page.evaluate(() => {
@@ -95,7 +144,8 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
           return { viewport: innerWidth, frame: rect('.phone-frame'), topbar: rect('.topbar'), nav: rect('.bottom-nav'), content: rect('.content-scroll'),
             primary: rect('.today-primary, .week-overview, .notes-dashboard, .settings-view'),
             secondary: rect('.today-detail-scroll, .week-list, .notes-list'),
-            weekColumns: document.querySelector('.week-list') ? getComputedStyle(document.querySelector('.week-list')).gridTemplateColumns.split(' ').length : null,
+            weekColumns: document.querySelector('.desktop-week-calendar')?.querySelectorAll('.desktop-week-day-head').length
+              ?? (document.querySelector('.week-list') ? getComputedStyle(document.querySelector('.week-list')).gridTemplateColumns.split(' ').length : null),
             overflow: document.documentElement.scrollWidth > innerWidth };
         });
         assert.equal(metrics.overflow, false);

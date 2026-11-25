@@ -61,7 +61,7 @@ import { createLessonNoteContext, notesLinkedToLesson } from "./features/notes/n
 import type { NoteComposerRequest, NoteDraft, NoteFolder, SmartNote } from "./features/notes/noteTypes";
 import { importDrafts, loadDraftsWithStatus, type NotesLoadStatus } from "./features/notes/noteStorage";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
-import { importPersonalEvents, personalEventsOnDate, usePersonalEvents } from "./features/notes/personalEvents";
+import { importPersonalEvents, personalEventsOnDate, usePersonalEvents, type PersonalEvent } from "./features/notes/personalEvents";
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
 import { DesktopCommandPalette, type DesktopCommand } from "./components/DesktopCommandPalette";
 import "./features/groups/comparison.css";
@@ -309,7 +309,7 @@ export function App() {
   const [themeId, setThemeId] = useState<ThemeId>(() => readTheme());
   const [customTheme, setCustomTheme] = useState<CustomTheme>(() => readCustomTheme());
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
-  const [groupPickerOpen, setGroupPickerOpen] = useState(() => !INITIAL_GROUP);
+  const [groupPickerOpen, setGroupPickerOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const [calendarCreateOnOpen, setCalendarCreateOnOpen] = useState(false);
@@ -322,6 +322,7 @@ export function App() {
   });
   const [dayMotionDirection, setDayMotionDirection] = useState<"forward" | "backward" | null>(null);
   const [NotesView, setNotesView] = useState<NotesViewComponent | null>(null);
+  const [notesViewLoadFailed, setNotesViewLoadFailed] = useState(false);
   const [tabMotion, setTabMotion] = useState<{ id: number; direction: "forward" | "backward"; to: AppTab }>({ id: 0, direction: "forward", to: activeTab });
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const pendingTabRef = useRef<AppTab>(activeTab);
@@ -577,7 +578,11 @@ export function App() {
         groupLinkHandledRef.current = true;
         if (groupSelectionRevisionRef.current !== selectionRevision) return;
         if (group) selectGroup(group);
-        else setGroupPickerOpen(true);
+        else {
+          const cached = selectedGroupRef.current;
+          if (cached) syncGroupLink(cached);
+          else setGroupPickerOpen(true);
+        }
       })
       .catch(() => {
         if (active) {
@@ -624,7 +629,7 @@ export function App() {
     }
     const mobileWindow = window.matchMedia("(max-width: 767px), (hover: none) and (max-width: 1100px)").matches;
     if (mobileWindow) {
-      const timer = window.setTimeout(preload, 120);
+      const timer = window.setTimeout(preload, 80);
       return () => {
         cancelled = true;
         window.clearTimeout(timer);
@@ -635,7 +640,7 @@ export function App() {
       cancelIdleCallback?: (handle: number) => void;
     };
     if (idleWindow.requestIdleCallback) {
-      const handle = idleWindow.requestIdleCallback(preload, { timeout: 1400 });
+      const handle = idleWindow.requestIdleCallback(preload, { timeout: 500 });
       return () => {
         cancelled = true;
         idleWindow.cancelIdleCallback?.(handle);
@@ -748,14 +753,14 @@ export function App() {
       setActiveTab(nextTab);
     };
     if (nextTab === "notes" && !NotesView) {
+      setNotesViewLoadFailed(false);
+      commitTab();
       void loadNotesView().then((Component) => {
         setNotesView(() => Component);
-        if (pendingTabRef.current === nextTab) {
-          commitTab();
-        }
+        setNotesViewLoadFailed(false);
       }).catch(() => {
         if (pendingTabRef.current !== nextTab) return;
-        pendingTabRef.current = activeTab;
+        setNotesViewLoadFailed(true);
         setNotice("Не удалось открыть записи. Попробуйте ещё раз.");
       });
       return;
@@ -903,18 +908,19 @@ export function App() {
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const desktop = window.matchMedia("(min-width: 960px) and (min-height: 600px)").matches;
-    const offset = desktop ? 68 : 52;
+    const lightweight = document.documentElement.dataset.visualQuality === "lite";
+    const offset = desktop ? lightweight ? 20 : 32 : lightweight ? 16 : 26;
     const direction = tabMotion.direction === "forward" ? 1 : -1;
     const keyframes: Keyframe[] = reducedMotion
-      ? [{ opacity: 0.42 }, { opacity: 1 }]
+      ? [{ opacity: 0.62 }, { opacity: 1 }]
       : [
-          { opacity: 0.2, transform: `translate3d(${offset * direction}px, 0, 0) scale(0.986)` },
-          { opacity: 0.88, transform: `translate3d(${offset * direction * 0.12}px, 0, 0) scale(0.998)`, offset: 0.72 },
-          { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" }
+          { opacity: 0.48, transform: `translate3d(${offset * direction}px, 0, 0)` },
+          { opacity: 0.9, transform: `translate3d(${offset * direction * 0.12}px, 0, 0)`, offset: 0.72 },
+          { opacity: 1, transform: "translate3d(0, 0, 0)" }
         ];
     const animation = view.animate(keyframes, {
-      duration: reducedMotion ? 220 : desktop ? 460 : 430,
-      easing: "cubic-bezier(.22, .68, 0, 1)",
+      duration: reducedMotion ? 100 : lightweight ? 300 : desktop ? 380 : 360,
+      easing: "cubic-bezier(.16, 1, .3, 1)",
       fill: "both"
     });
     animation.id = `tab-view-enter-${tabMotion.direction}`;
@@ -1103,8 +1109,25 @@ export function App() {
                 onCalendarRequestHandled={() => setCalendarRequestToken(0)}
                 onComposerRequestHandled={() => setComposerRequest(null)}
                 onOpenSettings={() => navigateToTab("settings")}
+                urlComposeAllowed={Boolean(selectedGroup) && !groupPickerOpen}
               />
-            ) : <section className="notes-loading" aria-label="Открываем записи"><span /><span /><span /></section>
+            ) : notesViewLoadFailed ? (
+              <section className="notes-loading notes-load-error" role="alert">
+                <p>Не удалось открыть записи</p>
+                <button type="button" onClick={() => {
+                  setNotesViewLoadFailed(false);
+                  void loadNotesView().then((Component) => {
+                    setNotesView(() => Component);
+                    setNotesViewLoadFailed(false);
+                  }).catch(() => setNotesViewLoadFailed(true));
+                }}>Повторить</button>
+              </section>
+            ) : (
+              <section className="notes-loading notes-chunk-loading" aria-label="Открываем записи" role="status">
+                <NotebookPen size={22} aria-hidden="true" />
+                <span>Открываем записи</span>
+              </section>
+            )
           )}
 
           {activeTab === "settings" && (
@@ -1221,7 +1244,7 @@ function Header({ group, currentWeek, datedScheduleLabel, status, refreshedAt, o
           {badge.suffix && <small>{badge.suffix}</small>}
         </span>
         <div>
-          <h1>{titleParts ? <><span>{titleParts[1]}</span><wbr /><span className="group-title-suffix">{titleParts[2]}</span></> : groupName}</h1>
+          <h1 aria-label={groupName}>{titleParts ? <><span aria-hidden="true">{titleParts[1]}</span><wbr aria-hidden="true" /><span className="group-title-suffix" aria-hidden="true">{titleParts[2]}</span></> : groupName}</h1>
           <p>{group?.instituteShortName ?? "ВлГУ"}</p>
         </div>
         <ChevronDown className="brand-chevron" size={17} />
@@ -1927,6 +1950,139 @@ function CompareGroupsButton({ onClick }: { onClick: () => void }) {
   </button>;
 }
 
+function WeekLessonActions({ lesson, date, weekMode, choice, linkedNotes, onChooseLesson, onCreateLessonNote, onToggleNote }: {
+  lesson: LessonSlot;
+  date: Date;
+  weekMode: WeekMode;
+  choice: SubgroupChoice;
+  linkedNotes: SmartNote[];
+  onChooseLesson: LessonChoiceSetter;
+  onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
+  onToggleNote: (noteId: string) => void;
+}) {
+  return <div className="mini-lesson-actions desktop-week-actions">
+    {(lesson.variants?.length ?? 0) > 1 && <LessonVariantPicker lesson={lesson} choice={choice} onChoose={(nextChoice) => onChooseLesson(lesson, weekMode, nextChoice)} />}
+    <button type="button" onClick={() => onCreateLessonNote(lesson, date, "note")}><NotebookPen size={15} /> Записка</button>
+    <button type="button" onClick={() => onCreateLessonNote(lesson, date, "homework")}><BookCheck size={15} /> Добавить ДЗ</button>
+    {linkedNotes.map((note) => (
+      <button className="mini-linked-note" key={note.id} type="button" onClick={() => onToggleNote(note.id)} aria-label={`Отметить выполненным: ${note.title}`}>
+        <CheckCircle2 size={14} /> <span>{note.title}</span>
+      </button>
+    ))}
+  </div>;
+}
+
+function DesktopWeekCalendarBoard({ dayLoads, todayKey, weekMode, getLessonChoice, onChooseLesson, notes, groupNrec, onToggleNote, onSelectDate, onCreateLessonNote, expandedLessonId, setExpandedLessonId, personalEvents }: {
+  dayLoads: WeekDayLoad[];
+  todayKey: string;
+  weekMode: WeekMode;
+  getLessonChoice: LessonChoiceResolver;
+  onChooseLesson: LessonChoiceSetter;
+  notes: SmartNote[];
+  groupNrec?: string;
+  onToggleNote: (noteId: string) => void;
+  onSelectDate: (date: Date) => void;
+  onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
+  expandedLessonId: string | null;
+  setExpandedLessonId: (lessonId: string | null) => void;
+  personalEvents: PersonalEvent[];
+}) {
+  const entries = dayLoads.flatMap((day) => day.lessons.map((lesson) => ({ day, lesson })));
+  const lessonStarts = entries.map(({ lesson }) => minutesFromTime(lesson.start));
+  const lessonEnds = entries.map(({ lesson }) => lesson.end ? minutesFromTime(lesson.end) : minutesFromTime(lesson.start) + 60);
+  const rangeStart = Math.floor(Math.min(...lessonStarts) / 60) * 60;
+  const rangeEnd = Math.ceil(Math.max(...lessonEnds) / 60) * 60;
+  const slotCount = Math.max(6, (rangeEnd - rangeStart) / 10);
+  const selected = entries.find(({ day, lesson }) => expandedLessonId === `${dateKeyFromDate(day.date)}-${lesson.id}`);
+  const personalEventsByDay = dayLoads.map((day) => personalEventsOnDate(personalEvents, day.date));
+  const hourLabels = Array.from({ length: Math.ceil(slotCount / 6) }, (_, index) => rangeStart + index * 60);
+  const gridRows = `repeat(${slotCount}, minmax(0, 1fr))`;
+
+  return (
+    <section className="desktop-week-calendar" aria-label="Расписание недели по времени">
+      <div className="desktop-week-calendar-head">
+        <div className="desktop-week-time-head"><Clock3 size={15} aria-hidden="true" /><span>Время</span></div>
+        {dayLoads.map((day) => {
+          const isToday = dateKeyFromDate(day.date) === todayKey;
+          const outsidePeriod = day.outsidePeriod;
+          return <button className={`desktop-week-day-head ${isToday ? "current-day" : ""}`} type="button" key={day.dayName} onClick={() => onSelectDate(day.date)} aria-label={`Открыть расписание: ${day.dayName}`}>
+            <span className="desktop-week-date-tile">{String(day.date.getDate()).padStart(2, "0")}</span>
+            <span className="desktop-week-day-copy"><strong>{day.dayName}</strong><small>{isToday ? "Сегодня" : WEEK_DATE_FORMATTER.format(day.date).replace(".", "")}</small></span>
+            <span className="desktop-week-day-count">{day.count ? formatLessonCount(day.count) : outsidePeriod ? "нет данных" : "без пар"}</span>
+            <ChevronRight size={16} aria-hidden="true" />
+          </button>;
+        })}
+      </div>
+
+      <div className="desktop-week-calendar-body">
+        <div className="desktop-week-time-axis" style={{ gridTemplateRows: gridRows }} aria-hidden="true">
+          {hourLabels.map((minute) => <span key={minute} style={{ gridRow: `${Math.floor((minute - rangeStart) / 10) + 1} / span 6` }}>{`${String(Math.floor(minute / 60)).padStart(2, "0")}:00`}</span>)}
+        </div>
+        {dayLoads.map((day) => {
+          const dayKey = dateKeyFromDate(day.date);
+          const isToday = dayKey === todayKey;
+          return <div className={`desktop-week-lane ${isToday ? "current-day" : ""}`} key={day.dayName} style={{ gridTemplateRows: gridRows }}>
+            {hourLabels.map((minute) => <span className="desktop-week-hour-mark" key={minute} style={{ gridRow: `${Math.floor((minute - rangeStart) / 10) + 1} / span 1` }} aria-hidden="true" />)}
+            {!day.lessons.length && <p className="desktop-week-empty">{day.outsidePeriod ? "Расписание не действует на эту дату" : "Занятий нет"}</p>}
+            {day.lessons.map((lesson) => {
+              const choice = getLessonChoice(lesson, weekMode);
+              const selectedLesson = lessonWithSelectedVariant(lesson, choice);
+              const linkedNotes = notesLinkedToLesson(selectedLesson, notes, day.date, groupNrec);
+              const view = lessonView(lesson, choice, weekMode);
+              const expanded = expandedLessonId === `${dayKey}-${lesson.id}`;
+              const start = minutesFromTime(lesson.start);
+              const end = lesson.end ? minutesFromTime(lesson.end) : start + 60;
+              const startRow = Math.max(1, Math.floor((start - rangeStart) / 10) + 1);
+              const endRow = Math.min(slotCount + 1, Math.max(startRow + 2, Math.ceil((end - rangeStart) / 10) + 1));
+              const change = lessonChangeMessage(groupNrec, dayKey, lesson, choice);
+              return <button
+                className={`desktop-week-lesson ${expanded ? "selected" : ""} ${change ? "has-change" : ""}`}
+                key={lesson.id}
+                type="button"
+                style={{ gridRow: `${startRow} / ${endRow}` }}
+                aria-expanded={expanded}
+                onClick={() => setExpandedLessonId(expanded ? null : `${dayKey}-${lesson.id}`)}
+              >
+                <span className="desktop-week-lesson-time">{lesson.end ? `${lesson.start}-${lesson.end}` : `${lesson.start} · время уточняется`}</span>
+                <strong>{view.subject}</strong>
+                <span className="desktop-week-lesson-meta">{[change && choice !== "all" ? "Дистант" : view.room, view.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
+                <span className="desktop-week-lesson-teacher">{view.teacher || "Преподаватель не указан"}</span>
+                {(lesson.variants?.length ?? 0) > 1 && <span className="desktop-week-variant">{formatVariantCount(lesson.variants?.length ?? 0)}</span>}
+                {linkedNotes.length > 0 && <span className="desktop-week-note-count"><BookCheck size={12} aria-hidden="true" />{linkedNotes.length}</span>}
+              </button>;
+            })}
+          </div>;
+        })}
+      </div>
+
+      {personalEventsByDay.some((events) => events.length > 0) && <div className="desktop-week-personal" aria-label="Личные события недели">
+        <div className="desktop-week-personal-label"><CalendarDays size={15} aria-hidden="true" /><span>Личные события</span></div>
+        {personalEventsByDay.map((events, index) => <div className="desktop-week-personal-day" key={dayLoads[index].dayName}>
+          {events.map((event) => <button type="button" key={event.id} onClick={() => onSelectDate(dayLoads[index].date)}>
+            <strong>{event.title}</strong>
+            <span>{`${formatPersonalEventTime(event.start)}-${formatPersonalEventTime(event.end)}${event.location ? ` · ${event.location}` : ""}`}</span>
+          </button>)}
+        </div>)}
+      </div>}
+
+      {selected && (() => {
+        const { day, lesson } = selected;
+        const choice = getLessonChoice(lesson, weekMode);
+        const linkedNotes = notesLinkedToLesson(lessonWithSelectedVariant(lesson, choice), notes, day.date, groupNrec);
+        const view = lessonView(lesson, choice, weekMode);
+        return <section className="desktop-week-selection" aria-live="polite" aria-label={`Выбрана пара: ${view.subject}`}>
+          <div className="desktop-week-selection-copy"><span>{day.dayName} · {WEEK_DATE_FORMATTER.format(day.date)}</span><strong>{view.subject}</strong><small>{lessonTimeLabel(lesson)} · {[view.room, view.kind, view.teacher].filter(Boolean).join(" · ") || "ВлГУ"}</small></div>
+          <WeekLessonActions lesson={lesson} date={day.date} weekMode={weekMode} choice={choice} linkedNotes={linkedNotes} onChooseLesson={onChooseLesson} onCreateLessonNote={onCreateLessonNote} onToggleNote={onToggleNote} />
+        </section>;
+      })()}
+    </section>
+  );
+}
+
+function formatPersonalEventTime(value: string) {
+  return new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+}
+
 function WeekView({
   getLessonChoice,
   onChooseLesson,
@@ -2020,6 +2176,22 @@ function WeekView({
         </div>
       </div>
 
+      {totalLessons > 0 && <DesktopWeekCalendarBoard
+        dayLoads={dayLoads}
+        todayKey={todayKey}
+        weekMode={weekMode}
+        getLessonChoice={getLessonChoice}
+        onChooseLesson={onChooseLesson}
+        notes={notes}
+        groupNrec={groupNrec}
+        onToggleNote={onToggleNote}
+        onSelectDate={onSelectDate}
+        onCreateLessonNote={onCreateLessonNote}
+        expandedLessonId={expandedLessonId}
+        setExpandedLessonId={setExpandedLessonId}
+        personalEvents={personalEvents}
+      />}
+
       <section className="week-list">
         {dayLoads.map((day) => {
           const isToday = dateKeyFromDate(day.date) === todayKey;
@@ -2063,16 +2235,7 @@ function WeekView({
                         <ChevronRight className="mini-lesson-chevron" size={18} aria-hidden="true" />
                       </button>
                       {expanded && (
-                        <div className="mini-lesson-actions">
-                          {(lesson.variants?.length ?? 0) > 1 && <LessonVariantPicker lesson={lesson} choice={choice} onChoose={(nextChoice) => onChooseLesson(lesson, weekMode, nextChoice)} />}
-                          <button type="button" onClick={() => onCreateLessonNote(lesson, day.date, "note")}><NotebookPen size={15} /> Записка</button>
-                          <button type="button" onClick={() => onCreateLessonNote(lesson, day.date, "homework")}><BookCheck size={15} /> Добавить ДЗ</button>
-                          {linkedNotes.map((note) => (
-                            <button className="mini-linked-note" key={note.id} type="button" onClick={() => onToggleNote(note.id)} aria-label={`Отметить выполненным: ${note.title}`}>
-                              <CheckCircle2 size={14} /> <span>{note.title}</span>
-                            </button>
-                          ))}
-                        </div>
+                        <WeekLessonActions lesson={lesson} date={day.date} weekMode={weekMode} choice={choice} linkedNotes={linkedNotes} onChooseLesson={onChooseLesson} onCreateLessonNote={onCreateLessonNote} onToggleNote={onToggleNote} />
                       )}
                     </article>
                   );
@@ -2555,8 +2718,11 @@ function BottomNav({ activeTab, onTabChange, sidebarCollapsed }: { activeTab: Ap
           onPointerEnter={() => {
             if (tab === "notes") void loadNotesView().catch(() => undefined);
           }}
-          onPointerDown={(event) => {
-            if (tab === "notes" && event.pointerType !== "mouse") void loadNotesView().catch(() => undefined);
+          onFocus={() => {
+            if (tab === "notes") void loadNotesView().catch(() => undefined);
+          }}
+          onPointerDown={() => {
+            if (tab === "notes") void loadNotesView().catch(() => undefined);
           }}
           onClick={(event) => {
             event.currentTarget.blur();

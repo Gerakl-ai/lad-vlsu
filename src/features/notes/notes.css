@@ -1023,17 +1023,77 @@
 }
 
 .notes-loading {
-  display: grid;
-  gap: 9px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
-.notes-loading span {
-  height: 92px;
+.content-scroll[data-active-tab="notes"] {
+  display: flex;
+  flex-direction: column;
+}
+
+.notes-loading svg {
+  flex: 0 0 auto;
+  color: var(--cyan);
+}
+
+.notes-chunk-loading {
+  flex: 1 0 240px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.content-scroll[data-active-tab="notes"] .notes-loading.notes-chunk-loading {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.notes-storage-loading {
+  min-height: 112px;
+  border: 1px dashed var(--theme-panel-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--theme-panel-solid) 76%, transparent);
+}
+
+.content-scroll[data-active-tab="notes"] .notes-storage-loading {
+  min-height: 112px;
+}
+
+.notes-load-error {
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.notes-load-error p {
+  margin: 0;
+}
+
+.notes-load-error button {
+  min-height: 38px;
+  padding: 0 14px;
+  color: var(--text);
   border: 1px solid var(--theme-panel-border);
   border-radius: 8px;
-  background: linear-gradient(90deg, var(--theme-control), rgba(255, 255, 255, 0.08), var(--theme-control));
-  background-size: 220% 100%;
-  animation: shimmer 1.4s linear infinite;
+  background: var(--theme-control);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
 }
 
 .notes-empty-create {
@@ -3328,7 +3388,7 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 @media (min-width: 1280px) and (min-height: 600px) {
   .notes-view.wide-note-workspace {
     height: 100%;
-    min-height: 620px;
+    min-height: min(620px, calc(100dvh - 124px));
     grid-template-columns: minmax(280px, .85fr) minmax(310px, .95fr) minmax(360px, 1.3fr);
     grid-template-rows: minmax(0, 1fr);
     align-items: stretch;
@@ -3416,9 +3476,11 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   .notes-view.wide-note-workspace .note-detail-pane {
     grid-column: 3;
     grid-row: 1;
+    align-self: start;
     min-width: 0;
     min-height: 0;
-    height: 100%;
+    height: fit-content;
+    max-height: 100%;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     overflow: hidden;
@@ -3462,6 +3524,7 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 
   .note-detail-content {
     min-height: 0;
+    max-height: min(68vh, 680px);
     overflow: auto;
     padding: clamp(22px, 2.2vw, 40px) clamp(24px, 3vw, 56px);
     overscroll-behavior: contain;

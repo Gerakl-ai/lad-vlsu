@@ -88,6 +88,8 @@ interface NotesViewProps {
   onComposerRequestHandled: () => void;
   onOpenSettings: () => void;
   onRetryStorage: () => Promise<void>;
+  /** Блокирует ?compose=1, пока нет выбранной группы (избегаем двух dialog). */
+  urlComposeAllowed?: boolean;
 }
 
 interface SmartFilter {
@@ -143,13 +145,16 @@ export function NotesView({
   onCalendarRequestHandled,
   onComposerRequestHandled,
   onOpenSettings,
-  onRetryStorage
+  onRetryStorage,
+  urlComposeAllowed = true
 }: NotesViewProps) {
   const [wideDesktop, setWideDesktop] = useState(() => window.matchMedia(WIDE_NOTE_WORKSPACE_QUERY).matches);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [query, setQuery] = useState("");
-  const [composerOpen, setComposerOpen] = useState(() => new URLSearchParams(window.location.search).get("compose") === "1");
+  const composeFromUrl = () =>
+    urlComposeAllowed && new URLSearchParams(window.location.search).get("compose") === "1";
+  const [composerOpen, setComposerOpen] = useState(() => composeFromUrl() && ready);
   const [folderSheetOpen, setFolderSheetOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<SmartNote | null>(null);
@@ -172,6 +177,10 @@ export function NotesView({
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
+
+  useEffect(() => {
+    if (ready && composeFromUrl()) setComposerOpen(true);
+  }, [ready, urlComposeAllowed]);
 
   useEffect(() => {
     let active = true;
@@ -561,7 +570,10 @@ export function NotesView({
       {!wideDesktop && recoverableDrafts}
 
       {!ready ? (
-        <section className="notes-loading" aria-label="Загрузка записей"><span /><span /><span /></section>
+        <section className="notes-loading notes-storage-loading" aria-label="Загрузка записей" role="status">
+          <LoaderCircle className="spin" size={19} aria-hidden="true" />
+          <span>Восстанавливаем сохранённые записи</span>
+        </section>
       ) : storageStatus === "unavailable" && notes.length === 0 ? (
         <section className="notes-storage-warning" role="status">
           <RefreshCw size={25} aria-hidden="true" />

@@ -1,0 +1,56 @@
+﻿{
+  "auditedAt": "2026-11-25T13:38:44.159Z",
+  "release": "([^",
+  "stats": {
+    "institutes": 14,
+    "coverageGroups": 739,
+    "bugCount": 5
+  },
+  "bugs": [
+    {
+      "id": "API-01",
+      "sev": "Critical",
+      "cat": "Backend",
+      "title": "Прокси /vlsu-api отдаёт не-JSON",
+      "detail": "HTTP 404, content-type: text/html; charset=utf-8, начало: <!DOCTYPE html><html lang=\"ru\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport",
+      "repro": "fetch('/vlsu-api/catalogs/GetInstitutes') со страницы приложения",
+      "expected": "200 application/json"
+    },
+    {
+      "id": "API-02",
+      "sev": "High",
+      "cat": "Backend",
+      "title": "/app-api на germanpolkin.ru недоступен",
+      "detail": "HEAD /app-api/health → HTTP 404",
+      "repro": "curl https://germanpolkin.ru/app-api/health",
+      "expected": "200 (Pages Function или Worker на том же origin)"
+    },
+    {
+      "id": "DATA-04",
+      "sev": "Low",
+      "cat": "Data",
+      "title": "В quality.json 225 групп без приемлемого снимка",
+      "detail": "preliminary: 17, missing: 225",
+      "repro": "",
+      "expected": "UI предупреждает покрытие"
+    },
+    {
+      "id": "A11Y-01",
+      "sev": "Medium",
+      "cat": "A11y",
+      "title": "Отключено масштабирование страницы",
+      "detail": "meta viewport: maximum-scale=1.0, user-scalable=no",
+      "repro": "Попытка pinch-zoom на мобильном",
+      "expected": "Разрешён zoom для слабовидящих"
+    },
+    {
+      "id": "SEC-01",
+      "sev": "Low",
+      "cat": "Security",
+      "title": "Нет заголовка content-security-policy",
+      "detail": "Типично для GitHub Pages, повышает риск clickjacking/XSS без CSP",
+      "repro": "",
+      "expected": ""
+    }
+  ]
+}

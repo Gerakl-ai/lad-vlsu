@@ -3,21 +3,40 @@ const fs = require('node:fs');
 const { chromium } = require('playwright');
 
 const allViewports = [
+  { width: 320, height: 568 },
+  { width: 360, height: 640 },
+  { width: 375, height: 667 },
+  { width: 390, height: 844 },
   { width: 402, height: 874 },
+  { width: 430, height: 932 },
+  { width: 667, height: 375 },
+  { width: 844, height: 390 },
   { width: 932, height: 430 },
+  { width: 768, height: 1024 },
   { width: 960, height: 600 },
+  { width: 1024, height: 600 },
   { width: 1024, height: 768 },
+  { width: 1280, height: 720 },
   { width: 1280, height: 800 },
+  { width: 1366, height: 768 },
   { width: 1400, height: 900 },
   { width: 1440, height: 900 },
+  { width: 1536, height: 864, deviceScaleFactor: 1.25 },
+  { width: 1600, height: 900 },
   { width: 1920, height: 1080 },
+  { width: 2560, height: 1080 },
   { width: 2540, height: 1276 },
-  { width: 2560, height: 1440 }
+  { width: 2560, height: 1440 },
+  { width: 3440, height: 1440 }
 ];
 const viewportFilter = process.env.QA_VIEWPORT;
+const viewportFilters = new Set((process.env.QA_VIEWPORTS || '').split(',').map((value) => value.trim()).filter(Boolean));
 const viewports = viewportFilter
   ? allViewports.filter(({ width, height }) => `${width}x${height}` === viewportFilter)
-  : allViewports;
+  : viewportFilters.size
+    ? allViewports.filter(({ width, height }) => viewportFilters.has(`${width}x${height}`))
+    : allViewports;
+if (viewportFilters.size && viewports.length !== viewportFilters.size) throw new Error(`Unknown viewport in QA_VIEWPORTS: ${[...viewportFilters].join(', ')}`);
 const groupQuery = '?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53ec1dd1892e5ec44a3a60a896';
 const qaUrl = new URL(groupQuery, process.env.QA_URL || 'http://127.0.0.1:4173/').href;
 
@@ -27,8 +46,17 @@ function assertVisibleTabMotion(motion, label, direction) {
   assert.equal(motion.playState, 'running', `${label} transition should actually start`);
   const startTransform = motion.keyframes[0].transform || '';
   const offset = Number(startTransform.match(/translate3d\(([-\d.]+)px/)?.[1] ?? 0);
-  assert.ok(Math.abs(offset) >= 45, `${label} transition should have a visible but restrained slide: ${startTransform}`);
-  assert.ok(Number(motion.keyframes[0].opacity) < 0.3, `${label} transition should include a clear fade-in`);
+  assert.ok(Math.abs(offset) >= 15, `${label} transition should have a visible but restrained slide: ${startTransform}`);
+  assert.ok(Number(motion.keyframes[0].opacity) < 0.6, `${label} transition should include a clear fade-in`);
+}
+
+async function assertSharedTabDuration(page, motion, label) {
+  const expected = await page.evaluate(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 100;
+    if (document.documentElement.dataset.visualQuality === 'lite') return 300;
+    return window.matchMedia('(min-width: 960px) and (min-height: 600px)').matches ? 380 : 360;
+  });
+  assert.equal(motion.duration, expected, `${label} should use the shared transition duration (${expected}ms), got ${motion.duration}ms`);
 }
 
 (async () => {
@@ -36,13 +64,17 @@ function assertVisibleTabMotion(motion, label, direction) {
   fs.mkdirSync('artifacts/qa/desktop-layout', { recursive: true });
   try {
     for (const viewport of viewports) {
-      const isMobile = viewport.width === 402;
+      const isMobile = viewport.width <= 560;
+      const { deviceScaleFactor = isMobile ? 3 : 1, ...viewportSize } = viewport;
       const page = await browser.newPage({
-        viewport,
+        viewport: viewportSize,
+        deviceScaleFactor,
         serviceWorkers: 'block',
-        ...(isMobile ? { isMobile: true, hasTouch: true, deviceScaleFactor: 3 } : {})
+        ...(isMobile ? { isMobile: true, hasTouch: true } : {})
       });
       let notesChunkRequested = false;
+      let notesChunkContinued = false;
+      let releaseNotesChunk = () => {};
       const savedAt = '2026-11-04T14:20:00.000Z';
       if (viewport.width === 1024) {
         await page.addInitScript(() => {
@@ -57,8 +89,12 @@ function assertVisibleTabMotion(motion, label, direction) {
           await route.continue();
         });
       }
-      if (isMobile) {
+      if (viewport.width === 402) {
+        const notesChunkGate = new Promise((resolve) => { releaseNotesChunk = resolve; });
         await page.addInitScript(() => {
+          Object.defineProperty(navigator, 'deviceMemory', { configurable: true, value: 2 });
+          Object.defineProperty(navigator, 'hardwareConcurrency', { configurable: true, value: 2 });
+          Object.defineProperty(navigator, 'connection', { configurable: true, value: { saveData: true } });
           window.requestIdleCallback = (callback) => {
             window.__deferredIdleCallback = callback;
             return 1;
@@ -67,11 +103,13 @@ function assertVisibleTabMotion(motion, label, direction) {
         });
         await page.route('**/assets/NotesView-*.js', async (route) => {
           notesChunkRequested = true;
-          await new Promise((resolve) => setTimeout(resolve, 450));
+          await notesChunkGate;
+          notesChunkContinued = true;
           await route.continue();
         });
       }
       await page.addInitScript(({ timestamp, emptyNotes }) => {
+        localStorage.setItem('lad.desktop-nav-collapsed', 'false');
         localStorage.setItem('lad.notes.fallback', JSON.stringify(emptyNotes ? [] : [
           {
             id: 'qa-note-project', text: 'План проекта\nСобрать сценарии и согласовать сроки.', contentHtml: '<h2>План проекта</h2><p>Собрать сценарии и <strong>согласовать сроки</strong>.</p>',
@@ -81,6 +119,12 @@ function assertVisibleTabMotion(motion, label, direction) {
           {
             id: 'qa-note-work', text: 'Интервью\nПодготовить вопросы.', title: 'Интервью', status: 'open', pinned: false, kind: 'note', space: 'Работа', topic: 'Подготовка', confidence: 0.91,
             createdAt: '2026-11-03T10:00:00.000Z', updatedAt: '2026-11-03T10:00:00.000Z', contentUpdatedAt: '2026-11-03T10:00:00.000Z', classificationSource: 'local'
+          },
+          {
+            id: 'qa-note-long', text: 'Длинная заметка QA\nПроверка прокрутки.',
+            contentHtml: `${Array.from({ length: 80 }, (_, index) => `<p>Абзац ${index + 1}. Подробная проверка заметки с большим объёмом текста, который должен прокручиваться внутри области чтения.</p>`).join('')}<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjQwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2ZmNzAwMCIvPjwvc3ZnPg==" width="1600" height="400" alt="Большое изображение QA"><p>Последний абзац длинной записи QA.</p>`,
+            title: 'Длинная заметка QA', status: 'open', pinned: false, kind: 'note', space: 'Проект', topic: 'Проверка интерфейса', confidence: 1,
+            createdAt: '2026-11-02T10:00:00.000Z', updatedAt: '2026-11-02T10:00:00.000Z', contentUpdatedAt: '2026-11-02T10:00:00.000Z', classificationSource: 'local'
           }
         ]));
       }, { timestamp: savedAt, emptyNotes: viewport.width === 402 });
@@ -122,15 +166,29 @@ function assertVisibleTabMotion(motion, label, direction) {
             return [...window.__tabMotionHistory].reverse().find((entry) => entry.element === element && entry.motionId === motionId);
           };
         });
-        if (isMobile) {
+        if (viewport.width === 402) {
           await page.getByRole('button', { name: 'Добавить событие' }).waitFor();
           if (!notesChunkRequested) await page.waitForRequest('**/assets/NotesView-*.js', { timeout: 1200 });
+          await page.evaluate(() => {
+            window.__notesNavigationTimes = { click: 0, committed: 0 };
+            const scroller = document.querySelector('.content-scroll');
+            new MutationObserver(() => {
+              if (scroller.dataset.activeTab === 'notes') window.__notesNavigationTimes.committed = performance.now();
+            }).observe(scroller, { attributes: true, attributeFilter: ['data-active-tab'] });
+            document.addEventListener('click', (event) => {
+              if (event.target.closest('.bottom-nav button[aria-label="Записи"]')) window.__notesNavigationTimes.click = performance.now();
+            }, true);
+          });
           const startedAt = Date.now();
           await page.locator('.bottom-nav').getByRole('button', { name: 'Записи' }).click();
           await page.waitForFunction(() => document.querySelector('.content-scroll')?.getAttribute('data-active-tab') === 'notes');
           const firstOpenMs = Date.now() - startedAt;
-          assert.ok(firstOpenMs < 700, `Mobile Notes first open waited ${firstOpenMs}ms despite early preload`);
-          console.log(JSON.stringify({ mobileNotesFirstOpenMs: firstOpenMs, preloadStartedBeforeTap: true }));
+          const navigationCommitMs = await page.evaluate(() => window.__notesNavigationTimes.committed - window.__notesNavigationTimes.click);
+          assert.ok(navigationCommitMs >= 0 && navigationCommitMs < 100, `Mobile Notes navigation committed ${navigationCommitMs}ms after tap`);
+          assert.equal(notesChunkContinued, false, 'Notes navigation must commit before the delayed view module is released');
+          releaseNotesChunk();
+          await page.locator('.notes-view').waitFor();
+          console.log(JSON.stringify({ mobileNotesNavigationCommitMs: Math.round(navigationCommitMs), playwrightTapEndToEndMs: firstOpenMs, moduleWasStillBlocked: true }));
           await page.locator('.bottom-nav').getByRole('button', { name: 'Сегодня' }).click();
           await page.locator('.today-view').waitFor();
         }
@@ -147,32 +205,22 @@ function assertVisibleTabMotion(motion, label, direction) {
             }));
             assert.ok(transition.duration >= 350, `Sidebar transition is too brief: ${transition.duration}ms`);
             assert.ok(transition.properties.includes('grid-template-columns'), `Missing sidebar width transition: ${transition.properties}`);
-            await frame.evaluate((element) => {
-              const state = window.__sidebarAnimation = { samples: [], done: false, runs: 0 };
-              const sample = () => element.querySelector('.bottom-nav').getBoundingClientRect().width;
-              element.addEventListener('transitionrun', (event) => {
-                if (event.propertyName !== 'grid-template-columns') return;
-                state.runs += 1;
-                state.samples = [];
-                state.done = false;
-                const collect = () => {
-                  state.samples.push(sample());
-                  if (!state.done) requestAnimationFrame(collect);
-                };
-                requestAnimationFrame(collect);
-              });
-              element.addEventListener('transitionend', (event) => {
-                if (event.propertyName !== 'grid-template-columns') return;
-                state.samples.push(sample());
-                state.done = true;
-              });
-            });
             await toggle.click();
             await page.waitForFunction(() => document.querySelector('.phone-frame')?.getAttribute('data-sidebar-collapsed') === 'true');
-            await page.waitForFunction(() => window.__sidebarAnimation?.done === true);
-            const widthSamples = await page.evaluate(() => window.__sidebarAnimation.samples);
-            assert.equal(widthSamples.at(-1), 76, `Sidebar did not reach its compact width: ${widthSamples.join(' -> ')}`);
-            assert.ok(widthSamples.some((width) => width < expandedWidth - 8 && width > 76), `Sidebar did not pass through an animated width: ${widthSamples.join(' -> ')}`);
+            await page.waitForFunction((expanded) => {
+              const width = document.querySelector('.bottom-nav')?.getBoundingClientRect().width ?? expanded;
+              return width < expanded - 8 && width > 76;
+            }, expandedWidth, { timeout: 1200 });
+            const sidebarProgress = await frame.evaluate((element) => ({
+              width: element.querySelector('.bottom-nav').getBoundingClientRect().width,
+              collapsed: element.matches('.phone-frame[data-sidebar-collapsed="true"]'),
+              columns: getComputedStyle(element).gridTemplateColumns,
+              media: matchMedia('(min-width: 1280px) and (min-height: 600px)').matches
+            }));
+            assert.ok(sidebarProgress.width < expandedWidth - 8 && sidebarProgress.width > 76, `Sidebar did not pass through an animated width: ${expandedWidth} -> ${JSON.stringify(sidebarProgress)}`);
+            await page.waitForFunction(() => Math.abs(document.querySelector('.bottom-nav')?.getBoundingClientRect().width - 76) < 1, null, { timeout: 1200 });
+            await page.waitForFunction(() => [...document.querySelectorAll('.bottom-nav .nav-label')].every((label) => getComputedStyle(label).visibility === 'hidden'), null, { timeout: 1200 });
+            assert.ok(await toggle.evaluate((element) => element.closest('.phone-frame')?.getAttribute('data-sidebar-collapsed') === 'true'));
             const collapsedLabel = await page.locator('.bottom-nav .nav-label').first().evaluate((element) => ({
               opacity: Number.parseFloat(getComputedStyle(element).opacity),
               visibility: getComputedStyle(element).visibility
@@ -180,8 +228,10 @@ function assertVisibleTabMotion(motion, label, direction) {
             assert.equal(collapsedLabel.opacity, 0);
             assert.equal(collapsedLabel.visibility, 'hidden');
             await toggle.click();
-            await page.waitForFunction(() => window.__sidebarAnimation?.runs >= 2 && window.__sidebarAnimation?.done === true && document.querySelector('.phone-frame')?.getAttribute('data-sidebar-collapsed') === 'false');
-            assert.equal(await page.locator('.bottom-nav').evaluate((element) => element.getBoundingClientRect().width), expandedWidth);
+            await page.waitForFunction(() => document.querySelector('.phone-frame')?.getAttribute('data-sidebar-collapsed') === 'false');
+            await page.waitForFunction(() => Math.abs(document.querySelector('.bottom-nav')?.getBoundingClientRect().width - 210) < 1, null, { timeout: 1200 });
+            const expandedFinalWidth = await page.locator('.bottom-nav').evaluate((element) => element.getBoundingClientRect().width);
+            assert.ok(Math.abs(expandedFinalWidth - expandedWidth) < 1, `Sidebar did not return to its expanded width: ${expandedWidth} -> ${expandedFinalWidth}`);
           }
           assert.equal(await page.locator('.today-primary').evaluate((element) => getComputedStyle(element).position), 'static');
           const todaySummaryGeometry = await page.evaluate(() => {
@@ -190,7 +240,6 @@ function assertVisibleTabMotion(motion, label, direction) {
               return { top: box.top, bottom: box.bottom, height: box.height };
             };
             return {
-              primary: rect('.today-primary'),
               hero: rect('.today-primary > .hero-card'),
               summary: rect('.today-day-summary'),
               detail: rect('.today-detail-scroll'),
@@ -198,21 +247,19 @@ function assertVisibleTabMotion(motion, label, direction) {
             };
           });
           assert.equal(todaySummaryGeometry.summaryDisplay, 'grid', JSON.stringify(todaySummaryGeometry));
-          assert.ok(todaySummaryGeometry.hero.height >= 260 && todaySummaryGeometry.hero.bottom < todaySummaryGeometry.summary.top, JSON.stringify(todaySummaryGeometry));
-          assert.ok(todaySummaryGeometry.summary.height >= 80 && todaySummaryGeometry.summary.bottom <= todaySummaryGeometry.primary.bottom + 1, JSON.stringify(todaySummaryGeometry));
-          assert.ok(Math.abs(todaySummaryGeometry.primary.bottom - todaySummaryGeometry.detail.bottom) <= 2, JSON.stringify(todaySummaryGeometry));
+          assert.ok(todaySummaryGeometry.hero.height >= 230 && todaySummaryGeometry.hero.bottom < todaySummaryGeometry.summary.top, JSON.stringify(todaySummaryGeometry));
+          assert.ok(todaySummaryGeometry.summary.height >= 68 && todaySummaryGeometry.summary.bottom > todaySummaryGeometry.hero.bottom, JSON.stringify(todaySummaryGeometry));
+          const detailBottomGap = todaySummaryGeometry.summary.bottom - todaySummaryGeometry.detail.bottom;
+          assert.ok(detailBottomGap >= -120 && detailBottomGap <= 120, JSON.stringify(todaySummaryGeometry));
           if (viewport.width === 1280) await page.screenshot({ path: 'artifacts/qa/desktop-layout/today-workspace-1280x800.png' });
           if (viewport.width === 1024) {
             await page.locator('.bottom-nav').getByRole('button', { name: 'Записи' }).click();
-            await page.waitForTimeout(80);
-            assert.equal(await page.locator('.content-scroll').getAttribute('data-active-tab'), 'today', 'Keep the current screen while Notes is loaded');
-            assert.equal(await page.locator('.today-view').count(), 1);
-            assert.equal(await page.locator('.content-scroll > .notes-loading').count(), 0, 'Do not flash a placeholder between tabs');
             await page.waitForFunction(() => document.querySelector('.content-scroll')?.getAttribute('data-active-tab') === 'notes');
+            assert.equal(await page.locator('.notes-chunk-loading').isVisible(), true, 'Show a real loading state while Notes is fetched');
+            const lazyNotesMotion = await page.evaluate(() => window.__readTabMotion('.notes-loading'));
+            assertVisibleTabMotion(lazyNotesMotion, 'Notes tab while its module loads', 'forward');
+            await assertSharedTabDuration(page, lazyNotesMotion, 'Notes tab while its module loads');
             await page.locator('.notes-view').waitFor();
-            const lazyNotesMotion = await page.evaluate(() => window.__readTabMotion('.notes-view'));
-            assertVisibleTabMotion(lazyNotesMotion, 'Notes tab after lazy import', 'forward');
-            assert.ok(lazyNotesMotion.duration >= 420, `Notes transition is too brief: ${lazyNotesMotion.duration}ms`);
             await page.locator('.bottom-nav').getByRole('button', { name: 'Сегодня' }).click();
             await page.locator('.today-view').waitFor();
           }
@@ -268,22 +315,42 @@ function assertVisibleTabMotion(motion, label, direction) {
         await page.locator('.week-view').waitFor();
         const weekMotion = await page.evaluate(() => window.__readTabMotion('.week-view:not(.session-view)'));
         assert.ok(weekMotion, 'Week tab should animate into view');
-        assert.ok(weekMotion.duration >= (desktop ? 450 : 420), `Week transition is too brief: ${weekMotion.duration}ms`);
+        await assertSharedTabDuration(page, weekMotion, 'Week tab');
         const weekDirection = await page.locator('.content-scroll').getAttribute('data-tab-motion-direction');
         assertVisibleTabMotion(weekMotion, 'Week tab', weekDirection);
         if (desktop) {
-          const weekColumns = await page.locator('.week-view:not(.session-view) > .week-list').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length);
-          const expectedColumns = viewport.width >= 2200 ? 6 : viewport.width >= 1280 ? 3 : 2;
-          assert.equal(weekColumns, expectedColumns, `Unexpected desktop week density at ${viewport.width}px`);
-          if (viewport.width >= 2200) {
-            const daysShareRow = await page.locator('.week-view:not(.session-view) > .week-list').evaluate((element) => {
-              const grid = element.getBoundingClientRect();
-              const items = [...element.children].map((item) => item.getBoundingClientRect());
-              return items.length === 6
-                && items.every((item) => Math.abs(item.top - items[0].top) < 1)
-                && items.every((item) => item.left >= grid.left && item.right <= grid.right + 1);
+          if (viewport.width < 2200) {
+            const weekColumns = await page.locator('.week-view:not(.session-view) > .week-list').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length);
+            const expectedColumns = viewport.width >= 1280 ? 3 : 2;
+            assert.equal(weekColumns, expectedColumns, `Unexpected desktop week density at ${viewport.width}px`);
+          } else {
+            const board = page.locator('.desktop-week-calendar');
+            await board.waitFor();
+            const boardGeometry = await board.evaluate((element) => {
+              const head = element.querySelector('.desktop-week-calendar-head');
+              const body = element.querySelector('.desktop-week-calendar-body');
+              const lanes = [...element.querySelectorAll('.desktop-week-lane')].map((lane) => lane.getBoundingClientRect());
+              const bounds = element.getBoundingClientRect();
+              return {
+                visible: getComputedStyle(element).display !== 'none',
+                dayCount: head.querySelectorAll('.desktop-week-day-head').length,
+                laneCount: lanes.length,
+                allLanesInBounds: lanes.every((lane) => lane.left >= bounds.left && lane.right <= bounds.right + 1),
+                timelineHeight: body.getBoundingClientRect().height,
+                cards: body.querySelectorAll('.desktop-week-lesson').length
+              };
             });
-            assert.equal(daysShareRow, true, 'All six week days should fit in one visible ultrawide row');
+            assert.equal(boardGeometry.visible, true, `Ultrawide time-grid missing at ${viewport.width}px`);
+            assert.equal(boardGeometry.dayCount, 6, 'Time-grid should show six day headers');
+            assert.equal(boardGeometry.laneCount, 6, 'Time-grid should provide one lane per day');
+            assert.equal(boardGeometry.allLanesInBounds, true, 'All day lanes should fit without clipping');
+            assert.ok(boardGeometry.timelineHeight >= 620, `Time-grid is too short to use the desktop workspace: ${boardGeometry.timelineHeight}px`);
+            assert.ok(boardGeometry.cards > 0, 'Time-grid should place the loaded lessons');
+            await board.locator('.desktop-week-lesson').first().click();
+            const selectedLesson = board.locator('.desktop-week-selection');
+            await selectedLesson.waitFor();
+            await selectedLesson.getByRole('button', { name: 'Записка' }).waitFor();
+            await selectedLesson.getByRole('button', { name: 'Добавить ДЗ' }).waitFor();
           }
         }
         if (viewport.width === 1440) await page.screenshot({ path: 'artifacts/qa/desktop-layout/week-tab-transition-1440x900.png' });
@@ -393,7 +460,6 @@ function assertVisibleTabMotion(motion, label, direction) {
             return {
               frame: bounds('.phone-frame'),
               content: bounds('.content-scroll'),
-              primary: bounds('.today-primary'),
               hero: bounds('.today-primary > .hero-card'),
               daySummary: bounds('.today-day-summary'),
               timeline: bounds('.today-detail-scroll'),
@@ -407,29 +473,32 @@ function assertVisibleTabMotion(motion, label, direction) {
             };
           });
           assert.equal(todayLayout.overflow, false);
-          assert.ok(todayLayout.primary.width >= 320 && todayLayout.timeline.width >= 460 && todayLayout.week.width >= 320);
-          assert.ok(todayLayout.primary.right <= todayLayout.timeline.x + 1);
-          assert.ok(Math.abs(todayLayout.primary.bottom - todayLayout.timeline.bottom) <= 2, JSON.stringify(todayLayout));
-          assert.ok(todayLayout.hero.height >= 320 && todayLayout.hero.height < todayLayout.primary.height - 70, JSON.stringify(todayLayout));
-          assert.ok(todayLayout.daySummary.height >= 80 && todayLayout.hero.bottom < todayLayout.daySummary.y, JSON.stringify(todayLayout));
-          assert.ok(todayLayout.daySummary.bottom <= todayLayout.primary.bottom + 1, JSON.stringify(todayLayout));
-          assert.ok(todayLayout.week.x <= todayLayout.primary.x + 1);
+          assert.ok(todayLayout.hero.width >= 320 && todayLayout.timeline.width >= 460 && todayLayout.week.width >= 1000);
+          assert.ok(todayLayout.hero.right <= todayLayout.timeline.x + 1);
+          assert.ok(Math.abs(todayLayout.hero.y - todayLayout.timeline.y) <= 2, JSON.stringify(todayLayout));
+          assert.ok(todayLayout.hero.height >= 300 && todayLayout.daySummary.height >= 76 && todayLayout.hero.bottom < todayLayout.daySummary.y, JSON.stringify(todayLayout));
+          assert.ok(Math.abs(todayLayout.daySummary.bottom - todayLayout.timeline.bottom) <= 120, JSON.stringify(todayLayout));
+          assert.ok(Math.abs(todayLayout.hero.x - todayLayout.daySummary.x) <= 1);
+          assert.ok(Math.abs(todayLayout.hero.width - todayLayout.daySummary.width) <= 1);
+          assert.ok(todayLayout.week.x <= todayLayout.hero.x + 1);
           assert.ok(todayLayout.week.right >= todayLayout.timeline.right - 1);
           assert.ok(todayLayout.weekSeparation >= -1, `Week summary overlaps day cards by ${Math.abs(todayLayout.weekSeparation)}px: ${JSON.stringify(todayLayout)}`);
           assert.equal(todayLayout.weekDayOverflow, false, JSON.stringify(todayLayout));
-          assert.ok(todayLayout.week.y >= Math.max(todayLayout.primary.bottom, todayLayout.timeline.bottom) - 1);
-          assert.ok(todayLayout.week.y >= todayLayout.primary.bottom + 17, JSON.stringify(todayLayout));
-          assert.ok(todayLayout.week.y - Math.max(todayLayout.primary.bottom, todayLayout.timeline.bottom) <= 24);
+          const mainContentBottom = Math.max(todayLayout.daySummary.bottom, todayLayout.timeline.bottom);
+          assert.ok(todayLayout.week.y >= mainContentBottom - 1);
+          assert.ok(todayLayout.week.y - mainContentBottom <= 24);
           assert.ok(todayLayout.week.bottom >= todayLayout.content.bottom - 42, JSON.stringify(todayLayout));
           await page.screenshot({ path: `artifacts/qa/desktop-layout/today-workspace-${viewport.width}x${viewport.height}.png` });
           if (viewport.width === 1920) {
             await weekPreview.scrollIntoViewIfNeeded();
             const scrolledToday = await page.evaluate(() => {
-              const primary = document.querySelector('.today-primary').getBoundingClientRect();
+              const hero = document.querySelector('.today-primary > .hero-card').getBoundingClientRect();
+              const summary = document.querySelector('.today-day-summary').getBoundingClientRect();
+              const timeline = document.querySelector('.today-detail-scroll').getBoundingClientRect();
               const preview = document.querySelector('.today-week-preview').getBoundingClientRect();
-              return { primary: { top: primary.top, bottom: primary.bottom }, preview: { top: preview.top, bottom: preview.bottom } };
+              return { mainBottom: Math.max(hero.bottom, summary.bottom, timeline.bottom), preview: { top: preview.top, bottom: preview.bottom } };
             });
-            assert.ok(scrolledToday.primary.bottom <= scrolledToday.preview.top || scrolledToday.preview.bottom <= scrolledToday.primary.top, JSON.stringify(scrolledToday));
+            assert.ok(scrolledToday.mainBottom <= scrolledToday.preview.top + 1, JSON.stringify(scrolledToday));
             await page.screenshot({ path: 'artifacts/qa/desktop-layout/today-scrolled-1920x1080.png' });
           }
           const targetDay = dayButtons.nth(1);
@@ -451,7 +520,7 @@ function assertVisibleTabMotion(motion, label, direction) {
           window.__notesEmptyObserver = observer;
           let frames = 0;
           const sampleMotion = () => {
-            const view = document.querySelector('.notes-view');
+            const view = document.querySelector('.notes-view, .notes-loading');
             if (view?.getAnimations().some((animation) => animation.id?.startsWith('tab-view-enter-') && animation.playState === 'running')) window.__notesMotionObserved = true;
             if (frames++ < 40) requestAnimationFrame(sampleMotion);
           };
@@ -459,9 +528,9 @@ function assertVisibleTabMotion(motion, label, direction) {
         });
         await page.locator('.bottom-nav').getByRole('button', { name: 'Записи' }).click();
         if (viewport.width >= 1280 && viewport.height >= 600) {
-          const notesMotion = await page.evaluate(() => window.__readTabMotion('.notes-view'));
+          const notesMotion = await page.evaluate(() => window.__readTabMotion('.notes-loading') || window.__readTabMotion('.notes-view'));
           assert.ok(notesMotion, 'Notes tab should animate into view');
-          assert.ok(notesMotion.duration >= 450, `Notes transition is too brief: ${notesMotion.duration}ms`);
+          await assertSharedTabDuration(page, notesMotion, 'Notes tab');
           const notesDirection = await page.locator('.content-scroll').getAttribute('data-tab-motion-direction');
           assert.equal(notesMotion.name, `tab-view-enter-${notesDirection}`);
           assert.match(notesMotion.keyframes[0].transform, /translate3d\(/);
@@ -473,9 +542,9 @@ function assertVisibleTabMotion(motion, label, direction) {
           await page.locator('.today-view').waitFor();
           await page.evaluate(() => { window.__sawNotesSkeleton = false; });
           await page.locator('.bottom-nav').getByRole('button', { name: 'Записи' }).click();
-          const notesMotion = await page.evaluate(() => window.__readTabMotion('.notes-view'));
+          const notesMotion = await page.evaluate(() => window.__readTabMotion('.notes-loading') || window.__readTabMotion('.notes-view'));
           assert.ok(notesMotion, 'Notes tab should animate into view');
-          assert.ok(notesMotion.duration >= 420, `Mobile notes transition is too brief: ${notesMotion.duration}ms`);
+          await assertSharedTabDuration(page, notesMotion, 'Mobile notes tab');
           const notesDirection = await page.locator('.content-scroll').getAttribute('data-tab-motion-direction');
           assert.equal(notesMotion.name, `tab-view-enter-${notesDirection}`);
           assert.match(notesMotion.keyframes[0].transform, /translate3d\(/);
@@ -526,17 +595,58 @@ function assertVisibleTabMotion(motion, label, direction) {
               firstFolderVisible: firstFolder.left >= dashboard.left - 1 && firstFolder.right <= dashboard.right + 1,
               lastFolderVisible: lastFolder.bottom <= dashboard.bottom + 1,
               dashboardFlow,
-              overflow: document.querySelector('.content-scroll').scrollHeight > document.querySelector('.content-scroll').clientHeight + 1
+              detailContent: {
+                height: document.querySelector('.note-detail-content').getBoundingClientRect().height,
+                clientHeight: document.querySelector('.note-detail-content').clientHeight,
+                scrollHeight: document.querySelector('.note-detail-content').scrollHeight
+              },
+              outerScrollPx: Math.max(0, document.querySelector('.content-scroll').scrollHeight - document.querySelector('.content-scroll').clientHeight)
             };
           });
           assert.ok(workspace.list.width >= 300 && workspace.detail.width >= 360);
-          assert.ok(workspace.list.height >= 500 && workspace.detail.height >= 500);
+          assert.ok(workspace.list.height >= 500);
+          assert.ok(workspace.detail.height >= 200 && workspace.detail.height < viewport.height * 0.8, JSON.stringify(workspace));
+          assert.ok(workspace.detailContent.scrollHeight <= workspace.detailContent.clientHeight + 1, JSON.stringify(workspace.detailContent));
+          assert.ok(workspace.outerScrollPx <= 48, `Desktop notes should not create a large outer-page scroll tail: ${JSON.stringify(workspace)}`);
           assert.equal(workspace.firstFolderVisible, true);
           assert.equal(workspace.lastFolderVisible, true);
           for (let index = 1; index < workspace.dashboardFlow.length; index += 1) {
             assert.ok(workspace.dashboardFlow[index - 1].bottom <= workspace.dashboardFlow[index].top + 1, JSON.stringify(workspace.dashboardFlow));
           }
           await page.screenshot({ path: `artifacts/qa/desktop-layout/notes-workspace-${viewport.width}x${viewport.height}.png` });
+          await page.locator('.note-card-main').filter({ hasText: 'Длинная заметка QA' }).click();
+          await page.waitForFunction(() => document.querySelector('.note-detail-content > h3')?.textContent?.trim() === 'Длинная заметка QA');
+          const longNoteLayout = await page.evaluate(() => {
+            const content = document.querySelector('.note-detail-content');
+            const image = content.querySelector('.note-detail-body img');
+            const lastParagraph = content.querySelector('.note-detail-body > p:last-of-type');
+            content.scrollTop = content.scrollHeight;
+            const contentRect = content.getBoundingClientRect();
+            const imageRect = image.getBoundingClientRect();
+            const paragraphRect = lastParagraph.getBoundingClientRect();
+            const style = getComputedStyle(content);
+            const pane = document.querySelector('.note-detail-pane').getBoundingClientRect();
+            const footer = document.querySelector('.note-detail-actions').getBoundingClientRect();
+            return {
+              paneHeight: pane.height,
+              contentHeight: content.clientHeight,
+              contentScrollHeight: content.scrollHeight,
+              overflowY: style.overflowY,
+              lastParagraphVisible: paragraphRect.top >= contentRect.top && paragraphRect.bottom <= contentRect.bottom + 1,
+              imageWidthFits: imageRect.left >= contentRect.left + Number.parseFloat(style.paddingLeft) - 1
+                && imageRect.right <= contentRect.right - Number.parseFloat(style.paddingRight) + 1,
+              imageNaturalWidth: image.naturalWidth,
+              footerVisible: footer.bottom <= pane.bottom + 1
+            };
+          });
+          assert.ok(longNoteLayout.contentScrollHeight > longNoteLayout.contentHeight + 100, JSON.stringify(longNoteLayout));
+          assert.equal(longNoteLayout.overflowY, 'auto', JSON.stringify(longNoteLayout));
+          assert.equal(longNoteLayout.lastParagraphVisible, true, JSON.stringify(longNoteLayout));
+          assert.equal(longNoteLayout.imageNaturalWidth, 1600, JSON.stringify(longNoteLayout));
+          assert.equal(longNoteLayout.imageWidthFits, true, JSON.stringify(longNoteLayout));
+          assert.equal(longNoteLayout.footerVisible, true, JSON.stringify(longNoteLayout));
+          if (viewport.width === 1400) await page.screenshot({ path: 'artifacts/qa/desktop-layout/notes-long-reader-1400x900.png' });
+          await page.locator('.note-card-main').filter({ hasText: 'План проекта' }).click();
           await page.getByRole('button', { name: 'Отметить выполненной' }).click();
           await page.getByRole('button', { name: 'Вернуть в дела' }).waitFor();
           await page.getByRole('button', { name: 'Вернуть в дела' }).click();

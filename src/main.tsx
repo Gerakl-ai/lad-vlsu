@@ -5,6 +5,7 @@ import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { applyTheme, readTheme } from "./features/themes/theme";
 import { assetUrl } from "./lib/assetUrl";
 import { manageAppUpdates } from "./lib/appUpdate";
+import { hasConstrainedFramePacing, shouldUseLiteVisuals } from "./lib/visualQuality";
 import "./styles.css";
 import "./theme.css";
 import "./features/notes/notes.css";
@@ -66,9 +67,108 @@ function syncDocumentVisibility() {
   document.documentElement.dataset.appVisibility = document.hidden ? "hidden" : "visible";
 }
 
+function initializeVisualQuality() {
+  const root = document.documentElement;
+  if (root.dataset.visualQualityProbe === "started") return;
+  root.dataset.visualQualityProbe = "started";
+
+  const hints = navigator as Navigator & {
+    deviceMemory?: number;
+    connection?: { saveData?: boolean };
+  };
+  const quality = shouldUseLiteVisuals({
+    deviceMemory: hints.deviceMemory,
+    hardwareConcurrency: hints.hardwareConcurrency,
+    saveData: hints.connection?.saveData
+  });
+  root.dataset.visualQuality = quality ? "lite" : "full";
+  if (quality) return;
+
+  let frame = 0;
+  let previousTime = 0;
+  let probing = false;
+  let complete = false;
+  let idleCallbackId: number | undefined;
+  let fallbackTimer = 0;
+  const intervals: number[] = [];
+
+  const sample = (time: number) => {
+    if (document.hidden) {
+      frame = 0;
+      previousTime = 0;
+      intervals.length = 0;
+      probing = false;
+      return;
+    }
+    if (previousTime) intervals.push(time - previousTime);
+    previousTime = time;
+    if (intervals.length < 36) {
+      frame = window.requestAnimationFrame(sample);
+      return;
+    }
+
+    complete = true;
+    probing = false;
+    if (hasConstrainedFramePacing(intervals)) root.dataset.visualQuality = "lite";
+    document.removeEventListener("visibilitychange", onVisibilityChange);
+    window.removeEventListener("pageshow", onPageShow);
+  };
+
+  const beginProbe = () => {
+    if (complete || probing || document.hidden) return;
+    probing = true;
+    frame = window.requestAnimationFrame(sample);
+  };
+  const onVisibilityChange = () => {
+    if (document.hidden) {
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = 0;
+      previousTime = 0;
+      intervals.length = 0;
+      probing = false;
+      return;
+    }
+    beginProbe();
+  };
+  const onPageShow = (event: PageTransitionEvent) => {
+    if (event.persisted && !complete) beginProbe();
+  };
+  const onPageHide = (event: PageTransitionEvent) => {
+    if (frame) window.cancelAnimationFrame(frame);
+    frame = 0;
+    previousTime = 0;
+    intervals.length = 0;
+    probing = false;
+    if (idleCallbackId !== undefined) {
+      idleWindow.cancelIdleCallback?.(idleCallbackId);
+      idleCallbackId = undefined;
+    }
+    if (fallbackTimer) {
+      window.clearTimeout(fallbackTimer);
+      fallbackTimer = 0;
+    }
+    if (!event.persisted) {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pageshow", onPageShow);
+    }
+  };
+  document.addEventListener("visibilitychange", onVisibilityChange);
+
+  const idleWindow = window as typeof window & {
+    requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+    cancelIdleCallback?: (handle: number) => void;
+  };
+  if (idleWindow.requestIdleCallback) idleCallbackId = idleWindow.requestIdleCallback(beginProbe, { timeout: 1200 });
+  else fallbackTimer = window.setTimeout(beginProbe, 500);
+
+  window.addEventListener("pagehide", onPageHide);
+  window.addEventListener("pageshow", onPageShow);
+}
+
 commitAppViewportHeight();
 syncDocumentVisibility();
 applyTheme(readTheme());
+initializeVisualQuality();
 window.addEventListener("resize", syncAppViewportHeight);
 window.visualViewport?.addEventListener("resize", syncAppViewportHeight);
 window.visualViewport?.addEventListener("scroll", syncAppViewportHeight);

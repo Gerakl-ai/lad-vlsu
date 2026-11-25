@@ -1,0 +1,14 @@
+﻿node :  100/739 200/739 300/739 400/739 500/739 600/739 700/739
+строка:1 знак:259
++ ... utput.txt"; node "artifacts\final-audit-2026-11-25\lad-coverage-scan. ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ( 100/739 200/73...600/739 700/739:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+{
+  "total": 739,
+  "ok": 739,
+  "miss404": 0,
+  "other": 0,
+  "sampleMiss": []
+}

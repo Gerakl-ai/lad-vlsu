@@ -1,0 +1,342 @@
+{
+  "meta": {
+    "productUrl": "https://germanpolkin.ru/lad-vlsu/",
+    "release": "9859da8",
+    "localBuildRelease": "202611251518",
+    "waveAGatePreview": "Pass 25.11.2026 18:20 UTC+3",
+    "repoCommit": "9859da820",
+    "auditedAt": "2026-11-25",
+    "workspaceNote": "Исходный репозиторий Лад ВлГУ (plugin-browser-openai-bundled-build-web): React/TS, PWA, public/data, snapshot pipeline, functions/vlsu-api, Cloudflare Worker. Прототип UniMate (D:\\UniMate ВлГУ) — отдельный проект.",
+    "testResults": {
+      "vitest": "583/583 Pass",
+      "swSyntax": "Pass",
+      "coverageScan": "739/739 schedule HTTP 200",
+      "qaLessonSelection": "Pass",
+      "qaUniversityCacheRace": "Pass",
+      "qaStudyPeriods": "Partial (1 кейс, crash)",
+      "qaGroupStartup": "Pass (preview, Edge)",
+      "qaDesktopLayout": "Pass full suite (preview :4173, Edge)",
+      "qaFullDesktopLayout": "Pass 1024–2560",
+      "measureViewports": "exit 0 (preview, 7 sizes × today/week)",
+      "prodHttpAutomated": "5 findings",
+      "localVlsuApiProxy": "Pass (JSON institutes на :4173)"
+    }
+  },
+  "summary": {
+    "ladTotal": 27,
+    "repoTotal": 4,
+    "critical": 3,
+    "high": 7
+  },
+  "ladBugs": [
+    {
+      "id": "LAD-001",
+      "sev": "Critical",
+      "area": "Backend",
+      "title": "Прокси /vlsu-api на домене site root недоступен (404)",
+      "detail": "Все 4 эндпоинта: GetInstitutes, GetGroupCurrentInfo, GetGroupSchedule, GetStudGroups — HTTP 404, HTML портфолио.",
+      "repro": "fetch('https://germanpolkin.ru/vlsu-api/catalogs/GetInstitutes')",
+      "expected": "200 JSON; live-справочники ВлГУ",
+      "evidence": "curl + браузер 25.11.2026"
+    },
+    {
+      "id": "LAD-002",
+      "sev": "Critical",
+      "area": "Backend",
+      "title": "Same-origin /app-api/schedule отсутствует на germanpolkin.ru",
+      "detail": "Функция _v() в бандле запрашивает /app-api/schedule/{nrec} — 404. Резервный путь живого обновления на основном домене не работает.",
+      "repro": "curl https://germanpolkin.ru/app-api/schedule/{groupId}",
+      "expected": "200 или проксирование на Worker",
+      "evidence": "index-B5A37LCt.js, curl 404"
+    },
+    {
+      "id": "LAD-003",
+      "sev": "High",
+      "area": "Backend",
+      "title": "Worker обновления захардкожен с misleading именем vlsu-pi-124-schedule",
+      "detail": "Jo() по умолчанию: https://vlsu-pi-124-schedule.polkin-06.workers.dev — внешний хост, CORS omit, не документирован пользователю.",
+      "repro": "«Обновить расписание» → Network → workers.dev",
+      "expected": "Единый API-домен или конфиг по окружению",
+      "evidence": "bundle Jo(); fetch log в браузере"
+    },
+    {
+      "id": "LAD-004",
+      "sev": "High",
+      "area": "Data",
+      "title": "Устаревший снимок на Worker (cached=1) vs свежий static JSON",
+      "detail": "Для ПИ-124: static captured 2026-11-25T08:34Z; worker cached ageSeconds ~860000 (~10 сут), scheduleFetchedAt 2026-11-15. Обновление может подмешать старые данные.",
+      "repro": "Сравнить data/schedule/{id}.json и workers.dev/...?cached=1",
+      "expected": "При refresh — более новый источник или merge с датой",
+      "evidence": "node fetch 25.11.2026"
+    },
+    {
+      "id": "LAD-005",
+      "sev": "Medium",
+      "area": "Data",
+      "title": "Расхождение семестра/курса между static и worker",
+      "detail": "static currentInfo «3 курс»; worker semester: 5. Риск неверного числителя/недели после refresh.",
+      "repro": "ПИ-124, сравнить JSON-поля",
+      "expected": "Согласованные метаданные",
+      "evidence": "node fetch"
+    },
+    {
+      "id": "LAD-006",
+      "sev": "High",
+      "area": "Data",
+      "title": "225 групп из 964 без пригодного снимка (quality.missing)",
+      "detail": "739 в coverage; UI «739 из 964»; 17 preliminary, 706 otherAvailable.",
+      "repro": "quality.json",
+      "expected": "Понятный UX для missing-групп",
+      "evidence": "quality.json 25.11.2026"
+    },
+    {
+      "id": "LAD-007",
+      "sev": "High",
+      "area": "A11y",
+      "title": "Accessible name заголовка группы «ПИ -124» (лишний пробел)",
+      "detail": "a11y-tree h1: «ПИ -124»; innerText DOM: «ПИ-124».",
+      "repro": "Выбрать ПИ-124, Accessibility tree",
+      "expected": "ПИ-124 без артефакта",
+      "evidence": "browser snapshot"
+    },
+    {
+      "id": "LAD-008",
+      "sev": "High",
+      "area": "A11y",
+      "title": "Контраст активного пункта навигации ~1:1 (светлая Ember)",
+      "detail": "Текст акцента на акцентном фоне active state.",
+      "repro": "Тема Ember, вкладка «Неделя»",
+      "expected": "WCAG 4.5:1 или 3:1 для крупного",
+      "evidence": "визуальный аудит 25.11"
+    },
+    {
+      "id": "LAD-009",
+      "sev": "Medium",
+      "area": "A11y",
+      "title": "Запрет масштабирования (user-scalable=no, maximum-scale=1)",
+      "detail": "meta viewport в index.html.",
+      "repro": "Mobile pinch-zoom",
+      "expected": "Разрешён zoom",
+      "evidence": "index.html"
+    },
+    {
+      "id": "LAD-010",
+      "sev": "Medium",
+      "area": "A11y",
+      "title": "Микротекст 8–10 px",
+      "detail": "Бейджи, метки на mobile/desktop.",
+      "repro": "Computed styles sampling",
+      "expected": "≥12 px для читаемого текста",
+      "evidence": "CDP 25.11"
+    },
+    {
+      "id": "LAD-011",
+      "sev": "Low",
+      "area": "A11y",
+      "title": "Декоративные img без alt",
+      "detail": "Фоновые 1600×749 без alt.",
+      "repro": "document.images",
+      "expected": "alt=\"\" aria-hidden",
+      "evidence": "CDP"
+    },
+    {
+      "id": "LAD-012",
+      "sev": "Low",
+      "area": "A11y",
+      "title": "Touch targets < 44×44 px",
+      "detail": "Иконки шапки ~34 px.",
+      "repro": "390px viewport, getBoundingClientRect",
+      "expected": "44×44 hit area",
+      "evidence": "визуальный аудит"
+    },
+    {
+      "id": "LAD-013",
+      "sev": "Medium",
+      "area": "UX",
+      "title": "Два одновременных dialog при ?tab=notes&compose=1 без группы",
+      "detail": "«Найдите свою группу» + «Чистый лист».",
+      "repro": "PWA shortcut «Записать», чистый localStorage",
+      "expected": "Один фокусный слой",
+      "evidence": "URL compose=1, dialogCount=2"
+    },
+    {
+      "id": "LAD-014",
+      "sev": "Medium",
+      "area": "UX",
+      "title": "Shortcut ?tab=today не открывает расписание без выбранной группы",
+      "detail": "Стоит модалка выбора группы поверх empty state.",
+      "repro": "lad-vlsu/?tab=today после clear storage",
+      "expected": "Shortcut ведёт на «Сегодня» или явный gate",
+      "evidence": "browser 25.11"
+    },
+    {
+      "id": "LAD-015",
+      "sev": "Low",
+      "area": "UX",
+      "title": "Автомодалка выбора группы при каждом первом визите",
+      "detail": "Дублирование с заголовком «Выберите группу».",
+      "repro": "Первый визит",
+      "expected": "Inline empty state",
+      "evidence": "UX аудит"
+    },
+    {
+      "id": "LAD-016",
+      "sev": "Medium",
+      "area": "Routing",
+      "title": "Невалидные ?group= / ?institute= игнорируются при localStorage",
+      "detail": "Показывается кэшированная группа без предупреждения.",
+      "repro": "?group=invalid с сохранённой группой",
+      "expected": "Сброс URL или toast",
+      "evidence": "browser"
+    },
+    {
+      "id": "LAD-017",
+      "sev": "Medium",
+      "area": "Performance",
+      "title": "university-schedule.json ~3,47 MB",
+      "detail": "Загрузка ~1 с на холодном канале.",
+      "repro": "curl content-length",
+      "expected": "Sharding / lazy",
+      "evidence": "HTTP"
+    },
+    {
+      "id": "LAD-018",
+      "sev": "Low",
+      "area": "Security",
+      "title": "Нет CSP / HSTS / X-Frame-Options на /lad-vlsu/",
+      "detail": "GitHub Pages.",
+      "repro": "curl -I",
+      "expected": "Заголовки при прокси",
+      "evidence": "HTTP"
+    },
+    {
+      "id": "LAD-019",
+      "sev": "Low",
+      "area": "Privacy",
+      "title": "Запросы к workers.dev раскрывают группу третьей стороне",
+      "detail": "nrec в URL при refresh.",
+      "repro": "Network",
+      "expected": "Дисклеймер или same-origin proxy",
+      "evidence": "fetch log"
+    },
+    {
+      "id": "LAD-020",
+      "sev": "Medium",
+      "area": "PWA",
+      "title": "Service Worker не проксирует /vlsu-api (ожидаемо), но клиент бьёт в другой origin",
+      "detail": "sw.js: vlsu-api pass-through; live split между static, workers.dev, мёртвым /vlsu-api.",
+      "repro": "sw.js:178-183 + bundle",
+      "expected": "Единая стратегия сети",
+      "evidence": "sw.js"
+    },
+    {
+      "id": "LAD-021",
+      "sev": "Low",
+      "area": "Content",
+      "title": "«Преподаватель не указан» / «Аудитория уточняется» в карточках",
+      "detail": "Данные ВлГУ неполные — не баг кода, но UX-дефект контента.",
+      "repro": "ПИ-124, среда",
+      "expected": "Плейсхолдеры с пояснением",
+      "evidence": "snapshot"
+    },
+    {
+      "id": "LAD-022",
+      "sev": "Medium",
+      "area": "API",
+      "title": "Worker ?cached=1 → 404 для групп без кэша на worker",
+      "detail": "Другой id: «No saved schedule»; discover=1 работает.",
+      "repro": "cached=1 vs discover=1 на 009b0ba3…",
+      "expected": "Авто-fallback discover без ошибки в UI",
+      "evidence": "curl"
+    },
+    {
+      "id": "LAD-023",
+      "sev": "Info",
+      "area": "Data",
+      "title": "739/739 schedule JSON из coverage отдают 200 (регрессия не выявлена)",
+      "detail": "Полный HEAD-скан coverage.keys: 739/739, miss404=0",
+      "repro": "lad-coverage-scan.mjs",
+      "expected": "—",
+      "evidence": "lad-coverage-scan.mjs, финальный прогон 25.11.2026"
+    },
+    {
+      "id": "LAD-VIS-01",
+      "sev": "High",
+      "area": "Layout",
+      "title": "Desktop «Сегодня»: правая колонка длиннее левой (detail vs summary)",
+      "detail": "На 1280–1920 px колонка .today-detail-scroll уходит ниже .today-day-summary на ~150 px (overflow: visible). qa-desktop-layout падает на laptop viewports.",
+      "repro": "pnpm preview → ПИ-124 → Сегодня; measure-viewport-layout.mjs",
+      "expected": "Синхронная высота колонок или scroll только внутри detail",
+      "evidence": "measure-viewport-layout 25.11",
+      "fixability": "code-local"
+    },
+    {
+      "id": "LAD-VIS-02",
+      "sev": "Medium",
+      "area": "Layout",
+      "title": "«Неделя»: .week-overview шире viewport (обрезка справа)",
+      "detail": "На 1280–2560 right края 1313–2584 при innerWidth меньше на ~24–33 px.",
+      "repro": "Вкладка Неделя, 1366×768 / 1440×900",
+      "expected": "max-width: 100% внутри content-scroll",
+      "evidence": "measure-viewport-layout прод",
+      "fixability": "code-local"
+    },
+    {
+      "id": "LAD-VIS-03",
+      "sev": "High",
+      "area": "QA",
+      "title": "Регрессия laptop: полный qa-desktop-layout не проходит",
+      "detail": "6 типовых laptop viewport — fail по геометрии today-primary.",
+      "repro": "QA_URL=http://127.0.0.1:4173/ node scripts/qa-desktop-layout.cjs",
+      "expected": "Pass на 1024–1920",
+      "evidence": "25.11.2026",
+      "fixability": "code-local"
+    },
+    {
+      "id": "LAD-024",
+      "sev": "Critical",
+      "area": "Deploy",
+      "title": "На проде нет прокси, хотя в репозитории он реализован",
+      "detail": "functions/vlsu-api/[[path]].ts и vite proxy отдают JSON на http://127.0.0.1:4173/vlsu-api/catalogs/GetInstitutes; germanpolkin.ru/vlsu-api → 404 HTML. GitHub Pages не разворачивает functions/.",
+      "repro": "Сравнить preview 4173 и germanpolkin.ru",
+      "expected": "CF Pages Functions / wrangler assets с run_worker_first",
+      "evidence": "curl 25.11.2026 финальный"
+    }
+  ],
+  "repoBugs": [
+    {
+      "id": "REP-001",
+      "sev": "Info",
+      "area": "CI",
+      "title": "Vitest: 583 теста в 67 файлах — все пройдены",
+      "detail": "pnpm run test (vitest run)",
+      "evidence": "25.11.2026"
+    },
+    {
+      "id": "REP-002",
+      "sev": "Info",
+      "area": "Build",
+      "title": "Production build успешен",
+      "detail": "tsc --noEmit + vite build; local lad-release 202611251337, прод 9859da8",
+      "evidence": "vite build log"
+    },
+    {
+      "id": "REP-003",
+      "sev": "Medium",
+      "area": "QA",
+      "title": "Playwright падает при длинных прогонах (Edge headless)",
+      "detail": "group-startup / study-periods: Target crashed, exit 3221225477",
+      "repro": "node scripts/qa-group-startup.cjs без фильтра viewport",
+      "expected": "Стабильный прогон в CI (ubuntu-latest)",
+      "evidence": "25.11.2026 Windows"
+    },
+    {
+      "id": "REP-004",
+      "sev": "Low",
+      "area": "CI",
+      "title": "pnpm run check: сбой vite build в цепочке на Windows",
+      "detail": "После vitest exit -1073741819; отдельный pnpm run build — OK",
+      "evidence": "25.11.2026"
+    }
+  ]
+}
