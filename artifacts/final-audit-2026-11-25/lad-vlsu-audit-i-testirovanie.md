@@ -3,8 +3,8 @@
 **Объект:** https://germanpolkin.ru/lad-vlsu/  
 **Репозиторий:** `lad-vlsu` (Gerakl-ai), рабочая копия `plugin-browser-openai-bundled-build-web`  
 **Дата финала:** 25.11.2026 (вечер)  
-**Release прод (meta `lad-release`):** уточнить после своей выкладки (ожидание: `658ca7f06` + локальные правки QA)  
-**Коммит ветки `main` (origin):** `658ca7f06` — волна B time-grid 2K; дальнейший прод-деплой — **у владельца**
+**Release прод (meta `lad-release`):** `36cfb9b69` (Pages CI success 25.11 вечер)  
+**Коммиты:** `658ca7f06` (time-grid 2K) → `36cfb9b69` (Today fill + QA стабильность)
 
 **Метод:** Vitest (583+), `pnpm run build`, `node --check public/sw.js`, Playwright на preview и **проде** (`measure-viewport-layout.mjs`), `lad-full-bug-audit.mjs`, smoke в браузере (ПИ-124).
 
@@ -20,7 +20,9 @@
 
 **Preview / dist:** `measure-viewport-layout.mjs` — ISSUES [] (1024…3440); `qa-desktop-layout.cjs` / `qa-desktop-surfaces.cjs` — exit 0.
 
-**Волна C (деплой):** стабильный QA (`clock` + subgroup), снятие `freshness-banner` перед wide Today; `min-height` Today без баннера на 2K; повторный push + gate на проде.
+**Волна C (деплой):** стабильный QA (`clock` + subgroup), снятие `freshness-banner` перед wide Today; `min-height` Today без баннера на 2K.
+
+**Gate 25.11 (preview + prod, `36cfb9b69`):** `measure-viewport-layout.mjs`, `qa-desktop-layout.cjs`, `qa-desktop-surfaces.cjs` — **exit 0** на `127.0.0.1:4173` и `https://germanpolkin.ru/lad-vlsu/`.
 
 **Gate (PowerShell):**
 
