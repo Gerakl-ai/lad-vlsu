@@ -1,0 +1,53 @@
+name: Cloudflare Worker
+
+# Статический GitHub Pages не отдаёт /vlsu-api. Этот workflow публикует dist + Worker
+# (wrangler.jsonc). Нужны secrets CLOUDFLARE_API_TOKEN и CLOUDFLARE_ACCOUNT_ID.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare-worker
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: cloudflare
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Собрать приложение для Worker
+        env:
+          PAGES_BASE: /lad-vlsu/
+          VITE_SCHEDULE_FALLBACK_URL: https://vlsu-pi-124-schedule.polkin-06.workers.dev
+          GITHUB_SHA: ${{ github.sha }}
+        run: pnpm run build
+
+      - name: Добавить снимки из ветки data
+        run: |
+          if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
+            git fetch origin data --depth=1
+            git worktree add snapshot-data origin/data
+            mkdir -p dist/data
+            cp -r snapshot-data/data/. dist/data/
+          fi
+
+      - name: Wrangler deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+          packageManager: pnpm

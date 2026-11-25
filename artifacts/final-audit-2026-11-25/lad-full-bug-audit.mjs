@@ -3,6 +3,7 @@
  * Запуск: node artifacts/final-audit-2026-11-25/lad-full-bug-audit.mjs
  */
 const BASE = "https://germanpolkin.ru/lad-vlsu";
+const WORKER = "https://vlsu-pi-124-schedule.polkin-06.workers.dev";
 const bugs = [];
 
 function bug(id, sev, cat, title, detail, repro = "", expected = "") {
@@ -45,29 +46,42 @@ async function main() {
   const coverage = await fetchJson(`${BASE}/data/coverage.json`);
   const quality = await fetchJson(`${BASE}/data/quality.json`);
 
-  const proxy = await fetchText("https://germanpolkin.ru/vlsu-api/catalogs/GetInstitutes");
-  if (!proxy.r.ok || proxy.text.trimStart().startsWith("<!")) {
+  const rootProxy = await fetchText("https://germanpolkin.ru/vlsu-api/catalogs/GetInstitutes");
+  const workerProxy = await fetchJson(`${WORKER}/vlsu-api/catalogs/GetInstitutes`);
+  const workerOk = workerProxy.r.ok && Array.isArray(workerProxy.json);
+  if ((!rootProxy.r.ok || rootProxy.text.trimStart().startsWith("<!")) && !workerOk) {
     bug(
       "API-01",
       "Critical",
       "Backend",
-      "Прокси /vlsu-api отдаёт не-JSON",
-      `HTTP ${proxy.r.status}, content-type: ${proxy.r.headers.get("content-type")}, начало: ${proxy.text.slice(0, 80)}`,
-      "fetch('/vlsu-api/catalogs/GetInstitutes') со страницы приложения",
+      "Прокси /vlsu-api недоступен (ни origin, ни Worker)",
+      `root HTTP ${rootProxy.r.status}; worker HTTP ${workerProxy.r.status}`,
+      "fetch catalogs GetInstitutes",
       "200 application/json"
     );
+  } else if (!rootProxy.r.ok && workerOk) {
+    bugs.push({
+      id: "API-01-NOTE",
+      sev: "Low",
+      cat: "Deploy",
+      title: "Root /vlsu-api на germanpolkin 404 (ожидаемо для GH Pages)",
+      detail: "Приложение на /lad-vlsu/ использует Worker fallback; live catalogs OK на workers.dev",
+      repro: "curl germanpolkin.ru/vlsu-api vs WORKER/vlsu-api",
+      expected: "Опционально: CF route или wrangler custom domain"
+    });
   }
 
-  const appApi = await head("https://germanpolkin.ru/app-api/health");
-  if (!appApi.r.ok) {
+  const rootAppApi = await head("https://germanpolkin.ru/app-api/health");
+  const workerAppApi = await head(`${WORKER}/app-api/health`);
+  if (!rootAppApi.r.ok && !workerAppApi.r.ok) {
     bug(
       "API-02",
       "High",
       "Backend",
-      "/app-api на germanpolkin.ru недоступен",
-      `HEAD /app-api/health → HTTP ${appApi.r.status}`,
-      "curl https://germanpolkin.ru/app-api/health",
-      "200 (Pages Function или Worker на том же origin)"
+      "/app-api недоступен",
+      `root HTTP ${rootAppApi.r.status}; worker HTTP ${workerAppApi.r.status}`,
+      "HEAD /app-api/health",
+      "200 JSON health"
     );
   }
 

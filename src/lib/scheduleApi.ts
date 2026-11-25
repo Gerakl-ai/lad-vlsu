@@ -20,7 +20,9 @@ import {
   type StudyFormKey
 } from "../features/groups/groupTypes";
 
-const API_BASE = "/vlsu-api";
+import { isCrossOriginApiUrl, resolveAppApiOrigin, resolveVlsuApiBase } from "./apiOrigins";
+
+const API_BASE = resolveVlsuApiBase();
 const REQUEST_TIMEOUT_MS = 8_000;
 const REQUEST_RETRIES = 0;
 
@@ -165,6 +167,7 @@ async function request<T>(path: string, init?: RequestInit, metadata?: RequestMe
       const response = await fetch(`${API_BASE}${path}`, {
         ...init,
         signal: controller.signal,
+        credentials: isCrossOriginApiUrl(API_BASE) ? "omit" : "same-origin",
         headers: {
           "Content-Type": "application/json",
           ...(init?.headers ?? {})
@@ -635,10 +638,15 @@ async function fetchSchedule(nrec: string, metadata?: RequestMetadata) {
 async function fetchGroupScheduleSnapshot(nrec: string) {
   const controller = new AbortController();
   const timeout = globalThis.setTimeout(() => controller.abort("timeout"), REQUEST_TIMEOUT_MS + 1_500);
+  const appOrigin = resolveAppApiOrigin();
+  const scheduleUrl = appOrigin
+    ? `${appOrigin}/app-api/schedule/${encodeURIComponent(nrec)}`
+    : `/app-api/schedule/${encodeURIComponent(nrec)}`;
   try {
-    const response = await fetch(`/app-api/schedule/${encodeURIComponent(nrec)}`, {
+    const response = await fetch(scheduleUrl, {
       headers: { Accept: "application/json" },
-      signal: controller.signal
+      signal: controller.signal,
+      credentials: appOrigin ? "omit" : "same-origin"
     });
     if (!response.ok) throw new ApiResponseError("/app-api/schedule", response.status);
     return normalizeGroupScheduleSnapshot(await response.json(), nrec);
