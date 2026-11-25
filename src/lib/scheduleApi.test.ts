@@ -485,7 +485,7 @@ describe("schedule snapshot v2", () => {
     const state = await loadSchedule(LEGACY_PI124_GROUP);
 
     expect(state.source).toBe("live");
-    expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
     expect(fetchMock).toHaveBeenCalledWith(`https://worker.example/app-api/schedule/${nrec}`, expect.any(Object));
   });
 });
