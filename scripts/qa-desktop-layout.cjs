@@ -326,16 +326,22 @@ async function assertSharedTabDuration(page, motion, label) {
           } else {
             const board = page.locator('.desktop-week-calendar');
             await board.waitFor();
+            await page.waitForTimeout(480);
             const boardGeometry = await board.evaluate((element) => {
+              const content = document.querySelector('.content-scroll');
+              const contentRight = content ? content.getBoundingClientRect().right : innerWidth;
               const head = element.querySelector('.desktop-week-calendar-head');
               const body = element.querySelector('.desktop-week-calendar-body');
               const lanes = [...element.querySelectorAll('.desktop-week-lane')].map((lane) => lane.getBoundingClientRect());
               const bounds = element.getBoundingClientRect();
+              const loadMap = document.querySelector('.week-map-disclosure');
               return {
                 visible: getComputedStyle(element).display !== 'none',
                 dayCount: head.querySelectorAll('.desktop-week-day-head').length,
                 laneCount: lanes.length,
                 allLanesInBounds: lanes.every((lane) => lane.left >= bounds.left && lane.right <= bounds.right + 1),
+                boardRightOverflow: Math.round(bounds.right - contentRight),
+                loadMapGap: loadMap ? Math.round(Math.abs(loadMap.getBoundingClientRect().right - bounds.right)) : null,
                 timelineHeight: body.getBoundingClientRect().height,
                 cards: body.querySelectorAll('.desktop-week-lesson').length
               };
@@ -344,6 +350,10 @@ async function assertSharedTabDuration(page, motion, label) {
             assert.equal(boardGeometry.dayCount, 6, 'Time-grid should show six day headers');
             assert.equal(boardGeometry.laneCount, 6, 'Time-grid should provide one lane per day');
             assert.equal(boardGeometry.allLanesInBounds, true, 'All day lanes should fit without clipping');
+            assert.ok(boardGeometry.boardRightOverflow <= 1, `Week board exceeds viewport by ${boardGeometry.boardRightOverflow}px`);
+            if (boardGeometry.loadMapGap != null) {
+              assert.ok(boardGeometry.loadMapGap <= 3, `Load map misaligned from board by ${boardGeometry.loadMapGap}px`);
+            }
             assert.ok(boardGeometry.timelineHeight >= 620, `Time-grid is too short to use the desktop workspace: ${boardGeometry.timelineHeight}px`);
             assert.ok(boardGeometry.cards > 0, 'Time-grid should place the loaded lessons');
             await board.locator('.desktop-week-lesson').first().click();

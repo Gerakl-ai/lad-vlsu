@@ -12,6 +12,18 @@
 
 ---
 
+## Волна B — time-grid «Неделя» на 2K (25.11 вечер)
+
+**Симптом (ПИ-124, 2560×1440):** субпиксельные щели в колонках `desktop-week-calendar`, карта нагрузки уже сетки, правый край до +4px за экран.
+
+**Правка:** `src/styles.css` (≥2200px): dividers через `box-shadow`, `padding-inline: 0` у `week-overview`, `contain: inline-size` у календаря.
+
+**Preview после build:** `measure-viewport-layout.mjs` — ISSUES [] (1024…3440); `qa-desktop-layout.cjs` / `qa-desktop-surfaces.cjs` — exit 0.
+
+**Прод:** ждёт push на GitHub Pages.
+
+---
+
 ## 1. Краткий итог (после волны A и static-only)
 
 | Направление | Оценка | Статус |
