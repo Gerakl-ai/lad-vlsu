@@ -486,6 +486,9 @@ describe("schedule snapshot v2", () => {
 
     expect(state.source).toBe("live");
     expect(fetchMock).toHaveBeenCalledTimes(5);
-    expect(fetchMock).toHaveBeenCalledWith(`https://worker.example/app-api/schedule/${nrec}`, expect.any(Object));
+    expect(fetchMock).toHaveBeenCalledWith(
+      `https://worker.example/app-api/schedule/${nrec}?cached=1`,
+      expect.objectContaining({ credentials: "omit" })
+    );
   });
 });
