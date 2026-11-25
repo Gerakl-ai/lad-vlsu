@@ -1,153 +1,136 @@
 # Лад ВлГУ — финальный аудит и тестирование (исходный репозиторий + прод)
 
 **Объект:** https://germanpolkin.ru/lad-vlsu/  
-**Репозиторий:** `plugin-browser-openai-bundled-build-web` (lad-vlsu)  
-**Дата:** 25.11.2026  
-**Release прод:** `9859da8` (meta `lad-release` в index.html)  
-**Коммит репо:** `9859da820`  
-**Локальная сборка:** `lad-release` `202611251337` (vite, без `GITHUB_SHA`)
+**Репозиторий:** `lad-vlsu` (Gerakl-ai), рабочая копия `plugin-browser-openai-bundled-build-web`  
+**Дата финала:** 25.11.2026 (вечер)  
+**Release прод (meta `lad-release`):** `953b049`  
+**Коммит репозитория:** `953b049b2` … `f0c481c62` (волна A + static-only Pages)
 
-**Метод:** Vitest (583), production build, `node --check public/sw.js`, Playwright QA на `vite preview`, полный HEAD-скан 739 schedule, HTTP-аудит прода, smoke в браузере на germanpolkin.ru.
+**Метод:** Vitest (583+), `pnpm run build`, `node --check public/sw.js`, Playwright на preview и **проде** (`measure-viewport-layout.mjs`), `lad-full-bug-audit.mjs`, smoke в браузере (ПИ-124).
 
-**Артефакты:** `lad-bugs-master.json`, `Лад-ВлГУ-финальный-аудит-и-тестирование.docx` (пересборка: `python build-lad-word-report.py`).
+**Артефакты:** `lad-bugs-master.json`, `PRE-PROD-RELEASE-GATE.md`, Word: `python build-lad-word-report.py`.
 
 ---
 
-## 1. Краткий итог
+## 1. Краткий итог (после волны A и static-only)
 
 | Направление | Оценка | Статус |
 |-------------|--------|--------|
-| Код и регрессии (Vitest) | 10 / 10 | **583/583 Pass** |
-| Сборка | 9 / 10 | **Pass**; цепочка `pnpm run check` на Windows нестабильна |
-| Статические данные на проде | 9.5 / 10 | **739/739** schedule, JSON валиден |
-| Деплой API на origin PWA | 2 / 10 | **`/vlsu-api` и `/app-api` → 404** на germanpolkin.ru |
-| Реализация API в репо | 9 / 10 | `functions/vlsu-api`, vite proxy — **Pass на :4173** |
-| Live refresh (Worker) | 5 / 10 | workers.dev работает; риск **устаревшего cached** |
-| PWA / offline | 8 / 10 | SW, manifest — OK |
-| Доступность (прод) | 6.5 / 10 | h1 «ПИ -124», zoom, контраст табов |
-| Визуал и UX (общее) | 8.2 / 10 | Сильный дизайн |
-| **Масштаб / laptop desktop** | **6 / 10** | **LAD-VIS-01…03** — колонки «Сегодня», ширина «Недели» |
-| Масштаб страницы (pinch-zoom) | 4 / 10 | `user-scalable=no` (LAD-009) |
+| Код и регрессии (Vitest) | 10 / 10 | **588+ тестов** Pass (в т.ч. `apiOrigins`) |
+| Сборка GitHub Pages | 9 / 10 | CI «Публикация на GitHub Pages» — **success** |
+| Статические данные на проде | 9.5 / 10 | **739/739** schedule HEAD 200 |
+| **Архитектура прод** | **9 / 10** | **Только GitHub Pages**: `data/` + PWA, **без workers.dev** в сборке |
+| Same-origin `/vlsu-api` | N/A | **Не входит в scope** (осознанно; см. §5) |
+| PWA / offline | 8.5 / 10 | SW; preload warning **исправлен** в `public/sw.js` (ожидает выкладки) |
+| Доступность | 7.5 / 10 | LAD-007…009 закрыты в коде; на проде в a11y-tree возможен кэш старого бандла |
+| Визуал desktop/laptop | 9 / 10 | LAD-VIS-01…03 закрыты; **measure на проде — exit 0** |
+| Покрытие групп | 7 / 10 | 225/964 без пригодного снимка (данные, не UI) |
 
-**Главный вывод:** продукт **готов по коду и статике**, но **инфраструктура публикации не подключает** serverless-прокси с ВлГУ. Исправление — не столько фронтенд, сколько **маршрутизация домена** (Cloudflare Pages Functions / Worker с assets / reverse proxy).
+**Вывод для пользователя:** для групп **из покрытия (739)** сайтом **можно пользоваться с комфортом** — телефон, ноутбук, офлайн, один origin (germanpolkin.ru / github.io), без Cloudflare и без лишних сторонних запросов. Свежесть расписания = **публикация снимков** (ветка `data` + Pages), не live API ВлГУ в браузере.
 
 ---
 
-## 2. Что проверено в репозитории
+## 2. Что сделано в репозитории (журнал работ 25.11.2026)
 
-### 2.1. Автотесты
+### Волна A (UI / a11y / desktop)
 
-- `pnpm run test` — 67 файлов, **583 теста**, 0 failures (логика расписания, SW, snapshot, PDF/reviewed, worker).
-- `pnpm run build` — `tsc --noEmit` + vite, dist собран (~14.8 s).
-- `node --check public/sw.js` — синтаксис OK.
+- **LAD-VIS-01…03:** колонка «Сегодня», ширина «Недели», полный `qa-desktop-layout`.
+- **LAD-007…016 (часть):** `aria-label` заголовка, pinch-zoom, контраст nav, compose без двойного dialog, URL группы, без автомодалки группы.
+- Gate на preview: vitest, build, measure, QA-скрипты.
 
-### 2.2. Playwright (preview `http://127.0.0.1:4173/`)
+**Коммиты:** `9c0f9f541` (волна A), правки QA/стилей.
 
-| Скрипт | Результат |
-|--------|-----------|
-| `qa-lesson-selection.cjs` | **Pass** (402, 430, 1440) |
-| `qa-university-cache-race.cjs` | **Pass** |
-| `qa-desktop-layout.cjs` (390×844) | **Pass**, без horizontal overflow |
-| `qa-desktop-layout.cjs` (1024–1920 laptop) | **Fail** — геометрия Today (LAD-VIS-03) |
-| `measure-viewport-layout.mjs` | Laptop: Today gap, Week width (см. §6) |
-| `qa-study-periods.cjs` | **Partial** — 1 кейс, затем crash Edge headless |
-| `qa-group-startup.cjs` | **Partial** — сценарии до crash |
-| Полный desktop 26 viewport | **Не запускался** (время + стабильность браузера) |
+### Публикация
 
-На Windows Playwright периодически падает с `Target crashed` / exit `3221225477` — в CI ожидается стабильность на `ubuntu-latest` (см. REP-003).
+- Push в `main` → workflow **«Публикация на GitHub Pages»** — success.
+- Прод: бандлы `index-Daxj6x9a.js` → позже **`953b049`** (static-only).
 
-### 2.3. HTTP прод
+### Отказ от Cloudflare на проде (по запросу владельца)
+
+- Удалён `VITE_SCHEDULE_FALLBACK_URL` из `.github/workflows/pages.yml`.
+- Модуль `src/lib/apiOrigins.ts`: на `/lad-vlsu/` **нет** маршрутизации на workers.dev; каталоги/расписание из **`/lad-vlsu/data/`**.
+- `loadSchedule`: без fallback URL не вызывается Worker и live `/app-api`.
+- Опциональный workflow `.github/workflows/cloudflare-worker.yml` — только **workflow_dispatch** (не автодеплой).
+- Краткая попытка маршрутизации через Worker (`2e52bf08e` … `f0c481c62`) **откачена по смыслу** коммитом **`953b049b2`**.
+
+### Финальный аудит прод (вечер)
+
+- `lad-full-bug-audit.mjs`: **0 Critical/High**, 3× Low (API note, 225 missing, CSP).
+- `measure-viewport-layout.mjs` на **https://germanpolkin.ru/lad-vlsu/** — **ISSUES []**.
+- Smoke: ПИ-124, «Сегодня», неделя — OK.
+
+### Service Worker (DevTools)
+
+- Сообщение: *«navigation preload request was cancelled before preloadResponse settled»* при отдаче **кэшированной** оболочки без ожидания preload.
+- **Исправление:** в `public/sw.js` при `cachedShell` — `await event.preloadResponse` перед ответом (коммит после этой правки — см. git log).
+
+---
+
+## 3. Автотесты и QA
 
 | Проверка | Результат |
 |----------|-----------|
-| `coverage.json` → HEAD `schedule/{id}.json` × 739 | **739/739 = 200** |
-| `catalog.json`, `quality.json` | 200, 14 институтов, missing=225 |
-| `university-schedule.json` | 200, **3 466 338 B** (~3.47 MB) |
-| `https://germanpolkin.ru/vlsu-api/...` | **404 HTML** |
-| `https://germanpolkin.ru/app-api/health` | **404** |
-| `http://127.0.0.1:4173/vlsu-api/catalogs/GetInstitutes` | **200 JSON** (14 институтов) |
+| `pnpm run test` | Pass (583+ на CI Pages workflow) |
+| `qa-desktop-layout.cjs` (preview, волна A) | Pass 1024–1920 |
+| `measure-viewport-layout.mjs` (прод) | **exit 0** |
+| `lad-full-bug-audit.mjs` (прод) | bugCount **3**, все Low |
 
 ---
 
-## 3. Smoke на проде (браузер)
+## 4. Реестр дефектов — актуальность
 
-- Группа **ПИ-124**, вкладка «Сегодня» — пары, неделя, навигация **OK**.
-- **LAD-007 подтверждён:** accessibility `heading` **«ПИ -124»** (лишний пробел в accessible name).
-- Кнопка «Обновить расписание» — без падения UI (live-цепочка см. LAD-001…004).
+### Снято с продакшен-чеклиста (Pages-only)
 
----
+| ID | Было | Сейчас |
+|----|------|--------|
+| LAD-001, 002, 024 | Critical «нет прокси на germanpolkin» | **Не применимо**: прод = статика; live API только в `vite dev` / опциональный Worker |
+| LAD-003, 004 | Worker refresh | **Не используется** в Pages-сборке |
+| LAD-VIS-01…03 | High | **Закрыто** на проде (measure) |
+| LAD-009 | pinch-zoom | **Закрыто** в коде |
 
-## 4. Реестр дефектов
+### Остаётся
 
-Полный список с деталями: **`lad-bugs-master.json`** (24× LAD, 4× REP).
+| ID | Суть | Влияние на UX |
+|----|------|----------------|
+| LAD-006 / DATA-04 | 225 групп без снимка | Нет расписания для этих групп |
+| LAD-018 / SEC-01 | Нет CSP на GH Pages | Инфраструктура |
+| LAD-007 (редко) | a11y «ПИ -124» | Мелочь; сбросить кэш PWA после релиза |
 
-### Critical (P0)
-
-| ID | Суть |
-|----|------|
-| LAD-001 | `/vlsu-api` на germanpolkin.ru → 404 |
-| LAD-002 | `/app-api/schedule` на том же домене → 404 |
-| LAD-024 | **В репозитории прокси есть, на проде не развёрнут** |
-
-### High (выборка)
-
-| ID | Суть |
-|----|------|
-| LAD-003 | Refresh через workers.dev (имя worker misleading) |
-| LAD-004 | cached worker старше static для ПИ-124 |
-| LAD-006 | 225/964 групп без снимка |
-| LAD-007 | a11y h1 «ПИ -124» |
-| LAD-008 | Контраст active nav ~1:1 |
-
-Остальные LAD-009…023 — a11y, UX, perf, PWA shortcuts (из согласованного реестра утреннего аудита + LAD-023 обновлён сканом 739/739).
+Полный исторический реестр: **`lad-bugs-master.json`** (утренний аудит + VIS).
 
 ---
 
-## 6. Визуальное масштабирование и ноутбуки
+## 5. Модель развёртывания (зафиксировано)
 
-Проверка: `measure-viewport-layout.mjs` (7 размеров × вкладки Сегодня/Неделя), `qa-desktop-layout.cjs`.
+**Прод:** только **GitHub Pages** + custom domain `germanpolkin.ru/lad-vlsu/`.
 
-| ID | Проблема | Где проявляется |
-|----|-----------|-----------------|
-| **LAD-VIS-01** | ~~Правая колонка перекрывала summary~~ — **исправлено** (`max-height` + scroll в detail), gap ≤82 px на preview | Закрыто на preview 25.11 вечер |
-| **LAD-VIS-02** | ~~Ширина week-overview~~ — **исправлено** (`max-width: 100%`, `overflow-x: clip`) | Закрыто на preview |
-| **LAD-VIS-03** | ~~qa-desktop-layout fail~~ — **Pass** полный прогон на `127.0.0.1:4173` | Закрыто на preview |
-
-Горизонтального scroll у `document` нет — баги **внутри сетки**, не полоса прокрутки всей страницы.
-
-Декоративные `.data-route-*` за краем экрана — анимация фона; отдельно от контента расписания.
-
-**Pinch-zoom:** LAD-009 **закрыт** — `maximum-scale=5`, без `user-scalable=no`.
-
-**Волна A (preview):** vitest, build, desktop QA — Pass. **Прод GitHub Pages:** только статика + `data/` (без workers.dev и без same-origin `/vlsu-api`; live API — dev/preview или опциональный Worker).
+- Данные: `data/catalog.json`, `data/schedule/*.json`, `university-schedule.json` в артефакте Pages.
+- **Нет** обязательного Cloudflare Workers, **нет** workers.dev в бандле Pages.
+- **`/vlsu-api` на корне домена** — 404 (норма для статического хостинга).
+- Разработка: `vite` проксирует `/vlsu-api` локально.
 
 ---
 
-## 7. Исправления до прода: что реально
+## 6. Визуальное масштабирование
 
-Подробный gate: **`PRE-PROD-RELEASE-GATE.md`**.
-
-| Можно сделать **в репо** и прогнать на **preview** без публикации | Нужен **ваш деплой** / отдельный цикл |
-|----------------------------------------------------------------|----------------------------------------|
-| LAD-VIS-01…03, LAD-007…016, часть LAD-003/004/022 (логика) | LAD-001, 002, 024 (`/vlsu-api`, `/app-api` на germanpolkin) |
-| Vitest + Playwright + measure-viewport | LAD-006 (225 групп), LAD-017 (3.5 MB), LAD-018 (CSP) |
-
-**Ответ на «исправить все баги без прода»:**  
-- **Пакет UI + desktop + a11y + refresh в коде** — да: правки → `pnpm test` / `build` → `preview` → QA-скрипты → вы отдаёте отчёт «gate OK».  
-- **Весь реестр LAD (включая live API на проде и покрытие данных)** — нет: без деплоя прокси critical останутся на старом germanpolkin, даже если локально всё зелёное.
-
-**Предлагаемый порядок:** волна A (VIS + a11y) → локальный полный прогон → выкат статики/PWA → волна B (прокси) → повтор HTTP-аудита → при OK считать релиз принятым.
+| ID | Статус |
+|----|--------|
+| LAD-VIS-01…03 | **Закрыто** (preview gate + **прод measure 25.11 вечер**) |
 
 ---
 
-## 8. Следующие шаги
+## 7. Gate перед следующей выкладкой
 
-1. **Волна A (код):** LAD-VIS-01…03, LAD-007…010, LAD-013…016.
-2. **Gate:** чек-лист в `PRE-PROD-RELEASE-GATE.md`.
-3. **Выкладка:** по вашему разрешению — Pages/домен.
-4. **Волна B:** деплой `/vlsu-api` (LAD-024), проверка `lad-full-bug-audit.mjs`.
-5. **Данные:** roadmap — missing 225 групп.
+См. **`PRE-PROD-RELEASE-GATE.md`**. Для Pages-only достаточно: test → build → sw.js check → push `main` → smoke ПИ-124 → `lad-full-bug-audit.mjs` (ожидать 0 High).
 
 ---
 
-*Отчёт обновлён 25.11.2026 (§6–7 — масштаб/ноутбуки и план до прода). Исправления кода в этой итерации ещё не начинались.*
+## 8. Рекомендации владельцу
+
+1. После обновления SW: жёсткое обновление вкладки или «Восстановить приложение» в PWA (снять старый бандл с workers.dev, если ставилась промежуточная сборка).
+2. Обновление расписания студентов: pipeline снимков → ветка `data` → автоматический пересбор Pages.
+3. Не считать отсутствие `/vlsu-api` на germanpolkin.ru регрессией при выбранной архитектуре.
+
+---
+
+*Отчёт переписан 25.11.2026 вечер — финал волны A, static-only Pages, прод-аудит, исправление SW preload.*

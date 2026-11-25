@@ -1,10 +1,12 @@
 {
   "meta": {
     "productUrl": "https://germanpolkin.ru/lad-vlsu/",
-    "release": "9859da8",
-    "localBuildRelease": "202611251518",
-    "waveAGatePreview": "Pass 25.11.2026 18:20 UTC+3",
-    "repoCommit": "9859da820",
+    "release": "953b049",
+    "localBuildRelease": "202611251548",
+    "waveAGatePreview": "Pass 25.11.2026",
+    "prodFinalAudit": "25.11.2026 вечер: measure prod exit 0, lad-full-bug-audit 3×Low, static-only Pages",
+    "deployModel": "GitHub Pages only, no workers.dev in CI build",
+    "repoCommit": "953b049b2",
     "auditedAt": "2026-11-25",
     "workspaceNote": "Исходный репозиторий Лад ВлГУ (plugin-browser-openai-bundled-build-web): React/TS, PWA, public/data, snapshot pipeline, functions/vlsu-api, Cloudflare Worker. Прототип UniMate (D:\\UniMate ВлГУ) — отдельный проект.",
     "testResults": {

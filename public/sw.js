@@ -223,7 +223,10 @@ self.addEventListener("fetch", (event) => {
 
         // The release shell and its hashed assets are installed together. Replacing only
         // index.html here would mix releases and can leave an installed PWA unbootable.
-        if (cachedShell) return navigationSafeResponse(cachedShell);
+        if (cachedShell) {
+          await (event.preloadResponse?.catch(() => undefined) ?? Promise.resolve());
+          return navigationSafeResponse(cachedShell);
+        }
 
         try {
           const preloaded = await event.preloadResponse;

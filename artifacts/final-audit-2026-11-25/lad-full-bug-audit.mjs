@@ -65,7 +65,7 @@ async function main() {
       sev: "Low",
       cat: "Deploy",
       title: "Root /vlsu-api на germanpolkin 404 (ожидаемо для GH Pages)",
-      detail: "Приложение на /lad-vlsu/ использует Worker fallback; live catalogs OK на workers.dev",
+      detail: "GitHub Pages: live API не на origin; каталоги/расписание из /lad-vlsu/data/",
       repro: "curl germanpolkin.ru/vlsu-api vs WORKER/vlsu-api",
       expected: "Опционально: CF route или wrangler custom domain"
     });

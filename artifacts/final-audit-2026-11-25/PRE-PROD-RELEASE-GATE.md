@@ -21,7 +21,7 @@
 | **225 групп без снимка** | LAD-006 | Контент/сбор данных, отдельный цикл |
 | **3.5 MB university-schedule** | LAD-017 | Архитектура пакета данных |
 
-**Важно:** один коммит в репозитории не закрывает LAD-001/024, пока вы не выкатите сборку **с маршрутизацией** `/vlsu-api` на том же домене, что PWA.
+**Решение владельца (25.11 вечер):** прод = **только GitHub Pages**. LAD-001/002/024 **не в gate** — live API не обещаем; данные из `data/`. В `pages.yml` **нет** `VITE_SCHEDULE_FALLBACK_URL`.
 
 ## Чек-лист перед выкладкой (release gate)
 
@@ -34,17 +34,17 @@
 6. node artifacts/final-audit-2026-11-25/measure-viewport-layout.mjs  # exit 0
 7. node scripts/qa-lesson-selection.cjs
 8. node scripts/qa-group-startup.cjs   # желательно на ubuntu CI
-9. После деплоя на staging: lad-full-bug-audit.mjs → /vlsu-api 200 JSON
-10. На проде: meta lad-release = ожидаемый SHA, повтор smoke ПИ-124
+9. После деплоя: `lad-full-bug-audit.mjs` → 0 Critical/High (ожидаемы Low: missing groups, CSP)
+10. На проде: meta `lad-release` = ожидаемый SHA, smoke ПИ-124, DevTools без красных ошибок SW preload
 ```
 
 ## Рекомендуемые волны работ
 
 **Волна A (до прода UI, только репо):** LAD-VIS-01…03, LAD-007…010, LAD-013…016 — затем полный прогон п.1–8.
 
-**Волна B (деплой, ваш шаг):** LAD-001, 002, 024 — wrangler/Pages по `wrangler.jsonc` + `functions/`, проверка п.9.
+**Волна B (опционально):** Cloudflare Worker — только если снова понадобится live API (workflow `cloudflare-worker.yml`, вручную).
 
-**Волна C (после деплоя API):** LAD-003, 004, 022 — регресс refresh на staging.
+**Данные:** ветка `data` + snapshot workflow — основной путь свежести расписания.
 
 ## Ответ на вопрос «исправить всё без прода?»
 
