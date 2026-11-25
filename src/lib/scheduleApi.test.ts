@@ -461,7 +461,7 @@ describe("schedule snapshot v2", () => {
       expect.objectContaining({ credentials: "omit" }));
   });
 
-  it("tries the local app endpoint when the archived Worker is unreachable", async () => {
+  it("uses Worker app-api when GitHub Pages has no same-origin proxy", async () => {
     vi.stubEnv("PROD", true);
     vi.stubEnv("BASE_URL", "/vlsu-pi-124-schedule/");
     vi.stubEnv("VITE_SCHEDULE_FALLBACK_URL", "https://worker.example");
@@ -474,8 +474,10 @@ describe("schedule snapshot v2", () => {
       const url = String(input);
       if (url.includes("/data/schedule/")) return new Response("Not found", { status: 404 });
       if (url.includes("/data/ocr-schedule/")) return new Response("Not found", { status: 404 });
+      if (url.startsWith("https://worker.example/app-api/schedule/")) {
+        return new Response(JSON.stringify(snapshot), { status: 200 });
+      }
       if (url.startsWith("https://worker.example/")) throw new TypeError("Network error");
-      if (url.startsWith("/app-api/schedule/")) return new Response(JSON.stringify(snapshot), { status: 200 });
       throw new Error(`Unexpected request: ${url}`);
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -484,5 +486,6 @@ describe("schedule snapshot v2", () => {
 
     expect(state.source).toBe("live");
     expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect(fetchMock).toHaveBeenCalledWith(`https://worker.example/app-api/schedule/${nrec}`, expect.any(Object));
   });
 });
