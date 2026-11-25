@@ -1,4 +1,6 @@
-const WORKER_FALLBACK = import.meta.env.VITE_SCHEDULE_FALLBACK_URL?.trim();
+function workerFallbackUrl(): string | undefined {
+  return import.meta.env.VITE_SCHEDULE_FALLBACK_URL?.trim();
+}
 
 export function isPagesSubpathDeploy(): boolean {
   const base = import.meta.env.BASE_URL ?? "/";
@@ -15,8 +17,9 @@ export function normalizeHttpsOrigin(url: string): string {
 export function resolveVlsuApiBase(): string {
   const explicit = import.meta.env.VITE_VLSU_API_BASE?.trim();
   if (explicit) return explicit.replace(/\/$/, "");
-  if (isPagesSubpathDeploy() && WORKER_FALLBACK) {
-    return `${normalizeHttpsOrigin(WORKER_FALLBACK)}/vlsu-api`;
+  const worker = workerFallbackUrl();
+  if (isPagesSubpathDeploy() && worker) {
+    return `${normalizeHttpsOrigin(worker)}/vlsu-api`;
   }
   const base = import.meta.env.BASE_URL ?? "/";
   const rooted = `${base.replace(/\/?$/, "/")}vlsu-api`;
@@ -27,8 +30,9 @@ export function resolveVlsuApiBase(): string {
 export function resolveAppApiOrigin(): string | null {
   const explicit = import.meta.env.VITE_APP_API_BASE?.trim();
   if (explicit) return explicit.replace(/\/$/, "");
-  if (isPagesSubpathDeploy() && WORKER_FALLBACK) {
-    return normalizeHttpsOrigin(WORKER_FALLBACK);
+  const worker = workerFallbackUrl();
+  if (isPagesSubpathDeploy() && worker) {
+    return normalizeHttpsOrigin(worker);
   }
   return null;
 }

@@ -22,7 +22,9 @@ import {
 
 import { isCrossOriginApiUrl, resolveAppApiOrigin, resolveVlsuApiBase } from "./apiOrigins";
 
-const API_BASE = resolveVlsuApiBase();
+function vlsuApiBase() {
+  return resolveVlsuApiBase();
+}
 const REQUEST_TIMEOUT_MS = 8_000;
 const REQUEST_RETRIES = 0;
 
@@ -164,10 +166,11 @@ async function request<T>(path: string, init?: RequestInit, metadata?: RequestMe
     const timeout = globalThis.setTimeout(() => controller.abort("timeout"), REQUEST_TIMEOUT_MS);
 
     try {
-      const response = await fetch(`${API_BASE}${path}`, {
+      const apiBase = vlsuApiBase();
+      const response = await fetch(`${apiBase}${path}`, {
         ...init,
         signal: controller.signal,
-        credentials: isCrossOriginApiUrl(API_BASE) ? "omit" : "same-origin",
+        credentials: isCrossOriginApiUrl(apiBase) ? "omit" : "same-origin",
         headers: {
           "Content-Type": "application/json",
           ...(init?.headers ?? {})
