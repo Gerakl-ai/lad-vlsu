@@ -128,6 +128,10 @@ async function assertSharedTabDuration(page, motion, label) {
           }
         ]));
       }, { timestamp: savedAt, emptyNotes: viewport.width === 402 });
+      await page.addInitScript(() => {
+        localStorage.setItem('lad.subgroup.v1:7936a2a43b11b20b01d30f5b00c73166', '0');
+      });
+      await page.clock.install({ time: new Date('2026-10-05T16:00:00Z') });
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
       page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
@@ -454,6 +458,7 @@ async function assertSharedTabDuration(page, motion, label) {
         }
 
         if (viewport.width >= 1800 && viewport.height >= 600) {
+          await page.evaluate(() => document.querySelector('.freshness-banner')?.remove());
           await page.locator('.bottom-nav').getByRole('button', { name: 'Сегодня' }).click();
           const weekPreview = page.locator('.today-week-preview');
           await weekPreview.waitFor();

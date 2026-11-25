@@ -6641,6 +6641,10 @@ button.day-title > svg {
   }
   .today-detail-scroll > .upcoming-study .upcoming-day-launch { padding: 9px 0 11px; }
 
+  .content-scroll:not(:has(> .freshness-banner)) .today-view {
+    min-height: max(0px, calc(var(--app-viewport-height) - 156px));
+  }
+
   .today-week-preview {
     grid-area: preview;
     grid-column: 1 / -1;

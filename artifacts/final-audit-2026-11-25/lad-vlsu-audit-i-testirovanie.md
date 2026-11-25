@@ -3,8 +3,8 @@
 **Объект:** https://germanpolkin.ru/lad-vlsu/  
 **Репозиторий:** `lad-vlsu` (Gerakl-ai), рабочая копия `plugin-browser-openai-bundled-build-web`  
 **Дата финала:** 25.11.2026 (вечер)  
-**Release прод (meta `lad-release`):** `953b049`  
-**Коммит репозитория:** `953b049b2` … `f0c481c62` (волна A + static-only Pages)
+**Release прод (meta `lad-release`):** уточнить после своей выкладки (ожидание: `658ca7f06` + локальные правки QA)  
+**Коммит ветки `main` (origin):** `658ca7f06` — волна B time-grid 2K; дальнейший прод-деплой — **у владельца**
 
 **Метод:** Vitest (583+), `pnpm run build`, `node --check public/sw.js`, Playwright на preview и **проде** (`measure-viewport-layout.mjs`), `lad-full-bug-audit.mjs`, smoke в браузере (ПИ-124).
 
@@ -18,9 +18,19 @@
 
 **Правка:** `src/styles.css` (≥2200px): dividers через `box-shadow`, `padding-inline: 0` у `week-overview`, `contain: inline-size` у календаря.
 
-**Preview после build:** `measure-viewport-layout.mjs` — ISSUES [] (1024…3440); `qa-desktop-layout.cjs` / `qa-desktop-surfaces.cjs` — exit 0.
+**Preview / dist:** `measure-viewport-layout.mjs` — ISSUES [] (1024…3440); `qa-desktop-layout.cjs` / `qa-desktop-surfaces.cjs` — exit 0.
 
-**Прод:** ждёт push на GitHub Pages.
+**Волна C (деплой):** стабильный QA (`clock` + subgroup), снятие `freshness-banner` перед wide Today; `min-height` Today без баннера на 2K; повторный push + gate на проде.
+
+**Gate (PowerShell):**
+
+```text
+$env:QA_URL="https://germanpolkin.ru/lad-vlsu/"
+$env:PLAYWRIGHT_CHROMIUM_PATH="C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
+node artifacts/final-audit-2026-11-25/measure-viewport-layout.mjs
+node scripts/qa-desktop-layout.cjs
+node scripts/qa-desktop-surfaces.cjs
+```
 
 ---
 
