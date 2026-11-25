@@ -20,7 +20,13 @@ import {
   type StudyFormKey
 } from "../features/groups/groupTypes";
 
-import { isCrossOriginApiUrl, resolveAppApiOrigin, resolveVlsuApiBase } from "./apiOrigins";
+import {
+  hasRemoteScheduleFallback,
+  isCrossOriginApiUrl,
+  isPagesSubpathDeploy,
+  resolveAppApiOrigin,
+  resolveVlsuApiBase
+} from "./apiOrigins";
 
 function vlsuApiBase() {
   return resolveVlsuApiBase();
@@ -697,7 +703,7 @@ function normalizeScheduleDays(days: unknown[]) {
 export async function loadSchedule(group: GroupProfile, hasDeviceSnapshot = false): Promise<ScheduleState> {
   try {
     const staticState = await loadStaticSchedule(group);
-    if (hasDeviceSnapshot && import.meta.env.PROD && import.meta.env.BASE_URL !== "/") {
+    if (hasDeviceSnapshot && hasRemoteScheduleFallback()) {
       try {
         const archived = await fetchArchivedWorkerSnapshot(group.nrec);
         const preferred = alignSubgroupOrder(preferNewerSchedule(staticState, archived), staticState);
@@ -710,7 +716,7 @@ export async function loadSchedule(group: GroupProfile, hasDeviceSnapshot = fals
     writeGroupScheduleCache(staticState);
     return staticState;
   } catch {
-    if (import.meta.env.PROD && import.meta.env.BASE_URL !== "/") {
+    if (hasRemoteScheduleFallback()) {
       try {
         const archived = await fetchArchivedWorkerSnapshot(group.nrec);
         writeGroupScheduleCache(archived);
@@ -730,7 +736,8 @@ export async function loadSchedule(group: GroupProfile, hasDeviceSnapshot = fals
     // Снимка для этой группы ещё нет — пробуем прежние источники.
   }
 
-  if (import.meta.env.PROD) {
+  const canTryLiveEndpoints = !isPagesSubpathDeploy() || hasRemoteScheduleFallback();
+  if (import.meta.env.PROD && canTryLiveEndpoints) {
     try {
       const snapshot = await fetchGroupScheduleSnapshot(group.nrec);
       writeGroupScheduleCache(snapshot);
@@ -738,6 +745,10 @@ export async function loadSchedule(group: GroupProfile, hasDeviceSnapshot = fals
     } catch {
       // Older Pages deployments do not expose the v2 endpoint yet.
     }
+  }
+
+  if (isPagesSubpathDeploy() && !hasRemoteScheduleFallback()) {
+    throw new Error("Schedule snapshot is not published for this group");
   }
 
   const fetchState = async (groupNrec: string) => {

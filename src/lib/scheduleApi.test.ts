@@ -461,10 +461,18 @@ describe("schedule snapshot v2", () => {
       expect.objectContaining({ credentials: "omit" }));
   });
 
-  it("uses Worker app-api when GitHub Pages has no same-origin proxy", async () => {
+  it("does not call Worker when GitHub Pages build omits VITE_SCHEDULE_FALLBACK_URL", async () => {
     vi.stubEnv("PROD", true);
-    vi.stubEnv("BASE_URL", "/vlsu-pi-124-schedule/");
-    vi.stubEnv("VITE_SCHEDULE_FALLBACK_URL", "https://worker.example");
+    vi.stubEnv("BASE_URL", "/lad-vlsu/");
+    const staticSnapshot = {
+      schemaVersion: 3,
+      group: { nrec, name: "ПИ-124", instituteShortName: "ИИТЭ" },
+      semester: 5,
+      schedule: [{ type: "Lessons", name: "Вторник", z1: "109-3, лб, Teacher, Subject" }],
+      scheduleHash: "b".repeat(64),
+      capturedAt: "2026-10-01T12:00:00Z",
+      quality: { valid: true, scheduleEntries: 1, lessonDays: 1, examEntries: 0, warnings: [] }
+    };
     const storage = new Map<string, string>();
     vi.stubGlobal("localStorage", {
       getItem: (key: string) => storage.get(key) ?? null,
@@ -472,23 +480,18 @@ describe("schedule snapshot v2", () => {
     });
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.includes("/data/schedule/")) return new Response("Not found", { status: 404 });
+      if (url.includes("/data/schedule/")) return new Response(JSON.stringify(staticSnapshot), { status: 200 });
       if (url.includes("/data/ocr-schedule/")) return new Response("Not found", { status: 404 });
-      if (url.startsWith("https://worker.example/app-api/schedule/")) {
-        return new Response(JSON.stringify(snapshot), { status: 200 });
+      if (url.includes("workers.dev") || url.includes("worker.example")) {
+        throw new Error(`Unexpected worker call: ${url}`);
       }
-      if (url.startsWith("https://worker.example/")) throw new TypeError("Network error");
       throw new Error(`Unexpected request: ${url}`);
     });
     vi.stubGlobal("fetch", fetchMock);
 
     const state = await loadSchedule(LEGACY_PI124_GROUP);
 
-    expect(state.source).toBe("live");
-    expect(fetchMock).toHaveBeenCalledTimes(5);
-    expect(fetchMock).toHaveBeenCalledWith(
-      `https://worker.example/app-api/schedule/${nrec}?cached=1`,
-      expect.objectContaining({ credentials: "omit" })
-    );
+    expect(state.source).toBe("static-snapshot");
+    expect(fetchMock.mock.calls.every((call) => !String(call[0]).includes("worker"))).toBe(true);
   });
 });

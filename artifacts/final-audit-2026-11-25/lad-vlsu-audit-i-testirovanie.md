@@ -119,7 +119,7 @@
 
 **Pinch-zoom:** LAD-009 **закрыт** — `maximum-scale=5`, без `user-scalable=no`.
 
-**Волна A (preview, без деплоя на germanpolkin.ru):** vitest 583/583, build OK, `measure-viewport-layout.mjs` exit 0, `qa-desktop-layout` + `qa-lesson-selection` + `qa-group-startup` — Pass на Edge/4173. Прод по-прежнему на старом релизе до вашей выкладки.
+**Волна A (preview):** vitest, build, desktop QA — Pass. **Прод GitHub Pages:** только статика + `data/` (без workers.dev и без same-origin `/vlsu-api`; live API — dev/preview или опциональный Worker).
 
 ---
 
