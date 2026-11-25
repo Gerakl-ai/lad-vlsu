@@ -3,8 +3,8 @@
 **Объект:** https://germanpolkin.ru/lad-vlsu/  
 **Репозиторий:** `lad-vlsu` (Gerakl-ai), рабочая копия `plugin-browser-openai-bundled-build-web`  
 **Дата финала:** 25.11.2026 (вечер)  
-**Release прод (meta `lad-release`):** `36cfb9b69` (Pages CI success 25.11 вечер)  
-**Коммиты:** `658ca7f06` (time-grid 2K) → `36cfb9b69` (Today fill + QA стабильность)
+**Release прод:** `3a4938854` (волна D) — measure prod ISSUES []  
+**Коммиты:** `658ca7f06` → `36cfb9b69` → `3a4938854` (2K = list, grid с 3440px)
 
 **Метод:** Vitest (583+), `pnpm run build`, `node --check public/sw.js`, Playwright на preview и **проде** (`measure-viewport-layout.mjs`), `lad-full-bug-audit.mjs`, smoke в браузере (ПИ-124).
 
