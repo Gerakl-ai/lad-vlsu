@@ -84,7 +84,7 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
           }
         }
         if (tab === 'Неделя') {
-          if (viewport.width >= 2200) {
+          if (viewport.width >= 3440) {
             const board = page.locator('.desktop-week-calendar');
             await board.waitFor();
             const variantCard = board.locator('.desktop-week-lesson:has(.desktop-week-variant)').first();
@@ -161,7 +161,10 @@ const url = new URL('?group=7936a2a43b11b20b01d30f5b00c73166&institute=5b42fa53e
         }
         if (viewport.width === 2560) {
           assert.ok(metrics.frame.width >= 1700);
-          if (tab === 'Неделя') assert.equal(metrics.weekColumns, 6);
+          if (tab === 'Неделя') assert.equal(metrics.weekColumns, 3);
+        }
+        if (viewport.width === 3440 && tab === 'Неделя') {
+          assert.equal(metrics.weekColumns, 6);
         }
         await page.screenshot({ path: `artifacts/qa/desktop-surfaces/${viewport.width}-${tab}.png` });
         console.log(JSON.stringify({ tab, ...viewport, ...metrics }));

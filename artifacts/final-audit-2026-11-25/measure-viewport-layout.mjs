@@ -47,7 +47,7 @@ for (const [w, h, dpr = 1] of viewports) {
           if (wide) return Boolean(document.querySelector(".desktop-week-calendar"));
           return Boolean(document.querySelector(".week-list .day-block, .desktop-week-calendar"));
         },
-        w >= 2200,
+        w >= 3440,
         { timeout: 60000 },
       );
       await page.waitForTimeout(400);
@@ -84,6 +84,8 @@ for (const [w, h, dpr = 1] of viewports) {
 
       const week = rect(".desktop-week-calendar, .week-view");
       const weekHeads = document.querySelectorAll(".desktop-week-day-head, .week-day-header").length;
+      const weekListDays = document.querySelectorAll(".week-list .day-block").length;
+      const weekGridVisible = Boolean(document.querySelector(".desktop-week-calendar") && getComputedStyle(document.querySelector(".desktop-week-calendar")).display !== "none");
       const board = document.querySelector(".desktop-week-calendar");
       const loadMap = document.querySelector(".week-map-disclosure");
       let weekBoardOverflow = null;
@@ -106,6 +108,8 @@ for (const [w, h, dpr = 1] of viewports) {
         summary,
         detail,
         weekHeads,
+        weekListDays,
+        weekGridVisible,
         week,
         weekBoardOverflow,
         weekMapGap,
@@ -127,17 +131,23 @@ for (const [w, h, dpr = 1] of viewports) {
         geo: { hero: m.hero, summary: m.summary, detail: m.detail },
       });
     }
-    if (tab === "week" && w >= 2200 && m.weekHeads === 0) {
+    if (tab === "week" && w >= 3440 && m.weekHeads === 0) {
       issues.push({ vp: `${w}x${h}`, tab, type: "desktop-week-missing" });
     }
-    if (tab === "week" && w >= 2200 && m.weekBoardOverflow != null && m.weekBoardOverflow > 1) {
+    if (tab === "week" && w >= 3440 && m.weekBoardOverflow != null && m.weekBoardOverflow > 1) {
       issues.push({ vp: `${w}x${h}`, tab, type: "week-board-overflow", px: m.weekBoardOverflow });
     }
-    if (tab === "week" && w >= 2200 && m.weekMapGap != null && m.weekMapGap > 3) {
+    if (tab === "week" && w >= 3440 && m.weekMapGap != null && m.weekMapGap > 3) {
       issues.push({ vp: `${w}x${h}`, tab, type: "week-load-map-misaligned", gap: m.weekMapGap });
     }
+    if (tab === "week" && w >= 1920 && w < 3440 && m.weekGridVisible) {
+      issues.push({ vp: `${w}x${h}`, tab, type: "week-time-grid-on-2k" });
+    }
+    if (tab === "week" && w >= 1920 && w < 3440 && m.weekListDays > 0 && m.weekListDays < 6) {
+      issues.push({ vp: `${w}x${h}`, tab, type: "week-list-incomplete", days: m.weekListDays });
+    }
 
-    console.log(JSON.stringify({ vp: `${w}x${h}@${dpr}`, tab, overflow: m.overflow, todayGap: m.todayGap, weekHeads: m.weekHeads, weekBoardOverflow: m.weekBoardOverflow, weekMapGap: m.weekMapGap, offenders: m.offenders.length }));
+    console.log(JSON.stringify({ vp: `${w}x${h}@${dpr}`, tab, overflow: m.overflow, todayGap: m.todayGap, weekHeads: m.weekHeads, weekListDays: m.weekListDays, weekGridVisible: m.weekGridVisible, weekBoardOverflow: m.weekBoardOverflow, weekMapGap: m.weekMapGap, offenders: m.offenders.length }));
   }
 }
 

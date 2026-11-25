@@ -323,10 +323,13 @@ async function assertSharedTabDuration(page, motion, label) {
         const weekDirection = await page.locator('.content-scroll').getAttribute('data-tab-motion-direction');
         assertVisibleTabMotion(weekMotion, 'Week tab', weekDirection);
         if (desktop) {
-          if (viewport.width < 2200) {
+          if (viewport.width < 3440) {
             const weekColumns = await page.locator('.week-view:not(.session-view) > .week-list').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length);
             const expectedColumns = viewport.width >= 1280 ? 3 : 2;
             assert.equal(weekColumns, expectedColumns, `Unexpected desktop week density at ${viewport.width}px`);
+            if (viewport.width >= 2560) {
+              assert.equal(await page.locator('.week-view:not(.session-view) > .week-list .day-block').count(), 6, 'Wide laptop should keep six day cards');
+            }
           } else {
             const board = page.locator('.desktop-week-calendar');
             await board.waitFor();

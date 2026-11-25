@@ -6856,7 +6856,8 @@ button.day-title > svg {
   .week-view:not(.session-view) > .week-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-@media (min-width: 2200px) and (min-height: 600px) {
+/* Time-grid — только ultrawide (3440+). На 2K/Full HD остаётся плотный 3-column week-list. */
+@media (min-width: 3440px) and (min-height: 600px) {
   .week-view:not(.session-view) {
     max-width: 100%;
     overflow-x: clip;
@@ -6875,7 +6876,7 @@ button.day-title > svg {
 
 .desktop-week-calendar { display: none; min-width: 0; }
 
-@media (min-width: 2200px) and (min-height: 600px) {
+@media (min-width: 3440px) and (min-height: 600px) {
   .desktop-week-calendar {
     display: block;
     overflow: hidden;
