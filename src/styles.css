@@ -5567,14 +5567,28 @@ button.day-title > svg {
   to { transform: scale(1.075); }
 }
 
-/* Keep the iPhone composition alive without continuously repainting the whole viewport. */
+/* Телефон: сетка/точки/скан — замедленные; тяжёлые лучи и лишние частицы — off. */
 @media (max-width: 560px), (orientation: landscape) and (max-height: 560px) {
-  .phone-frame::before,
-  .ambient-grid,
-  .ambient-grid::before,
-  .light-sweep::before,
-  .light-sweep::after {
+  .phone-frame::before {
     animation: none;
+  }
+
+  .ambient-grid {
+    animation: grid-travel 50s linear infinite;
+    will-change: background-position;
+  }
+
+  .ambient-grid::before {
+    animation: data-particles 56s linear infinite;
+    opacity: 0.38;
+    will-change: transform;
+  }
+
+  .ambient-grid::after {
+    display: block;
+    animation: data-scan 20s cubic-bezier(.4, 0, .2, 1) infinite;
+    opacity: 0.42;
+    will-change: transform, opacity;
   }
 
   .light-sweep {
@@ -5582,7 +5596,15 @@ button.day-title > svg {
     will-change: transform;
   }
 
-  .ambient-grid::after,
+  .light-sweep::before {
+    animation: spectral-pass 30s cubic-bezier(.45, 0, .2, 1) infinite;
+    will-change: transform, opacity;
+  }
+
+  .light-sweep::after {
+    animation: none;
+  }
+
   .data-route-b,
   .data-route-c,
   .data-gate,
@@ -5657,10 +5679,12 @@ button.day-title > svg {
 
   .nav-selection,
   .bottom-nav button.active .nav-icon,
-  .light-sweep::before,
-  .data-route,
-  .motion-particles i {
+  .data-route {
     will-change: auto;
+  }
+
+  .motion-particles i {
+    --particle-duration: 36s;
   }
 }
 
@@ -7444,7 +7468,6 @@ button.day-title > svg {
 :root[data-visual-quality="lite"] .data-gate,
 :root[data-visual-quality="lite"] .motion-particles i,
 :root[data-visual-quality="lite"] .today-date-launch::after,
-:root[data-visual-quality="lite"] .ambient-grid,
 :root[data-visual-quality="lite"] .hero-card::before,
 :root[data-visual-quality="lite"] .hero-sigil,
 :root[data-visual-quality="lite"] .status-pill,
@@ -7500,12 +7523,42 @@ button.day-title > svg {
   animation: none !important;
 }
 
-:root[data-visual-quality="lite"] .ambient-grid::before,
-:root[data-visual-quality="lite"] .ambient-grid::after,
-:root[data-visual-quality="lite"] .light-sweep::before,
 :root[data-visual-quality="lite"] .light-sweep::after {
   animation: none !important;
   will-change: auto !important;
+}
+
+/* Lite на широком экране — без фона; на телефоне тот же tier, что mobile ↑ */
+@media (min-width: 561px) {
+  :root[data-visual-quality="lite"] .ambient-grid,
+  :root[data-visual-quality="lite"] .ambient-grid::before,
+  :root[data-visual-quality="lite"] .ambient-grid::after,
+  :root[data-visual-quality="lite"] .light-sweep::before {
+    animation: none !important;
+    will-change: auto !important;
+  }
+}
+
+@media (max-width: 560px), (orientation: landscape) and (max-height: 560px) {
+  :root[data-visual-quality="lite"] .ambient-grid {
+    animation: grid-travel 54s linear infinite !important;
+    will-change: background-position !important;
+  }
+
+  :root[data-visual-quality="lite"] .ambient-grid::before {
+    animation: data-particles 60s linear infinite !important;
+    will-change: transform !important;
+  }
+
+  :root[data-visual-quality="lite"] .ambient-grid::after {
+    animation: data-scan 22s cubic-bezier(.4, 0, .2, 1) infinite !important;
+    will-change: transform, opacity !important;
+  }
+
+  :root[data-visual-quality="lite"] .light-sweep::before {
+    animation: spectral-pass 34s cubic-bezier(.45, 0, .2, 1) infinite !important;
+    will-change: transform, opacity !important;
+  }
 }
 
 :root[data-visual-quality="lite"] .bottom-nav,
