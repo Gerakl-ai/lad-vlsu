@@ -1374,7 +1374,7 @@ function TodayView({
   schedulePeriodEstimated?: boolean;
   savedScheduleDate?: string;
 }) {
-  const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
+  const titleClass = heroSubject.length > 38 ? "dense-title" : heroSubject.length > 24 ? "compact-title" : "";
   const personalEvents = usePersonalEvents();
   const selectedPersonalEvents = personalEventsOnDate(personalEvents, selectedDate);
   const minutesToNext = next && isSelectedToday ? minutesUntilStart(next, now) : 0;

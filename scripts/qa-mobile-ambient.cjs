@@ -32,24 +32,38 @@ const viewport = { width: 390, height: 844 };
         return {
           visualQuality: document.documentElement.dataset.visualQuality,
           grid: gridStyle.animationName,
+          gridPos: gridStyle.backgroundPosition,
+          gridDur: gridStyle.animationDuration,
           dots: dotsStyle.animationName,
           scan: scanStyle.animationName,
+          scanDur: scanStyle.animationDuration,
           scanDisplay: scanStyle.display,
+          scanTr: scanStyle.transform,
           spectral: lineStyle?.animationName ?? 'n/a',
+          spectralDur: lineStyle?.animationDuration ?? 'n/a',
+          spectralTr: lineStyle?.transform ?? 'n/a',
         };
       });
     };
 
     const a = await sample();
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(900);
     const b = await sample();
 
     assert.notEqual(a.grid, 'none', `grid animation: ${JSON.stringify(a)}`);
-    assert.equal(a.dots, 'data-particles', JSON.stringify(a));
-    assert.equal(a.scan, 'data-scan', JSON.stringify(a));
+    assert.ok(['grid-travel', 'grid-travel-mobile'].includes(a.grid), JSON.stringify(a));
+    assert.ok(a.dots === 'data-particles' || a.dots === 'none', JSON.stringify(a));
+    assert.ok(['data-scan', 'data-scan-mobile'].includes(a.scan), JSON.stringify(a));
     assert.notEqual(a.scanDisplay, 'none', JSON.stringify(a));
-    assert.equal(a.spectral, 'spectral-pass', JSON.stringify(a));
-    assert.equal(a.grid, b.grid, `grid animation changed unexpectedly: ${JSON.stringify({ a, b })}`);
+    assert.ok(['spectral-pass', 'spectral-pass-mobile'].includes(a.spectral), JSON.stringify(a));
+    const durScan = parseFloat(a.scanDur);
+    const durGrid = parseFloat(a.gridDur);
+    const durSpectral = parseFloat(a.spectralDur);
+    assert.ok(durScan > 0 && durScan <= 14, `scan too slow: ${a.scanDur}`);
+    assert.ok(durGrid > 0 && durGrid <= 24, `grid too slow: ${a.gridDur}`);
+    assert.ok(durSpectral > 0 && durSpectral <= 18, `spectral too slow: ${a.spectralDur}`);
+    assert.notEqual(a.gridPos, b.gridPos, `grid background static: ${JSON.stringify({ a, b })}`);
+    assert.notEqual(a.scanTr, b.scanTr, `scan transform static: ${JSON.stringify({ a, b })}`);
 
     console.log(JSON.stringify({ ok: true, viewport, first: a, second: b }));
   } finally {

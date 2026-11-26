@@ -110,7 +110,8 @@ function initializeVisualQuality() {
     complete = true;
     probing = false;
     const threads = (navigator as Navigator & { hardwareConcurrency?: number }).hardwareConcurrency ?? 8;
-    if (hasConstrainedFramePacing(intervals) && threads <= 4) {
+    const narrowPhone = window.matchMedia("(max-width: 560px)").matches;
+    if (hasConstrainedFramePacing(intervals) && (threads <= 4 || narrowPhone)) {
       root.dataset.visualQuality = "lite";
     }
     document.removeEventListener("visibilitychange", onVisibilityChange);

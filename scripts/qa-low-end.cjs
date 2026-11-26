@@ -93,9 +93,16 @@ const tabs = ['Сегодня', 'Неделя', 'Записи', 'Настрой�
         'landscape-backdrop-breathe',
         'landscape-visual-breathe',
       ]);
-      const allowedLiteAmbient = new Set(['ambient-shift']);
+      const allowedLiteAmbient = new Set([
+        'ambient-shift',
+        'data-scan-mobile',
+        'spectral-pass-mobile',
+        'data-particles',
+        'grid-travel',
+        'grid-travel-mobile',
+      ]);
       const decorativeInfinite = layout.continuousAnimations.filter((entry) => {
-        if (allowedLiteAmbient.has(entry.animation) && /\.light-sweep/i.test(entry.selector)) return false;
+        if (allowedLiteAmbient.has(entry.animation) && /\.(light-sweep|ambient-grid)/i.test(entry.selector)) return false;
         if (!heroPhotoAnimations.has(entry.animation)) return true;
         return !/hero-visual/i.test(entry.selector);
       });

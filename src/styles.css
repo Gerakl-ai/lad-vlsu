@@ -420,8 +420,10 @@ select,
 }
 
 .brand-button h1 {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
   white-space: normal;
+  text-wrap: balance;
 }
 
 .group-title-suffix {
@@ -1358,7 +1360,7 @@ select,
 
 .hero-sigil {
   position: absolute;
-  z-index: 1;
+  z-index: 3;
   right: 18px;
   top: 18px;
   width: 82px;
@@ -4604,6 +4606,25 @@ button.day-title > svg {
   72%, 100% { transform: translateY(620%); opacity: 0; }
 }
 
+/* Телефон: заметнее вертикальный «скан» и диагональная полоса (как на Full HD). */
+@keyframes data-scan-mobile {
+  0%, 5% { transform: translate3d(0, -28%, 0); opacity: 0; }
+  10% { opacity: 0.78; }
+  85%, 100% { transform: translate3d(0, 540%, 0); opacity: 0; }
+}
+
+/* Вертикальные линии сетки: на телефоне быстрее, иначе кажутся статичными. */
+@keyframes grid-travel-mobile {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 40px 0, 0 40px; }
+}
+
+@keyframes spectral-pass-mobile {
+  0%, 4% { transform: translate3d(-18%, 0, 0) rotate(-13deg); opacity: 0; }
+  10% { opacity: 0.88; }
+  86%, 100% { transform: translate3d(235%, 56px, 0) rotate(-13deg); opacity: 0; }
+}
+
 @keyframes cinematic-sheen {
   0%, 68% { transform: translate3d(-42%, 0, 0); opacity: 0; }
   74% { opacity: .9; }
@@ -5250,7 +5271,7 @@ button.day-title > svg {
     height: 66px;
   }
 
-  .today-primary .hero-card { --hero-sigil-space: 78px; }
+  .today-primary .hero-card { --hero-sigil-space: 96px; }
 
   .today-primary .hero-sigil strong {
     font-size: 20px;
@@ -5265,14 +5286,25 @@ button.day-title > svg {
     font-size: 11px;
   }
 
+  .topbar .brand-button h1 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.1;
+    max-height: 2.25em;
+  }
+
   .hero-card h2 {
     max-width: calc(100% - var(--hero-sigil-space));
     margin-top: 14px;
     font-size: 28px;
+    overflow-wrap: break-word;
+    text-wrap: balance;
   }
 
-  .hero-card.compact-title h2 { max-width: calc(100% - var(--hero-sigil-space)); font-size: 22px; }
-  .hero-card.dense-title h2 { max-width: calc(100% - var(--hero-sigil-space)); font-size: 19px; }
+  .hero-card.compact-title h2 { max-width: calc(100% - var(--hero-sigil-space)); font-size: 21px; }
+  .hero-card.dense-title h2 { max-width: calc(100% - var(--hero-sigil-space)); font-size: 18px; line-height: 1.08; }
 
   .hero-meta {
     max-width: calc(100% - 78px);
@@ -5574,30 +5606,58 @@ button.day-title > svg {
   }
 
   .ambient-grid {
-    animation: grid-travel 50s linear infinite;
+    contain: layout style;
+    animation: grid-travel-mobile 20s linear infinite;
     will-change: background-position;
   }
 
   .ambient-grid::before {
-    animation: data-particles 56s linear infinite;
-    opacity: 0.38;
-    will-change: transform;
+    /* Точки видны статично; дрейф точек — лишний слой на слабых GPU. */
+    animation: none;
+    opacity: 0.34;
+    will-change: auto;
   }
 
   .ambient-grid::after {
     display: block;
-    animation: data-scan 20s cubic-bezier(.4, 0, .2, 1) infinite;
-    opacity: 0.42;
+    height: 140px;
+    animation: data-scan-mobile 10s cubic-bezier(.35, 0, .15, 1) infinite;
+    opacity: 0.78;
     will-change: transform, opacity;
+    transform: translateZ(0);
   }
 
   .light-sweep {
-    animation: ambient-shift 22s ease-in-out infinite alternate;
-    will-change: transform;
+    contain: layout style;
+    /* Полоса на ::before; сдвиг всего слоя — лишняя перерисовка. */
+    animation: none;
+    will-change: auto;
+  }
+
+  .motion-scene {
+    display: none;
+  }
+
+  .motion-scene,
+  .motion-scene * {
+    animation: none !important;
+    will-change: auto !important;
+  }
+
+  .week-chip::after {
+    animation: none;
+  }
+
+  .hero-card::before {
+    animation: none;
   }
 
   .light-sweep::before {
-    animation: spectral-pass 30s cubic-bezier(.45, 0, .2, 1) infinite;
+    width: 78%;
+    height: 3px;
+    box-shadow: 0 0 12px rgba(var(--accent-soft-rgb), 0.55), 0 0 28px rgba(var(--accent-rgb), 0.22);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), rgba(var(--accent-soft-rgb), 0.72), rgba(255, 255, 255, 0.1), transparent);
+    animation: spectral-pass-mobile 12s cubic-bezier(.42, 0, .18, 1) infinite;
     will-change: transform, opacity;
   }
 
@@ -5644,9 +5704,6 @@ button.day-title > svg {
     animation: none;
   }
 
-  .hero-card::before {
-    animation-duration: 24s;
-  }
 .progress-track span,
 .next-icon svg,
 .focus-note-icon svg,
@@ -7541,22 +7598,22 @@ button.day-title > svg {
 
 @media (max-width: 560px), (orientation: landscape) and (max-height: 560px) {
   :root[data-visual-quality="lite"] .ambient-grid {
-    animation: grid-travel 54s linear infinite !important;
+    animation: grid-travel-mobile 22s linear infinite !important;
     will-change: background-position !important;
   }
 
   :root[data-visual-quality="lite"] .ambient-grid::before {
-    animation: data-particles 60s linear infinite !important;
-    will-change: transform !important;
+    animation: none !important;
+    will-change: auto !important;
   }
 
   :root[data-visual-quality="lite"] .ambient-grid::after {
-    animation: data-scan 22s cubic-bezier(.4, 0, .2, 1) infinite !important;
+    animation: data-scan-mobile 10s cubic-bezier(.35, 0, .15, 1) infinite !important;
     will-change: transform, opacity !important;
   }
 
   :root[data-visual-quality="lite"] .light-sweep::before {
-    animation: spectral-pass 34s cubic-bezier(.45, 0, .2, 1) infinite !important;
+    animation: spectral-pass-mobile 13s cubic-bezier(.42, 0, .18, 1) infinite !important;
     will-change: transform, opacity !important;
   }
 }
