@@ -4541,6 +4541,12 @@ button.day-title > svg {
   to { transform: translate3d(6px, 4px, 0) scale(1.045); }
 }
 
+/* Только transform/scale: оставляем «живой» фон героя на телефоне и в lite без тяжёлого ambient. */
+@keyframes visual-drift-lite {
+  from { transform: translate3d(-2px, -1px, 0) scale(1.01); }
+  to { transform: translate3d(3px, 2px, 0) scale(1.028); }
+}
+
 @keyframes progress-glow {
   0%, 100% { filter: saturate(1); }
   50% { filter: saturate(1.35) brightness(1.18); }
@@ -5575,7 +5581,6 @@ button.day-title > svg {
   }
 
   .brand-mark,
-  .hero-visual,
   .hero-sigil,
   .status-pill,
   .section-icon,
@@ -5583,6 +5588,12 @@ button.day-title > svg {
   .empty-state svg {
     animation: none;
     will-change: auto;
+  }
+
+  /* Фото героя: лёгкий drift вместо полного static (ambient по-прежнему off). */
+  .hero-visual {
+    animation: visual-drift-lite 24s ease-in-out infinite alternate;
+    will-change: transform;
   }
 
   .hero-card::before {
@@ -7410,7 +7421,6 @@ button.day-title > svg {
 :root[data-visual-quality="lite"] .ambient-grid,
 :root[data-visual-quality="lite"] .light-sweep,
 :root[data-visual-quality="lite"] .hero-card::before,
-:root[data-visual-quality="lite"] .hero-visual,
 :root[data-visual-quality="lite"] .hero-sigil,
 :root[data-visual-quality="lite"] .status-pill,
 :root[data-visual-quality="lite"] .week-chip::after,
@@ -7444,6 +7454,11 @@ button.day-title > svg {
 
 :root[data-visual-quality="lite"] .motion-scene {
   display: none;
+}
+
+:root[data-visual-quality="lite"] .hero-visual {
+  animation: visual-drift-lite 26s ease-in-out infinite alternate !important;
+  will-change: transform !important;
 }
 
 :root[data-visual-quality="lite"] .ambient-grid::before,

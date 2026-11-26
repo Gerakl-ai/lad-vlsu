@@ -1,0 +1,29 @@
+---
+description: Лад ВлГУ — overlay Критик/Креатор (глобально critic-creator-core в personal store)
+alwaysApply: false
+globs:
+  - src/**
+  - public/**
+  - scripts/**
+  - data/**
+  - docs/**
+  - artifacts/**
+  - AGENTS.md
+---
+
+# Критик и Креатор (Лад ВлГУ)
+
+Глобально: personal skill **critic-creator-core**.  
+В этом репо: skill `lad-critic-creator` в `.cursor/skills/lad-critic-creator/SKILL.md`.
+
+На **серьёзной** работе:
+
+1. Прочитай skill и определи: встроенный критик или субагент Task (крупный дифф / релиз).
+2. После правок — **Impact pass** (смежные экраны/данные/SW из goal), затем критик; без этого не «готово».
+3. Перед `UpdateGoal complete` — критик без blockers, evidence из репо/команд/прода.
+4. В ответе при волнах A/B/C+: **Критик → Креатор → Impact → сделано** (3–8 строк).
+5. UI-изменения: **1920, 2560, 3440**; time-grid только **≥3440px**.
+6. Деплой — только по явному запросу или `/goal` с продом; после push — measure на germanpolkin.
+7. `/goal` — шаблон `GOAL-TEMPLATE.md` в personal store (радиус влияния обязателен).
+
+Мелкие правки без skill — не раздувать отчёт.

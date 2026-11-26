@@ -165,4 +165,16 @@ node scripts/qa-desktop-surfaces.cjs
 
 ---
 
-*Отчёт переписан 25.11.2026 вечер — финал волны A, static-only Pages, прод-аудит, исправление SW preload.*
+## 9. Процесс: Критик / Креатор (волна E)
+
+Зафиксирован постоянный цикл для серьёзных задач агента (не разовый чат).
+
+### Critic→Creator (кратко)
+
+- **Критик:** без skill агент может закрыть goal без прода/viewport evidence; отдельный раунд критика обязателен на UI/data/SW.
+- **Креатор:** таблица gate в skill + `scripts/lad-critic-gate-preflight.cjs` по `git diff`.
+- **Evidence:** skill `.cursor/skills/lad-critic-creator/SKILL.md`, rule `.cursor/rules/lad-critic-creator.mdc`, `docs/CRITIC-CREATOR-WORKFLOW.md`, секции в `AGENTS.md` и `docs/CONTINUOUS-IMPROVEMENT.md`; `node --check` preflight — ok.
+
+---
+
+*Отчёт переписан 25.11.2026 вечер — финал волны A, static-only Pages, прод-аудит, исправление SW preload; волна E — Critic/Creator.*

@@ -86,7 +86,21 @@ const tabs = ['Сегодня', 'Неделя', 'Записи', 'Настрой�
       });
       assert.equal(layout.documentWidth, layout.viewportWidth, `${tab} document overflowed horizontally: ${JSON.stringify(layout)}`);
       assert.ok(layout.contentScrollWidth <= layout.contentWidth + 1, `${tab} content overflowed horizontally: ${JSON.stringify(layout)}`);
-      assert.deepEqual(layout.continuousAnimations, [], `${tab} retained decorative infinite animations in lite mode: ${JSON.stringify(layout.continuousAnimations)}`);
+      const heroPhotoAnimations = new Set([
+        'visual-drift',
+        'visual-drift-lite',
+        'landscape-backdrop-breathe',
+        'landscape-visual-breathe',
+      ]);
+      const decorativeInfinite = layout.continuousAnimations.filter((entry) => {
+        if (!heroPhotoAnimations.has(entry.animation)) return true;
+        return !/hero-visual/i.test(entry.selector);
+      });
+      assert.deepEqual(
+        decorativeInfinite,
+        [],
+        `${tab} retained decorative infinite animations in lite mode: ${JSON.stringify({ decorativeInfinite, all: layout.continuousAnimations })}`,
+      );
       if (tab === 'Записи') {
         const noteMotion = await page.evaluate(() => [...window.__tabMotionHistory].reverse().find((entry) => entry.selector === '.notes-view'));
         assert.equal(noteMotion?.duration, 300, `Notes should use the lightweight shared transition: ${JSON.stringify(noteMotion)}`);
