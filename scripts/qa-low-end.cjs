@@ -89,10 +89,13 @@ const tabs = ['Сегодня', 'Неделя', 'Записи', 'Настрой�
       const heroPhotoAnimations = new Set([
         'visual-drift',
         'visual-drift-lite',
+        'visual-drift-mobile',
         'landscape-backdrop-breathe',
         'landscape-visual-breathe',
       ]);
+      const allowedLiteAmbient = new Set(['ambient-shift']);
       const decorativeInfinite = layout.continuousAnimations.filter((entry) => {
+        if (allowedLiteAmbient.has(entry.animation) && /\.light-sweep/i.test(entry.selector)) return false;
         if (!heroPhotoAnimations.has(entry.animation)) return true;
         return !/hero-visual/i.test(entry.selector);
       });

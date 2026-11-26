@@ -1477,8 +1477,10 @@ function TodayView({
             }}>{savedScheduleDate ? "Открыть сохранённые занятия" : "Выбрать дату"} <ChevronRight size={17} /></button>
           </section>
         ) : <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
-          <img className="hero-visual hero-visual-backdrop" src={heroVisual} alt="" aria-hidden="true" />
-          <img className="hero-visual hero-visual-fit" src={heroVisual} alt="" aria-hidden="true" />
+          <div className="hero-visual-stage" aria-hidden="true">
+            <img className="hero-visual hero-visual-backdrop" src={heroVisual} alt="" aria-hidden="true" />
+            <img className="hero-visual hero-visual-fit" src={heroVisual} alt="" aria-hidden="true" />
+          </div>
           <div className="hero-sigil" aria-hidden="true">
             <span>{hero.sigilLabel}</span>
             <strong>{hero.sigilValue}</strong>

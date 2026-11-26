@@ -1320,9 +1320,21 @@ select,
   animation: cinematic-sheen 10s cubic-bezier(.4,0,.2,1) infinite;
 }
 
-.hero-visual {
+/* Safari/iOS плохо крутит transform на <img>; движение на обёртке. */
+.hero-visual-stage {
   position: absolute;
   z-index: 0;
+  inset: -14%;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  transform-origin: center right;
+  animation: visual-drift 14s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.hero-visual {
+  position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -1332,7 +1344,7 @@ select,
   pointer-events: none;
   mix-blend-mode: normal;
   filter: saturate(0.92) contrast(1.08) brightness(0.82);
-  animation: visual-drift 14s ease-in-out infinite alternate;
+  animation: none;
 }
 
 .hero-visual-fit {
@@ -4547,6 +4559,12 @@ button.day-title > svg {
   to { transform: translate3d(3px, 2px, 0) scale(1.028); }
 }
 
+/* Телефон: заметнее, чем lite, без тяжёлого ambient. */
+@keyframes visual-drift-mobile {
+  from { transform: translate3d(-8px, -5px, 0) scale(1.035); }
+  to { transform: translate3d(10px, 6px, 0) scale(1.075); }
+}
+
 @keyframes progress-glow {
   0%, 100% { filter: saturate(1); }
   50% { filter: saturate(1.35) brightness(1.18); }
@@ -5204,11 +5222,15 @@ button.day-title > svg {
     padding: 14px 15px 13px;
   }
 
+  .today-primary .hero-visual-stage {
+    animation: landscape-backdrop-breathe 10s ease-in-out infinite alternate;
+  }
+
   .today-primary .hero-visual-backdrop {
     object-fit: cover;
     object-position: center right;
     transform: scale(1.06);
-    animation: landscape-backdrop-breathe 10s ease-in-out infinite alternate;
+    animation: none;
   }
 
   .today-primary .hero-visual-fit {
@@ -5218,7 +5240,7 @@ button.day-title > svg {
     transform: scale(.985);
     transform-origin: center;
     mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
-    animation: landscape-visual-breathe 8s ease-in-out infinite alternate;
+    animation: none;
   }
 
   .today-primary .hero-sigil {
@@ -5550,9 +5572,14 @@ button.day-title > svg {
   .phone-frame::before,
   .ambient-grid,
   .ambient-grid::before,
-  .light-sweep,
+  .light-sweep::before,
   .light-sweep::after {
     animation: none;
+  }
+
+  .light-sweep {
+    animation: ambient-shift 22s ease-in-out infinite alternate;
+    will-change: transform;
   }
 
   .ambient-grid::after,
@@ -5561,10 +5588,6 @@ button.day-title > svg {
   .data-gate,
   .motion-particles i:nth-child(n + 4) {
     display: none;
-  }
-
-  .light-sweep::before {
-    animation-duration: 34s;
   }
 
   .data-route-a {
@@ -5590,10 +5613,13 @@ button.day-title > svg {
     will-change: auto;
   }
 
-  /* Фото героя: лёгкий drift вместо полного static (ambient по-прежнему off). */
-  .hero-visual {
-    animation: visual-drift-lite 24s ease-in-out infinite alternate;
+  .hero-visual-stage {
+    animation: visual-drift-mobile 18s ease-in-out infinite alternate;
     will-change: transform;
+  }
+
+  .hero-visual {
+    animation: none;
   }
 
   .hero-card::before {
@@ -7419,7 +7445,6 @@ button.day-title > svg {
 :root[data-visual-quality="lite"] .motion-particles i,
 :root[data-visual-quality="lite"] .today-date-launch::after,
 :root[data-visual-quality="lite"] .ambient-grid,
-:root[data-visual-quality="lite"] .light-sweep,
 :root[data-visual-quality="lite"] .hero-card::before,
 :root[data-visual-quality="lite"] .hero-sigil,
 :root[data-visual-quality="lite"] .status-pill,
@@ -7456,9 +7481,23 @@ button.day-title > svg {
   display: none;
 }
 
-:root[data-visual-quality="lite"] .hero-visual {
-  animation: visual-drift-lite 26s ease-in-out infinite alternate !important;
+:root[data-visual-quality="lite"] .light-sweep {
+  animation: ambient-shift 26s ease-in-out infinite alternate !important;
   will-change: transform !important;
+}
+
+:root[data-visual-quality="lite"] .light-sweep::before,
+:root[data-visual-quality="lite"] .light-sweep::after {
+  animation: none !important;
+}
+
+:root[data-visual-quality="lite"] .hero-visual-stage {
+  animation: visual-drift-mobile 22s ease-in-out infinite alternate !important;
+  will-change: transform !important;
+}
+
+:root[data-visual-quality="lite"] .hero-visual {
+  animation: none !important;
 }
 
 :root[data-visual-quality="lite"] .ambient-grid::before,
